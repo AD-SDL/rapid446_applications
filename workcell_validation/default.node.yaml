@@ -1,0 +1,7 @@
+node_name: test_app
+node_id: 01KACHQGQSZE9HCAAY5HYTTBF9
+node_description: null
+node_type: device
+module_name: test_app
+module_version: 0.0.1
+capabilities: null

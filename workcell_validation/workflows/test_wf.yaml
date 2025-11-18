@@ -1,0 +1,155 @@
+name: Test Workflow
+
+metadata:
+  author: Casey Stone
+  info: A Test Workflow
+  version: 0.1
+
+parameters:
+  json_inputs:
+    - key: bmg_output_filename
+  file_inputs:
+    - key: ot2_protocol
+
+steps:
+  # - name: Transfer Plate
+  #   node: pf400_piper
+  #   action: transfer
+  #   args:
+  #     source_plate_rotation: wide
+  #     target_plate_rotation: wide
+  #   locations:
+  #     source: exchange_deck_high_wide
+  #     target: ot2_spongebob_deck1_wide
+  #     source_approach: safe_path_exchange
+  #     target_approach: safe_path_ot2_spongebob
+
+  # - name: Run OT-2 Test
+  #   node: ot2_spongebob
+  #   action: run_protocol
+  #   files:
+  #     protocol: ot2_protocol
+
+  # - name: Transfer Plate
+  #   node: pf400_piper
+  #   action: transfer
+  #   args:
+  #     source_plate_rotation: wide
+  #     target_plate_rotation: wide
+  #   locations:
+  #     source: ot2_spongebob_deck1_wide
+  #     target: ot2_patrick_deck1_wide
+  #     source_approach: safe_path_ot2_spongebob
+  #     target_approach: safe_path_ot2_patrick
+
+  # - name: Run OT-2 Test   # TODO: run something that works
+  #   node: ot2_patrick
+  #   action: run_protocol
+  #   files:
+  #     protocol: ot2_protocol
+
+  # - name: Transfer Plate
+  #   node: pf400_piper
+  #   action: transfer
+  #   args:
+  #     source_plate_rotation: wide
+  #     target_plate_rotation: wide
+  #   locations:
+  #     source: ot2_patrick_deck1_wide
+  #     target: exchange_deck_high_wide
+  #     source_approach: safe_path_ot2_patrick
+  #     target_approach: safe_path_exchange
+
+  # - name: Open BMG
+  #   node: bmg_billy
+  #   action: open
+
+  # - name: Transfer Plate
+  #   node: pf400_piper
+  #   action: transfer
+  #   args:
+  #     source_plate_rotation: narrow
+  #     target_plate_rotation: narrow
+  #   locations:
+  #     source: exchange_deck_low_narrow
+  #     target: bmg_reader_nest
+  #     source_approach: safe_path_exchange
+  #     target_approach: safe_path_bmg
+
+  #   # close BMG tray
+  # - name: close BMG
+  #   node: bmg_billy
+  #   action: close
+
+  # # run BMG assay   # TODO: switch to take output folder argument here!
+  # - name: Run BMG absorbance assay
+  #   node: bmg_billy
+  #   action: run_assay
+  #   args:
+  #     assay_name: NIDHI
+  #     data_output_file_name: bmg_output_filename
+
+  - name: Open BMG
+    node: bmg_billy
+    action: open
+
+  - name: Transfer Plate
+    node: pf400_piper
+    action: transfer
+    args:
+      source_plate_rotation: narrow
+      target_plate_rotation: narrow
+    locations:
+      source: bmg_reader_nest
+      target: exchange_deck_low_narrow
+      source_approach: safe_path_bmg
+      target_approach: safe_path_exchange
+
+  - name: Open Inheco Irene SF0
+    node: inheco_irene_2.0
+    action: open
+
+  - name: Transfer Plate
+    node: pf400_piper
+    action: transfer
+    args:
+      source_plate_rotation: narrow
+      target_plate_rotation: narrow
+    locations:
+      source: exchange_deck_low_narrow
+      target: inheco_devID2_floor0_nest
+      source_approach: safe_path_exchange
+      target_approach: safe_path_inheco_dev2
+
+  - name: Close Inheco Irene
+    node: inheco_irene_2.0
+    acion: close
+
+  - name: Set temperature Inheco Irene
+    node: inheco_irene_2.0
+    action: set_temperature
+    args:
+      temperature: 30
+      activate: True
+
+  - name: Incubate on Inheco Irene
+    node: inheco_irene_2.0
+    action: incubate
+    args:
+      incubation_time: 30
+      shaker_frequency: 10
+      temperature: 30
+      wait_for_incubation_time: True
+
+
+
+
+
+
+
+
+
+
+
+
+
