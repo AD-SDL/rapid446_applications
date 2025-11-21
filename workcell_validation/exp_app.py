@@ -35,7 +35,10 @@ class ExampleApp(ExperimentApplication):
 
         workflow = self.workcell_client.submit_workflow(
             test_workflow.resolve(),
-            json_inputs={"bmg_output_filename": "test_data.txt"},
+            json_inputs={
+                "bmg_output_directory_path": "C:\\ProgramFiles (x86)\\BMG\\CLARIOstar\\User\\Data",
+                "bmg_output_filename": "test_data.txt"
+            },
             file_inputs={"ot2_protocol": test_ot2_protocol.resolve()},
         )
 
