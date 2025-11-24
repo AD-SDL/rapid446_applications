@@ -38,7 +38,8 @@ class ExampleApp(ExperimentApplication):
             json_inputs={
                 "bmg_assay_name": "Absorbance_Test",
                 "bmg_data_file_name": f"workcell_validation_{int(time.time())}.txt",
-                "data_output_directory_path": "C:\\Users\\RPL\\DEMO"
+                "data_output_directory_path": "C:\\Users\\RPL\\DEMO",
+                "hidex_assay_name": "Absorbance_Workcell_Validation"
             },
             file_inputs={"ot2_protocol": test_ot2_protocol.resolve()},
         )

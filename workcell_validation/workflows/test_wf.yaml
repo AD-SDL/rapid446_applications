@@ -10,6 +10,7 @@ parameters:
     - key: bmg_assay_name
     - key: bmg_data_file_name
     - key: data_output_directory_path
+    - key: hidex_assay_name
   file_inputs:
     - key: ot2_protocol
 
@@ -79,12 +80,6 @@ steps:
     action: run_protocol
     files:
       protocol: ot2_protocol
-
-  - name: Transfer Plate
-    node: pf400_piper
-    action: transfer
-    args:
-      source_plate_rotation: wide
       target_plate_rotation: wide
     locations:
       source: ot2_patrick_deck1_wide
@@ -137,6 +132,53 @@ steps:
       target: exchange_deck_low_narrow
       source_approach: safe_path_bmg
       target_approach: safe_path_exchange
+
+  - name: close BMG
+    node: bmg_billy
+    action: close
+
+  # HIDEX --------------  # WORKING
+  - name: Open Hidex
+    node: hidex_geraldine
+    action: open
+
+  - name: Transfer to Hidex
+    node: pf400_piper
+    action: transfer
+    args:
+      source_plate_rotation: narrow
+      target_plate_rotation: narrow
+    locations:
+      source: exchange_deck_low_narrow
+      target: hidex_geraldine_low_nest
+      source_approach: safe_path_exchange
+      target_approach: safe_path_hidex
+
+  - name: Run assay
+    node: hidex_geraldine
+    action: run_assay
+    args:
+      wait_for_result: True
+    params:
+      args:
+        assay_name: hidex_assay_name
+
+  - name: Open Hidex
+    node: hidex_geraldine
+    action: open
+
+  - name: Transfer to Exchange
+    node: pf400_piper
+    action: transfer
+    args:
+      source_plate_rotation: narrow
+      target_plate_rotation: narrow
+    locations:
+      source: hidex_geraldine_low_nest
+      target: exchange_deck_low_narrow
+      source_approach: safe_path_hidex
+      target_approach: safe_path_exchange
+
 
   # INHECO IRENE SF0 --------------  # WORKING
   - name: Open Inheco Irene SF0
