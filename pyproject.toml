@@ -8,9 +8,9 @@ authors = [
     {name = "Ryan D. Lewis", email="ryan.lewis@anl.gov"},
 ]
 dependencies = [
-    "madsci.client~=0.5.0",
-    "madsci.common~=0.5.0",
-    "madsci.experiment_application~=0.5.0",
+    "madsci.client~=0.5.4",
+    "madsci.common~=0.5.4",
+    "madsci.experiment_application~=0.5.4",
 ]
 requires-python = ">=3.9.1"
 readme = "README.md"

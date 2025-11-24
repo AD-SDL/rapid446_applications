@@ -19,7 +19,6 @@ steps:
   # TODO: SCICLOPS
 
   # TOWERS AND REMOVE LID --------  # WORKING
-  # Get new plate with lid from tower
   - name: Get new flat bottom plate
     node: pf400_piper
     action: transfer
@@ -27,9 +26,9 @@ steps:
       source_plate_rotation: narrow
       target_plate_rotation: narrow
     locations:
-      source: tower_deck1
-      target: exchange_deck_low_narrow
-      source_approach: safe_path_tower_deck1
+      source: tower_nest1
+      target: exchange_nest_low_narrow
+      source_approach: safe_path_tower_nest1
       target_approach: safe_path_exchange
 
   - name: Remove lid to LidNest
@@ -39,7 +38,7 @@ steps:
       source_plate_rotation: wide
       target_plate_rotation: wide
     locations:
-      source: exchange_deck_low_wide
+      source: exchange_nest_low_wide
       target: lidnest_1_wide
       source_approach: safe_path_exchange
       target_approach: safe_path_lidnest_1
@@ -52,8 +51,8 @@ steps:
       source_plate_rotation: wide
       target_plate_rotation: wide
     locations:
-      source: exchange_deck_high_wide
-      target: ot2_spongebob_deck1_wide
+      source: exchange_nest_high_wide
+      target: ot2_spongebob_nest1_wide
       source_approach: safe_path_exchange
       target_approach: safe_path_ot2_spongebob
 
@@ -70,8 +69,8 @@ steps:
       source_plate_rotation: wide
       target_plate_rotation: wide
     locations:
-      source: ot2_spongebob_deck1_wide
-      target: ot2_patrick_deck1_wide
+      source: ot2_spongebob_nest1_wide
+      target: ot2_patrick_nest1_wide
       source_approach: safe_path_ot2_spongebob
       target_approach: safe_path_ot2_patrick
 
@@ -80,10 +79,16 @@ steps:
     action: run_protocol
     files:
       protocol: ot2_protocol
+
+  - name: Transfer Plate
+    node: pf400_piper
+    action: transfer
+    args:
+      source_plate_rotation: wide
       target_plate_rotation: wide
     locations:
-      source: ot2_patrick_deck1_wide
-      target: exchange_deck_high_wide
+      source: ot2_patrick_nest1_wide
+      target: exchange_nest_high_wide
       source_approach: safe_path_ot2_patrick
       target_approach: safe_path_exchange
 
@@ -99,7 +104,7 @@ steps:
       source_plate_rotation: narrow
       target_plate_rotation: narrow
     locations:
-      source: exchange_deck_low_narrow
+      source: exchange_nest_low_narrow
       target: bmg_reader_nest
       source_approach: safe_path_exchange
       target_approach: safe_path_bmg
@@ -129,7 +134,7 @@ steps:
       target_plate_rotation: narrow
     locations:
       source: bmg_reader_nest
-      target: exchange_deck_low_narrow
+      target: exchange_nest_low_narrow
       source_approach: safe_path_bmg
       target_approach: safe_path_exchange
 
@@ -149,7 +154,7 @@ steps:
       source_plate_rotation: narrow
       target_plate_rotation: narrow
     locations:
-      source: exchange_deck_low_narrow
+      source: exchange_nest_low_narrow
       target: hidex_geraldine_low_nest
       source_approach: safe_path_exchange
       target_approach: safe_path_hidex
@@ -175,10 +180,9 @@ steps:
       target_plate_rotation: narrow
     locations:
       source: hidex_geraldine_low_nest
-      target: exchange_deck_low_narrow
+      target: exchange_nest_low_narrow
       source_approach: safe_path_hidex
       target_approach: safe_path_exchange
-
 
   # INHECO IRENE SF0 --------------  # WORKING
   - name: Open Inheco Irene SF0
@@ -192,7 +196,7 @@ steps:
       source_plate_rotation: narrow
       target_plate_rotation: narrow
     locations:
-      source: exchange_deck_low_narrow
+      source: exchange_nest_low_narrow
       target: inheco_devID2_floor0_nest
       source_approach: safe_path_exchange
       target_approach: safe_path_inheco_dev2
@@ -229,7 +233,7 @@ steps:
       target_plate_rotation: narrow
     locations:
       source: inheco_devID2_floor0_nest
-      target: exchange_deck_low_narrow
+      target: exchange_nest_low_narrow
       source_approach: safe_path_inheco_dev2
       target_approach: safe_path_exchange
 
@@ -256,7 +260,7 @@ steps:
       source_plate_rotation: narrow
       target_plate_rotation: narrow
     locations:
-      source: exchange_deck_low_narrow
+      source: exchange_nest_low_narrow
       target: inheco_devID2_floor1_nest
       source_approach: safe_path_exchange
       target_approach: safe_path_inheco_dev2
@@ -293,7 +297,7 @@ steps:
       target_plate_rotation: narrow
     locations:
       source: inheco_devID2_floor1_nest
-      target: exchange_deck_low_narrow
+      target: exchange_nest_low_narrow
       source_approach: safe_path_inheco_dev2
       target_approach: safe_path_exchange
 
@@ -317,7 +321,7 @@ steps:
       target_plate_rotation: wide
     locations:
       source: lidnest_1_wide
-      target: exchange_deck_low_wide
+      target: exchange_nest_low_wide
       source_approach: safe_path_lidnest_1
       target_approach: safe_path_exchange
 
@@ -328,10 +332,10 @@ steps:
       source_plate_rotation: narrow
       target_plate_rotation: narrow
     locations:
-      source: exchange_deck_low_narrow
-      target: tower_deck1
+      source: exchange_nest_low_narrow
+      target: tower_nest1
       source_approach: safe_path_exchange
-      target_approach: safe_path_tower_deck1
+      target_approach: safe_path_tower_nest1
 
   # SEALER ---------------- # WORKING
   - name: Get new pcr plate from tower
@@ -341,9 +345,9 @@ steps:
       source_plate_rotation: narrow
       target_plate_rotation: narrow
     locations:
-      source: tower_deck2
-      target: exchange_deck_low_narrow
-      source_approach: safe_path_tower_deck2
+      source: tower_nest2
+      target: exchange_nest_low_narrow
+      source_approach: safe_path_tower_nest2
       target_approach: safe_path_exchange
 
   - name: Transfer to Sealer
@@ -353,14 +357,14 @@ steps:
       source_plate_rotation: narrow
       target_plate_rotation: narrow
     locations:
-      source: exchange_deck_high_narrow
+      source: exchange_nest_high_narrow
       target: sealer_nest
       source_approach: safe_path_exchange
       target_approach: safe_path_sealer
 
-  - name: Seal
-    node: sealer_sassy
-    action: seal
+  # - name: Seal
+  #   node: sealer_sassy
+  #   action: seal
 
   - name: Transfer to Exchange
     node: pf400_piper
@@ -370,7 +374,7 @@ steps:
       target_plate_rotation: narrow
     locations:
       source: sealer_nest
-      target: exchange_deck_high_narrow
+      target: exchange_nest_high_narrow
       source_approach: safe_path_sealer
       target_approach: safe_path_exchange
 
@@ -382,14 +386,14 @@ steps:
       source_plate_rotation: narrow
       target_plate_rotation: narrow
     locations:
-      source: exchange_deck_low_narrow
+      source: exchange_nest_low_narrow
       target: peeler_nest
       source_approach: safe_path_exchange
       target_approach: safe_path_peeler
 
-  - name: Peel
-    node: peeler_penelope
-    action: peel
+  # - name: Peel
+  #   node: peeler_penelope
+  #   action: peel
 
   - name: Transfer to Exchange
     node: pf400_piper
@@ -399,7 +403,7 @@ steps:
       target_plate_rotation: narrow
     locations:
       source: peeler_nest
-      target: exchange_deck_low_narrow
+      target: exchange_nest_low_narrow
       source_approach: safe_path_peeler
       target_approach: safe_path_exchange
 
@@ -407,7 +411,7 @@ steps:
 
   # # TODO: BIOMETRA TROBOT II THERMOCYCLERS
 
-  # # RETURN PCR PLATE TO TOWER DECK 2  ------------ # WORKING
+  # # RETURN PCR PLATE TO TOWER NEST 2  ------------ # WORKING
   - name: Transfer to Tower slot 2
     node: pf400_piper
     action: transfer
@@ -415,10 +419,10 @@ steps:
       source_plate_rotation: narrow
       target_plate_rotation: narrow
     locations:
-      source: exchange_deck_low_narrow
-      target: tower_deck2
+      source: exchange_nest_low_narrow
+      target: tower_nest2
       source_approach: safe_path_exchange
-      target_approach: safe_path_tower_deck2
+      target_approach: safe_path_tower_nest2
 
 
 
