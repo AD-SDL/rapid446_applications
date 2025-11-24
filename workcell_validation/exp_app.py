@@ -8,6 +8,7 @@ from madsci.experiment_application import (
 )
 from pydantic import AnyUrl
 from pathlib import Path
+import time
 
 
 class ExampleApp(ExperimentApplication):
@@ -17,7 +18,6 @@ class ExampleApp(ExperimentApplication):
         experiment_name="Example_App",
     )
     config = ExperimentApplicationConfig(node_url=AnyUrl("http://localhost:6000"))
-    # lab_server_url = "http://localhost:8000"
 
     def run_experiment(self) -> None:
         """main experiment function"""
@@ -36,8 +36,9 @@ class ExampleApp(ExperimentApplication):
         workflow = self.workcell_client.submit_workflow(
             test_workflow.resolve(),
             json_inputs={
-                "bmg_output_directory_path": "C:\\ProgramFiles (x86)\\BMG\\CLARIOstar\\User\\Data",
-                "bmg_output_filename": "test_data.txt"
+                "bmg_assay_name": "Absorbance_Test",
+                "bmg_data_file_name": f"workcell_validation_{int(time.time())}.txt",
+                "data_output_directory_path": "C:\\Users\\RPL\\DEMO"
             },
             file_inputs={"ot2_protocol": test_ot2_protocol.resolve()},
         )
@@ -46,7 +47,7 @@ class ExampleApp(ExperimentApplication):
 if __name__ == "__main__":
     app = ExampleApp(
         node_definition=NodeDefinition(
-            node_name="test_app", module_name="test_app"
+            node_name="workcell_validation_app", module_name="workcell_validation_app"
         )
     )
     app.start_app()
