@@ -1,0 +1,20 @@
+name: Run OT-2 Protocol WF
+
+metadata:
+  author: Casey Stone
+  info: Workflow for running one OT-2 protocol from payload
+  version: '0.1'
+
+parameters:
+  file_inputs:
+    - key: ot2_protocol
+
+steps:
+  # Run OT-2 inoculation protocol
+  - name: Run OT-2 protocol
+    module: ot2_spongebob
+    action: run_protocol
+    args:
+      use_existing_resources: False
+    files:
+      protocol: ot2_protocol

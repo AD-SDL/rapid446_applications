@@ -1,0 +1,92 @@
+name: Get new plate from tower, take contam BMG reading WF
+
+metadata:
+  author: Casey Stone
+  info: Workflow for getting a new substrate plate from the tower and taking initial contamination reading
+  version: '0.1'
+
+parameters:
+  json_inputs:
+    - key: bmg_data_file_name
+    - key: data_output_directory_path
+    - key: lid_location
+    - key: lid_safe_path
+    - key: current_tower_nest
+    - key: current_tower_nest_safe_path
+
+steps:
+  # Get new plate from current tower nest
+  - name: transfer from tower to exchange
+    node: pf400_piper
+    action: transfer
+    args:
+      source_plate_rotation: narrow
+      target_plate_rotation: narrow
+    locations:
+      target: exchange_nest_low_narrow
+      target_approach: safe_path_exchange
+    params:
+      locations:
+        source: current_tower_nest
+        source_approach: current_tower_nest_safe_path
+
+  # Remove lid
+  - name: remove lid
+    node: pf400_piper
+    action: remove_lid
+    args:
+      source_plate_rotation: wide
+      target_plate_rotation: wide
+      lid_height: 8
+    locations:
+      source: exchange_nest_low_wide
+      source_approach: safe_path_exchange
+    params:
+      locations:
+        target: lid_location
+        target_approach: lid_safe_path
+
+  # Open BMG tray
+  - name: open bmg
+    node: bmg_billy
+    action: open
+
+  # Transfer from exchange to BMG
+  - name: transfer plate without lid to bmg nest
+    node: pf400_piper
+    action: transfer
+    args:
+      source_plate_rotation: narrow
+      target_plate_rotation: narrow
+    locations:
+      source: exchange_nest_low_narrow
+      target: bmg_reader_nest
+      source_approach: safe_path_exchange
+      target_approach: safe_path_bmg
+
+  # Close BMG tray
+  - name: close bmg
+    node: bmg_billy
+    action: close
+
+  # Run BMG assay
+  - name: run BMG absorbance assay
+    node: bmg_billy
+    action: run_assay
+    args:
+      assay_name: NIDHI
+    params:
+      args:
+        data_output_file_name: bmg_data_output_name
+        data_output_directory_path: data_output_directory_path
+
+  # Open BMG tray
+  - name: open bmg
+    node: bmg_billy
+    action: open
+
+
+
+
+
+

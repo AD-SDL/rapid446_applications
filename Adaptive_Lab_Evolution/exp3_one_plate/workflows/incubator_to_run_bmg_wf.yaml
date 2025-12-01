@@ -1,0 +1,100 @@
+name: Transfer to from incubator to BMG and take reading WF
+
+metadata:
+  author: Casey Stone
+  info: Workflow for transferring from incubator to BMG then taking an absorbance reading
+  version: 0.1
+
+parameters:
+  json_inputs:
+    - key: incubator_location
+    - key: lid_location
+    - key: lid_safe_path
+    - key: bmg_data_output_name
+    - key: data_output_directory_path
+
+steps:
+  # Open BMG
+  - name: open BMG
+    node: bmg_billy
+    action: open
+
+  # Open incubator
+  - name: open incubator
+    node: inheco_irene_2.0
+    action: open
+
+  # Transfer from incubator to exchange
+  - name: transfer to exchange
+    node: pf400_piper
+    action: transfer
+    args:
+      source_plate_rotation: narrow
+      target_plate_rotation: narrow
+    locations:
+      target: exchange_nest_low_narrow
+      source_approach: safe_path_inheco_dev2
+      target_approach: safe_path_exchange
+    params:
+      locations:
+        source: incubator_location
+
+  # Close incubator
+  - name: close incubator
+    node: inheco_irene_2.0
+    action: close
+
+  # Remove the lid to lid nest
+  - name: remove lid from plate on exchange
+    node: pf400_piper
+    action: remove_lid
+    args:
+      source_plate_rotation: wide
+      target_plate_rotation: wide
+      lid_height: 8
+    locations:
+      source: exchange_nest_low_wide
+      source_approach: safe_path_exchange
+    params:
+      locations:
+        target: lid_location
+        target_approach: lid_safe_path
+
+  # Transfer from exchange to BMG
+  - name: transfer plate without lid to BMG nest
+    node: pf400_piper
+    action: transfer
+    args:
+      source_plate_rotation: narrow
+      target_plate_rotation: narrow
+    locations:
+      source: exchange_nest_low_narrow
+      target: bmg_reader_nest
+      source_approach: safe_path_exchange
+      target_approach: safe_path_bmg
+
+  # Close BMG tray
+  - name: close BMG
+    node: bmg_billy
+    action: close
+
+  # Close incubator
+  - name: close incubator
+    node: inheco_irene_2.0
+    action: close
+
+  # Run BMG assay
+  - name: Run BMG absorbance assay
+    node: bmg_billy
+    action: run_assay
+    args:
+      assay_name: NIDHI
+    params:
+      args:
+        data_output_file_name: bmg_data_output_name
+        data_output_directory_path: data_output_directory_path
+
+  # Open BMG tray
+  - name: open BMG
+    node: bmg_billy
+    action: open
