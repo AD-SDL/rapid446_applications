@@ -1,0 +1,184 @@
+name: Adaptive Lab Evolution - Demo Workflow
+
+metadata: 
+  author: Casey Stone
+  info: Demo Workflow
+  version: '0.1'
+
+parameters:
+  file_inputs:
+    - key: ot2_protocol
+
+
+steps:
+  # Start with plate with lid on exchange
+
+  # Remove the lid to lid nest 3
+  - name: remove lid from plate on exchange
+    node: pf400_piper
+    action: remove_lid
+    args:
+      source_plate_rotation: narrow
+      target_plate_rotation: narrow
+      lid_height: 8
+    locations: 
+      source: exchange_nest_low_narrow
+      target: lidnest_3_narrow
+      source_approach: safe_path_exchange
+      target_approach: safe_path_lidnest_3
+
+  # Transfer into OT-2 deck 1
+  - name: pf400 transfer
+    node: pf400_piper
+    action: transfer
+    args:
+      source_plate_rotation: wide
+      target_plate_rotation: wide
+    locations:
+      source: exchange_nest_high_narrow
+      target: ot2_spongebob_nest1_wide
+      source_approach: safe_path_exchange
+      target_approach: safe_path_ot2_spongebob
+
+  # Run OT-2 inoculation protocol
+  - name: Run OT-2 protocol
+    node: ot2_spongebob
+    action: run_protocol
+    files:
+      protocol: ot2_protocol
+
+  # Open BMG tray
+  - name: Open the BMG plate reader tray
+    node: bmg_billy
+    action: open
+
+  # Transfer plate from ot2 to exchange
+  - name: Transfer plate without lid to exchange location
+    node: pf400_piper
+    action: transfer
+    args:
+      source_plate_rotation: wide
+      target_plate_rotation: wide
+    locations:
+      source: ot2_spongebob_nest1_wide
+      target: exchange_nest_high_narrow
+      source_approach: safe_path_ot2_spongebob
+      target_approach: safe_path_exchange
+
+  # Transfer plate without lid to bmg nest
+  - name: Transfer plate without lid to bmg nest
+    node: pf400_piper
+    action: transfer
+    args:
+      source_plate_rotation: narrow
+      target_plate_rotation: narrow
+    locations:
+      source: exchange_nest_low_narrow
+      target: bmg_reader_nest
+      source_approach: safe_path_exchange
+      target_approach: safe_path_bmg
+
+  # Close BMG tray
+  - name: Close the BMG reader tray
+    node: bmg_billy
+    action: close
+
+  # Open BMG tray
+  - name: Open the BMG plate reader tray
+    node: bmg_billy
+    action: open
+
+  # Transfer from BMG to exchange
+  - name: Transfer plate without lid from bmg to exchange
+    node: pf400_piper
+    action: transfer
+    args:
+      source_plate_rotation: narrow
+      target_plate_rotation: narrow
+    locations:
+      source: bmg_reader_nest
+      target: exchange_nest_low_narrow
+      source_approach: safe_path_bmg
+      target_approach: safe_path_exchange
+
+  # Replace the lid
+  - name: replace lid
+    node: pf400_piper
+    action: replace_lid
+    args:
+      source_plate_rotation: narrow
+      target_plate_rotation: narrow
+      lid_height: 8
+    locations:
+      source: lidnest_3_narrow
+      target: exchange_nest_low_narrow
+      source_approach: safe_path_lidnest_3
+      target_approach: safe_path_exchange
+
+  # Open incubator
+  - name: open incubator
+    node: inheco_irene_2.0
+    action: open
+
+  # Transfer from exchange to incubator
+  - name: transfer
+    node: pf400_piper
+    action: transfer
+    args:
+      source_plate_rotation: narrow
+      target_plate_rotation: narrow
+    locations:
+      source: exchange_nest_low_narrow
+      target: inheco_devID2_floor0_nest
+      source_approach: safe_path_exchange
+      target_approach: safe_path_inheco_dev2
+
+  # Close incubator
+  - name: close incubator
+    node: inheco_irene_2.0
+    action: close
+
+  # Close BMG tray
+  - name: close bmg
+    node: bmg_billy
+    action: close
+
+  # Incubate for specified time
+  - name: run incubation
+    node: inheco_irene_2.0
+    action: incubate
+    args:
+      temperature: 30.0
+      shaker_frequency: 6.6
+      wait_for_incubation_time: True
+      incubation_time: 20
+
+  # Open incubator
+  - name: open incubator
+    node: inheco_irene_2.0
+    action: open
+
+  # Transfer to exchange
+  - name: transfer to exchange
+    node: pf400_piper
+    action: transfer
+    args:
+      source_plate_rotation: narrow
+      target_plate_rotation: narrow
+    locations:
+      source: inheco_devID2_floor0_nest
+      target: exchange_nest_low_narrow
+      source_approach: safe_path_inheco_dev2
+      target_approach: safe_path_exchange
+
+  # Close incubator
+  - name: close incubator
+    node: inheco_irene_2.0
+    action: close
+
+
+
+
+
+
+
