@@ -18,7 +18,7 @@ steps:
 
   # Transfer from exchange to incubator
   - name: transfer from exchange to incubator
-    node: biopf400
+    node: pf400_piper
     action: transfer
     args:
       source_plate_rotation: narrow
@@ -43,7 +43,7 @@ steps:
     args:
       temperature: 30.0
       shaker_frequency: 6.6
-      wait_for_incubation_time: False
+      wait_for_incubation_time: True
     params:
       args:
         incubation_time: incubation_seconds
