@@ -3,6 +3,7 @@
 
 from pathlib import Path
 
+import helper_functions
 from madsci.common.types.experiment_types import ExperimentDesign
 from madsci.common.types.node_types import NodeDefinition
 from madsci.experiment_application import (
@@ -11,37 +12,8 @@ from madsci.experiment_application import (
 )
 from pydantic import AnyUrl
 
-# from wei import ExperimentClient
-# from wei.types.experiment_types import CampaignDesign, ExperimentDesign
-# from wei.types.workflow_types import Workflow
 
-from ot2_offsets import ot2biobeta, ot2bioalpha
-import helper_functions
-import time
-import csv
-from datetime import datetime
-
-
-
-"""
-TODO:
-- FIX SLEEP TIMES -> How long to sleep after plate 1 stops circulating. Check inner and outer loops.
-- Improve comments (continue with numbering steps)
-- alter inoculation protocol to only drop tip the first transfer but replace tips the rest of the transfers
-- why does the pf400 move before sciclops remove lid is done?
-- does incubator prevent other communication during a incubation if counting down?
-- why is ot2bioalpha not connecting?
-- recalibrate bmg nest (small dropping sound needs to be fixed)
-- inheco logging
-- how to return accurate timestamps from bmg readings?
-
-"""
-
-# ==============================
-# MADSCI VERSION
-# ==============================
-
-class ExampleApp(ExperimentApplication):
+class DEMOApp(ExperimentApplication):
     """Demo Experiment Application"""
 
     experiment_design = ExperimentDesign(
@@ -93,18 +65,29 @@ class ExampleApp(ExperimentApplication):
 
         # edit the ot-2 protocol
         ot2_replacement_variables = helper_functions.collect_ot2_replacement_variables(payload)
+
+        print("TESTING: OT-2 replacement variables:", ot2_replacement_variables)
+
         temp_ot2_file_str = helper_functions.generate_ot2_protocol(demo_inoculate_ot2_protocol, ot2_replacement_variables)
+
+        print("TESTING: temp ot2 file str:", temp_ot2_file_str)
+
         payload["current_ot2_protocol"] = temp_ot2_file_str
+
+        temp_path = Path(payload["current_ot2_protocol"])
 
         # run the demo workflow
         workflow = self.workcell_client.submit_workflow(
             demo_workflow.resolve(),
-            file_inputs={"ot2_protocol": payload["current_ot2_protocol"].resolve()},
+            json_inputs={
+                "lid_location": "lidnest_3_narrow",
+            },
+            file_inputs={"ot2_protocol": temp_path.resolve()},
         )
 
 
 if __name__ == "__main__":
-    app = ExampleApp(
+    app = DEMOApp(
         node_definition=NodeDefinition(
             node_name="DEMO_app", module_name="DMEO_app"
         )
