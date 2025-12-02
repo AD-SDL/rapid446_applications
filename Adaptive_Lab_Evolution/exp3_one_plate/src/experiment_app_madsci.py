@@ -26,8 +26,11 @@ class ALEApp(ExperimentApplication):
     def run_experiment(self) -> None:
         """main experiment function"""
 
+        experiment_id = self.start_experiment_run()
+        print(f"Experiment ID: {experiment_id}")
+
         # DEFINE PATHS AND VARIABLES
-        # capture the expriment ID
+        # capture the experiment ID
         # experiment_id = experiment_client.experiment.experiment_id   # TODO: figure out how to get experiment ID
         experiment_label = "3"
 
@@ -124,63 +127,35 @@ class ALEApp(ExperimentApplication):
             ALL OTHER LOCATIONS: EMPTY
         """
 
-        # # 1. Move immediately into incubator with lid on for 10 hours -- WORKING
-        # workflow = self.workcell_client.submit_workflow(
-        #     exchange_to_run_incubator_wf.resolve(),
-        #     json_inputs={
-        #         "incubator_location": payload["incubator_location"],
-        #         "incubation_seconds": payload["incubation_seconds"],
-        #     },
-        # )
+        # 1. Move immediately into incubator with lid on for 10 hours -- WORKING
+        workflow = self.workcell_client.submit_workflow(
+            exchange_to_run_incubator_wf.resolve(),
+            json_inputs={
+                "incubator_location": payload["incubator_location"],
+                "incubation_seconds": payload["incubation_seconds"],
+            },
+        )
 
         # capture incubation start time
         incubation_start_time = time.time()
 
-        # # wait for incubation to finish
-        # if test_prints:
-        #     print("running 10 hour incubation")
-        # if run_robots:
-        #     while time.time() - incubation_start_time < payload["incubation_seconds"]:
-        #         print(
-        #             f"will continue in... {int(payload['incubation_seconds'] - (time.time() - incubation_start_time))} seconds"
-        #         )
-        #         time.sleep(5)  # 5 seconds
+        # wait for incubation to finish
+        if test_prints:
+            print("running 10 hour incubation")
+        if run_robots:
+            while time.time() - incubation_start_time < payload["incubation_seconds"]:
+                print(
+                    f"will continue in... {int(payload['incubation_seconds'] - (time.time() - incubation_start_time))} seconds"
+                )
+                time.sleep(5)  # 5 seconds
 
-        #         if time.time() - incubation_start_time >= payload["incubation_seconds"]:
-        #             print("Incubation complete.")
-        #             break
-
-        # TESTING
-        print("Experiment ID: ", self.experiment_design.experiment_name)
-
-        # # 2. Transfer plate 0 into bmg and take reading (plate0_T10)
-        # timestamp_now = int(datetime.now().timestamp())
-        # payload["bmg_data_output_name"] = (
-        #     f"{experiment_label}_{timestamp_now}_{experiment_id}_exp1_{plate_num}_T{reading_in_plate_num}.txt"
-        # )
-        # if run_robots:
-        #     run_info = experiment_client.start_run(
-        #         incubator_to_run_bmg_wf.resolve(),
-        #         payload=payload,
-        #         blocking=True,
-        #         simulate=False,
-        #     )
-        #     # write utc bmg timestamp to csv data file
-        #     helper_functions.write_timestamps_to_csv(
-        #         csv_directory_path=csv_data_directory,
-        #         experiment_id=experiment_id,
-        #         bmg_filename=payload["bmg_data_output_name"],
-        #         accurate_timestamp=run_info.steps[8].end_time,  # index 8 = bmg reading
-        #     )
-        #     if test_prints:
-        #         print(f"\twriting data to csv: {payload['bmg_data_output_name']}, with timestamp {run_info.steps[8].end_time}")
-        # else:
-        #     if test_prints:
-        #         print(f"\twriting data to csv: {payload['bmg_data_output_name']}")
+                if time.time() - incubation_start_time >= payload["incubation_seconds"]:
+                    print("Incubation complete.")
+                    break
 
 
 
-
+        self.end_experiment()
 
 if __name__ == "__main__":
     app = ALEApp(
