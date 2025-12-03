@@ -14,17 +14,17 @@ parameters:
     - key: data_output_directory_path
 
 steps:
-  # Open BMG
+  # 0. Open BMG
   - name: open BMG
     node: bmg_billy
     action: open
 
-  # Open incubator
+  # 1. Open incubator
   - name: open incubator
     node: inheco_irene_2.0
     action: open
 
-  # Transfer from incubator to exchange
+  # 2. Transfer from incubator to exchange
   - name: transfer to exchange
     node: pf400_piper
     action: transfer
@@ -39,12 +39,12 @@ steps:
       locations:
         source: incubator_location
 
-  # Close incubator
+  # 3. Close incubator
   - name: close incubator
     node: inheco_irene_2.0
     action: close
 
-  # Remove the lid to lid nest
+  # 4. Remove the lid to lid nest
   - name: remove lid from plate on exchange
     node: pf400_piper
     action: remove_lid
@@ -60,7 +60,7 @@ steps:
         target: lid_location
         target_approach: lid_safe_path
 
-  # Transfer from exchange to BMG
+  # 5. Transfer from exchange to BMG
   - name: transfer plate without lid to BMG nest
     node: pf400_piper
     action: transfer
@@ -73,17 +73,17 @@ steps:
       source_approach: safe_path_exchange
       target_approach: safe_path_bmg
 
-  # Close BMG tray
+  # 6. Close BMG tray
   - name: close BMG
     node: bmg_billy
     action: close
 
-  # Close incubator
+  # 7. Close incubator
   - name: close incubator
     node: inheco_irene_2.0
     action: close
 
-  # Run BMG assay
+  # 8. Run BMG assay
   - name: Run BMG absorbance assay
     node: bmg_billy
     action: run_assay
@@ -94,7 +94,7 @@ steps:
         data_output_file_name: bmg_data_output_name
         data_output_directory_path: data_output_directory_path
 
-  # Open BMG tray
+  # 9. Open BMG tray
   - name: open BMG
     node: bmg_billy
     action: open
