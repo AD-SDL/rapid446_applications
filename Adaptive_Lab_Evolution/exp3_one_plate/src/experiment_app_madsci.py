@@ -77,7 +77,7 @@ class ALEApp(ExperimentApplication):
         total_inner_loops = 10 # 10 readings (T1 happens before the inner loop starts, only need 9 more inner loops)
         plate_num = 0
         reading_in_plate_num = 10
-        current_tower_deck = 1
+        current_tower_nest = 1
         csv_data_directory = "/home/rpl/workspace/Nidhi_data"
         bmg_data_output_directory = "C:\\Users\\RPL\\NIDHI_DATA"  # BMG data output directory on BMG PC
 
@@ -112,8 +112,8 @@ class ALEApp(ExperimentApplication):
             "incubator_location": exp1_variables["incubator_location"],
             "incubation_seconds": incubation_seconds_initial,
             "current_ot2_protocol": None,
-            "current_tower_nest": "tower_nest" + str(current_tower_deck),
-            "current_tower_nest_safe_path": "safe_path_tower_nest" + str(current_tower_deck),
+            "current_tower_nest": "tower_nest" + str(current_tower_nest),
+            "current_tower_nest_safe_path": "safe_path_tower_nest" + str(current_tower_nest),
             "use_existing_resources": False,
             "bmg_assay_name": "NIDHI",
         }

@@ -2,10 +2,6 @@
 """
 Experiment application for Chris and Nidhi's substrate experiment
 
-TODO:
-
-- automatic data transfer
-
 """
 
 from pathlib import Path
