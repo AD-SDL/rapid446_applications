@@ -12,6 +12,7 @@ from madsci.experiment_application import (
     ExperimentApplication,
     ExperimentApplicationConfig,
 )
+from madsci.common.types.resource_types import Resource
 from pydantic import AnyUrl
 
 
@@ -22,6 +23,74 @@ class ALEApp(ExperimentApplication):
         experiment_name="ALE_App",
     )
     config = ExperimentApplicationConfig(node_url=AnyUrl("http://localhost:6000"))
+
+    experiment_id = None
+    experiment_label = None
+
+
+    def __init__(self) -> None:
+        """Initializes the ALE Experiment App"""
+
+        super().__init__()
+
+
+        self.init_assay_plate_resource_template()
+
+
+    def init_assay_plate_resource_template(self):
+
+        self.resource_client.create_template(
+            resource=Resource(
+                resource_description="Flat Bottom 96 Well Plate",
+            ),
+            template_name="flat_bottom_96_well_plate",
+            description="Template for flat bottom 96 well plates used in ALE experiments",
+            tags=["Plate", "ANSI/SLAS", "96 Well", "Flat Bottom", "Labware"],
+        )
+
+    def push_new_assay_plate_resource(
+        self,
+        plate_num: int,
+        location_name: str,
+        experiment_id: int,
+    ) -> None | Resource:
+        """
+        Pushes a new assay plate resource into the specified location, popping an existing plate in that location if necessary.
+
+        # TODO: extract into another file
+        """
+        # get the resource id of the resource associated with the given location
+        associated_resource_id = self.location_client.get_location_by_name(location_name).resource_id
+
+        # get the resource object from the resource id
+        resource_object = self.resource_client.get_resource(associated_resource_id)
+
+        # check if the resource object currently has child resources (a plate already at that location)
+        old_plate = None
+        if resource_object.child:
+                # there is already a plate at this location
+                self.logger.log_info(f"A plate with ID {resource_object.child.resource_id} already exists at location: {location_name}")
+
+                # pop the old plate
+                popped_plate, updated_parent = self.resource_client.pop(resource=associated_resource_id)
+                self.logger.log_info(f"Popped plate with ID {resource_object.child.resource_id} from location: {location_name}")
+                old_plate = popped_plate
+
+
+        # create a new assay plate resource and push it into the resource object associated with the given location
+        new_plate = self.resource_client.create_resource_from_template(
+            template_name = "flat_bottom_96_well_plate",
+            resource_name = f"assay_plate_exp3_{experiment_id}_plate{plate_num}",
+        )
+        self.logger.log_info(f"Created new plate resource {new_plate.resource_name}, {new_plate.resource_id}")
+
+        self.resource_client.push(
+            resource = associated_resource_id,
+            child = new_plate.resource_id,
+        )
+        self.logger.log_info(f"Pushed new plate resource into location {location_name}")
+        return old_plate
+
 
     def run_experiment(self) -> None:
         """main experiment function"""
@@ -69,12 +138,11 @@ class ALEApp(ExperimentApplication):
         # important variables
         run_robots = True  # if False, no robots will run
         test_prints = True  # if True, will print out extra info for testing purposes
-        total_outer_loops = 33 # 33 # inoculations into new plate every 10ish hours
+        # total_outer_loops = 33 # 33 # inoculations into new plate every 10ish hours
+        total_outer_loops = 1  # TESTING
+        # total_inner_loops = 10 # 10 readings (T1 happens before the inner loop starts, only need 9 more inner loops)
+        total_inner_loops = 1 # TESTING
 
-        #testing
-        total_outer_loops = 1
-
-        total_inner_loops = 10 # 10 readings (T1 happens before the inner loop starts, only need 9 more inner loops)
         plate_num = 0
         reading_in_plate_num = 10
         current_tower_nest = 1
@@ -83,6 +151,8 @@ class ALEApp(ExperimentApplication):
 
         incubation_seconds_initial = 10 # 36000 seconds = 10 hours
         incubation_seconds_between_readings = 3600 # 3600 seconds = 1 hour
+
+        assay_plate_resources = {}
 
         exp1_variables = {
             "old_lid_location": "lidnest_2_wide", # use old lid location at start
@@ -129,6 +199,14 @@ class ALEApp(ExperimentApplication):
             ALL OTHER LOCATIONS: EMPTY
         """
 
+        # RESORUCES: Initial resources setup
+        self.push_new_assay_plate_resource(
+            plate_num=plate_num,
+            location_name="exchange_nest_low_wide",
+            experiment_id=experiment_id
+        )
+
+        # # RUN THE EXPERIMENT
         # 1. Move immediately into incubator with lid on for 10 hours -- WORKING
         if run_robots:
             workflow = self.workcell_client.submit_workflow(
@@ -210,8 +288,15 @@ class ALEApp(ExperimentApplication):
             payload["ot2_location"] = exp1_variables["new_ot2_plate_location"]
             payload["incubation_seconds"] = incubation_seconds_between_readings
 
-            # TODO: Automatically populate resource manager with another flat bottom plate at correct stack location!
-                # TODO: Also pop the old plate if necessary
+            # RESOURCES: Populate current tower nest with a new assay plate
+            old_plate = self.push_new_assay_plate_resource(
+                plate_num=plate_num,
+                location_name=payload["current_tower_nest"],
+                experiment_id=experiment_id,
+            )
+            # Log error if old plate is found, there should be no old plate returned here
+            if old_plate:
+                self.logger.log_error(f"An old plate was returned from push_new_assay_plate_resource(): {old_plate.resource_id}. There should have been no existing plate resource at location {payload['current_tower_nest']}")
 
             # 4. Get new substrate plate, take contam reading, then move to OT-2 new location
             timestamp_now = int(datetime.now().timestamp())
