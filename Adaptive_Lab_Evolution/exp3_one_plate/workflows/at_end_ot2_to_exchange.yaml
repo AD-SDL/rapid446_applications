@@ -14,7 +14,7 @@ parameters:
 
 
 steps:
-  # Transfer from OT-2 to exchange.  # TEST PARAMS SYNTAX
+  # 0. Transfer from OT-2 to exchange.  # TEST PARAMS SYNTAX
   - name: transfer from OT-2 to exchange
     node: pf400_piper
     action: transfer
@@ -24,12 +24,12 @@ steps:
     locations:
       target: exchange_nest_high_wide
       target_approach: safe_path_exchange
-    params: 
+    params:
       locations:
         source: ot2_location
         source_approach: ot2_safe_path
 
-  # Replace the lid
+  # 1. Replace the lid
   - name: replace lid on exchange
     node: pf400_piper
     action: replace_lid
@@ -40,7 +40,7 @@ steps:
     locations:
       target: exchange_nest_low_wide
       target_approach: safe_path_exchange
-    params: 
+    params:
       locations:
         source: payload.lid_location
         source_approach: payload.lid_safe_path

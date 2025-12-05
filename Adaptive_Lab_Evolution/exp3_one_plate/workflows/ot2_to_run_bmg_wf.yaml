@@ -7,14 +7,13 @@ metadata:
 
 parameters:
   json_inputs:
-    - key: bmg_assay_name
     - key: bmg_data_file_name
     - key: data_output_directory_path
-    - key: hidex_assay_name
-
+    - key: ot2_location
+    - key: ot2_safe_path
 
 steps:
-  # Transfer from OT-2 to exchange
+  # 0. Transfer from OT-2 to exchange
   - name: transfer from ot2 to exchange
     node: pf400_piper
     action: transfer
@@ -29,12 +28,12 @@ steps:
         source: ot2_location
         source_approach: ot2_safe_path
 
-  # Open BMG tray
+  # 1. Open BMG tray
   - name: open BMG
     node: bmg_billy
     action: open
 
-  # Transfer from exchange to bmg
+  # 2. Transfer from exchange to bmg
   - name: Transfer plate without lid to BMG nest
     node: pf400_piper
     action: transfer
@@ -47,12 +46,12 @@ steps:
       source_approach: safe_path_exchange
       target_approach: safe_path_bmg
 
-  # Close BMG tray
+  # 3. Close BMG tray
   - name: close BMG
     node: bmg_billy
     action: close
 
-  # Run BMG assay
+  # 4. Run BMG assay
   - name: Run BMG absorbance assay
     node: bmg_billy
     action: run_assay
@@ -60,10 +59,10 @@ steps:
       assay_name: NIDHI
     params:
       args:
-        data_output_file_name: bmg_data_output_name
+        data_output_file_name: bmg_data_file_name
         data_output_directory_path: data_output_directory_path
 
-  # Open BMG tray
+  # 5. Open BMG tray
   - name: open BMG
     node: bmg_billy
     action: open

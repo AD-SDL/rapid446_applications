@@ -17,7 +17,12 @@ from pydantic import AnyUrl
 
 
 class ALEApp(ExperimentApplication):
-    """ALE Experiment Application"""
+    """ALE Experiment Application
+
+    TODO:
+    - collect bmg data output here and upload to globus?
+    - add functionality to bmg to return associated plate resource id with data filename
+    """
 
     experiment_design = ExperimentDesign(
         experiment_name="ALE_App",
@@ -38,6 +43,7 @@ class ALEApp(ExperimentApplication):
 
 
     def init_assay_plate_resource_template(self):
+        """Initializes assay plate resource template"""
 
         self.resource_client.create_template(
             resource=Resource(
@@ -150,7 +156,8 @@ class ALEApp(ExperimentApplication):
         bmg_data_output_directory = "C:\\Users\\RPL\\NIDHI_DATA"  # BMG data output directory on BMG PC
 
         incubation_seconds_initial = 10 # 36000 seconds = 10 hours
-        incubation_seconds_between_readings = 3600 # 3600 seconds = 1 hour
+        # incubation_seconds_between_readings = 3600 # 3600 seconds = 1 hour
+        incubation_seconds_between_readings = 30  # TESTING
 
         assay_plate_resources = {}
 
@@ -298,7 +305,7 @@ class ALEApp(ExperimentApplication):
             if old_plate:
                 self.logger.log_error(f"An old plate was returned from push_new_assay_plate_resource(): {old_plate.resource_id}. There should have been no existing plate resource at location {payload['current_tower_nest']}")
 
-            # 4. Get new substrate plate, take contam reading, then move to OT-2 new location
+            # 4. Get new substrate plate, take contam reading, then move to OT-2 new location   # !!!!!
             timestamp_now = int(datetime.now().timestamp())
             payload["bmg_data_output_name"] = (
                 f"{experiment_label}_{timestamp_now}_{experiment_id}_exp1_{plate_num}_contam.txt"
@@ -332,6 +339,246 @@ class ALEApp(ExperimentApplication):
             else:
                 if test_prints:
                     print(f"\twriting data to csv: {payload['bmg_data_output_name']}")
+
+            # 5. Transfer new plate from bmg to new ot2 location -- WORKING
+            if run_robots:
+                workflow = self.workcell_client.submit_workflow(
+                    bmg_to_ot2_wf.resolve(),
+                    json_inputs={
+                        "ot2_location": payload["ot2_location"],
+                        "ot2_safe_path": payload["ot2_safe_path"],
+                    },
+                )
+
+            # # 6. Run inoculation ot2 protocol -- WORKING
+            # ot2_replacement_variables = helper_functions.collect_ot2_replacement_variables(payload)
+            # temp_ot2_file_str = helper_functions.generate_ot2_protocol(inoculate_protocol, ot2_replacement_variables)
+            # payload["current_ot2_protocol"] = temp_ot2_file_str
+            # if test_prints:
+            #     print(f"running ot2 inoculation with tip box @ deck {payload['tip_box_location']}")
+            # if run_robots:
+            #     workflow = self.workcell_client.submit_workflow(
+            #         run_ot2_wf.resolve(),
+            #         file_inputs={
+            #             "ot2_protocol": payload["current_ot2_protocol"],
+            #         },
+            #     )
+
+            # modify variables
+            exp1_variables["tip_box_location"] += 1
+            if exp1_variables["tip_box_location"] == 12:  # reset if necessary
+                exp1_variables["tip_box_location"] = 4
+            payload["tip_box_location"] = exp1_variables["tip_box_location"]
+
+            # 7. Transfer new plate into bmg and take T0 reading  -- WORKING, didn't test writing timestamp to csv
+            timestamp_now = int(datetime.now().timestamp())
+            payload["bmg_data_output_name"] = (
+                f"{experiment_label}_{timestamp_now}_{experiment_id}_exp1_{plate_num}_T{reading_in_plate_num}.txt"
+            )
+            if run_robots:
+                workflow = self.workcell_client.submit_workflow(
+                    ot2_to_run_bmg_wf.resolve(),
+                    json_inputs={
+                        "bmg_data_file_name": payload["bmg_data_output_name"],
+                        "data_output_directory_path": bmg_data_output_directory,
+                        "ot2_location": payload["ot2_location"],
+                        "ot2_safe_path": payload["ot2_safe_path"]
+                    },
+                )
+                # write utc bmg timestamp to csv data file
+                helper_functions.write_timestamps_to_csv(
+                    csv_directory_path=csv_data_directory,
+                    experiment_id=experiment_id,
+                    bmg_filename=payload["bmg_data_output_name"],
+                    accurate_timestamp=workflow.steps[4].end_time,  # index 5 = bmg reading
+                )
+                if test_prints:
+                    print(f"\twriting data to csv: {payload['bmg_data_output_name']}, with timestamp {workflow.steps[4].end_time}")
+            else:
+                if test_prints:
+                    print(f"\twriting data to csv: {payload['bmg_data_output_name']}")
+
+            # modify variables
+            reading_in_plate_num += 1
+
+            # 8. Transfer from bmg to incubator and incubate (1hr)  -- WORKING
+            if run_robots:
+                workflow = self.workcell_client.submit_workflow(
+                    bmg_to_run_incubator_wf.resolve(),
+                    json_inputs={
+                        "lid_location": payload["lid_location"],
+                        "lid_safe_path": payload["lid_safe_path"],
+                        "incubator_location": payload["incubator_location"],
+                        "incubation_seconds": payload["incubation_seconds"]
+                    },
+                )
+            # capture incubation start time
+            incubation_start_time = time.time()
+
+            # modify variables
+            payload["lid_location"] = exp1_variables["old_lid_location"]
+            payload["lid_safe_path"] = exp1_variables["old_safe_lid_location"]
+            payload["ot2_location"] = exp1_variables["old_ot2_plate_location"]
+
+            # 9. Get rid of the old substrate plate  # !!! NOT WORKING: currently there's a bug with lids, the lid to replace before incubator got moved!
+            if run_robots:
+                workflow = self.workcell_client.submit_workflow(
+                    remove_old_substrate_plate_wf.resolve(),
+                    json_inputs={
+                        "lid_location": payload["lid_location"],
+                        "lid_safe_path": payload["lid_safe_path"],
+                        "ot2_location": payload["ot2_location"],
+                        "ot2_safe_path": payload["ot2_safe_path"],
+                        "current_tower_nest": payload["current_tower_nest"],
+                        "current_tower_nest_safe_path": payload["current_tower_nest_safe_path"]
+                    },
+                )
+
+            # modify variables
+            current_tower_nest += 1
+            if current_tower_nest == 6:  # reset if necessary
+                current_tower_nest = 1
+            payload["current_tower_nest"] = "tower_deck" + str(current_tower_nest)
+            payload["current_tower_nest_safe_path"] = "safe_path_tower_deck" + str(current_tower_nest)
+
+            # wait for incubation to finish
+            if test_prints:
+                print("running 1 hour incubation")
+            if run_robots:
+                while (time.time() - incubation_start_time) < payload["incubation_seconds"]:
+                    print(f"will continue in... {int(payload['incubation_seconds']-(time.time() - incubation_start_time))} seconds")
+                    time.sleep(5) # 5 seconds
+
+
+            # INNER LOOP START HERE
+            for j in range(total_inner_loops):
+
+                # NOTE: lid can be removed to old location this whole time
+
+                if test_prints:
+                    print()
+                    print(f"inner loop index = {j}")
+
+                # 10. Incubator to run BMG  (T1 - T10 readings)  # ! NOT TESTED
+                if test_prints:
+                    print(f"running incubator to bmg, taking T{j+1} reading")
+                timestamp_now = int(datetime.now().timestamp())
+                payload["bmg_data_output_name"] = (
+                    f"{experiment_label}_{timestamp_now}_{experiment_id}_exp1_{plate_num}_T{reading_in_plate_num}.txt"
+                )
+                if run_robots:
+                    # run_info = experiment_client.start_run(  # OLD WEI VERSION< KEEP UNTIL TESTING COMPLETE
+                    #     incubator_to_run_bmg_wf.resolve(),
+                    #     payload=payload,
+                    #     blocking=True,
+                    #     simulate=False,
+                    # )
+                    workflow = self.workcell_client.submit_workflow(
+                        incubator_to_run_bmg_wf.resolve(),
+                        json_inputs={
+                            "incubator_location": payload["incubator_location"],
+                            "incubation_seconds": payload["incubation_seconds"],
+                            "lid_location": payload["lid_location"],
+                            "lid_safe_path": payload["lid_safe_path"],
+                            "bmg_data_output_name": payload["bmg_data_output_name"],
+                            "data_output_directory_path": bmg_data_output_directory,
+                        },
+                    )
+                    # write utc bmg timestamp to csv data file
+                    helper_functions.write_timestamps_to_csv(
+                        csv_directory_path=csv_data_directory,
+                        experiment_id=experiment_id,
+                        bmg_filename=payload["bmg_data_output_name"],
+                        accurate_timestamp=workflow.steps[8].end_time,  # index 8 = bmg reading
+                    )
+                    if test_prints:
+                        print(f"\twriting data to csv: {payload['bmg_data_output_name']}, with timestamp {workflow.steps[8].end_time}")
+                else:
+                    if test_prints:
+                        print(f"\twriting data to csv: {payload['bmg_data_output_name']}")
+
+                # modify variables
+                reading_in_plate_num += 1
+
+                if j < (total_inner_loops-1):
+                    # 11. Transfer from bmg to incubator, and incubate  # ! NOT TESTED
+                    if test_prints:
+                        print("running bmg to incubator")
+                    if run_robots:
+                        # experiment_client.start_run(   # OLD WEI VERSION< KEEP UNTIL TESTING COMPLETE
+                        #     bmg_to_run_incubator_wf.resolve(),
+                        #     payload=payload,
+                        #     blocking=True,
+                        #     simulate=False,
+                        # )
+                        workflow = self.workcell_client.submit_workflow(
+                            bmg_to_run_incubator_wf.resolve(),
+                            json_inputs={
+                                "lid_location": payload["lid_location"],
+                                "lid_safe_path": payload["lid_safe_path"],
+                                "incubator_location": payload["incubator_location"],
+                                "incubation_seconds": payload["incubation_seconds"]
+                            },
+                        )
+                    # capture incubation start time
+                    incubation_start_time = time.time()
+
+                    # sleep for incubation
+                    if test_prints:
+                        print("running 1 hour incubaton")
+                    if run_robots:
+                        while time.time() - incubation_start_time < payload["incubation_seconds"]:
+                            print(f"will continue in... {int(payload['incubation_seconds']-(time.time() - incubation_start_time))} seconds")
+                            time.sleep(5) # 5 seconds
+
+
+                else:  # plate will end in the bmg with bmg open
+                    # 12. transfer from bmg to ot2 old location  # ! NOT TESTED
+                    if test_prints:
+                        print("running bmg to ot2")
+                    if run_robots:
+                        # experiment_client.start_run(  # OLD WEI VERSION< KEEP UNTIL TESTING COMPLETE
+                        #     bmg_to_ot2_wf.resolve(),
+                        #     payload=payload,
+                        #     blocking=True,
+                        #     simulate=False,
+                        # )
+                        workflow = self.workcell_client.submit_workflow(
+                            bmg_to_ot2_wf.resolve(),
+                            json_inputs={
+                                "ot2_location": payload["ot2_location"],
+                                "ot2_safe_path": payload["ot2_safe_path"],
+                            },
+                        )
+
+            # INNER LOOP END HERE
+
+        # OUTER LOOP ENDS HERE
+
+        # NOTE: if no more outer loops, plate ends at old ot-2 location with lid on lidnest 2
+        # can't return plate to tower since we didn't grab a new substrate plate
+
+        # 13. Move from old ot-2 location to exchange, replace lid.  # ! NOT TESTED
+        if test_prints:
+            print("END OF EXPEREMENT APP: returning old plate from ot2 to exchange")
+        if run_robots:
+            # experiment_client.start_run(  # OLD WEI VERSION< KEEP UNTIL TESTING COMPLETE
+            #     at_end_ot2_to_exchange_wf.resolve(),
+            #     payload=payload,
+            #     blocking=True,
+            #     simulate=False,
+            # )
+            workflow = self.workcell_client.submit_workflow(
+                at_end_ot2_to_exchange_wf.resolve(),
+                json_inputs={
+                    "ot2_location": payload["ot2_location"],
+                    "ot2_safe_path": payload["ot2_safe_path"],
+                    "lid_location": payload["lid_location"],
+                    "lid_safe_path": payload["lid_safe_path"]
+                },
+            )
+
+        print("YAY WE MADE IT!")
 
 
 

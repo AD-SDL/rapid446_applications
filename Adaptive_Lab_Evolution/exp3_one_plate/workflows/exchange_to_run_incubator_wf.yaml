@@ -11,12 +11,12 @@ parameters:
     - key: incubation_seconds
 
 steps:
-  # Open incubator
+  # 0. Open incubator
   - name: open incubator
     node: inheco_irene_2.0
     action: open
 
-  # Transfer from exchange to incubator
+  # 1. Transfer from exchange to incubator
   - name: transfer from exchange to incubator
     node: pf400_piper
     action: transfer
@@ -31,12 +31,12 @@ steps:
       locations:
         target: incubator_location
 
-  # Close incubator
+  # 2. Close incubator
   - name: close incubator
     node: inheco_irene_2.0
     action: close
 
-  # Run incubation
+  # 3. Run incubation
   - name: run incubation
     node: inheco_irene_2.0
     action: incubate

@@ -15,7 +15,7 @@ parameters:
     - key: current_tower_nest_safe_path
 
 steps:
-  # Get new plate from current tower nest
+  # 0. Get new plate from current tower nest
   - name: transfer from tower to exchange
     node: pf400_piper
     action: transfer
@@ -30,7 +30,7 @@ steps:
         source: current_tower_nest
         source_approach: current_tower_nest_safe_path
 
-  # Remove lid
+  # 1. Remove lid
   - name: remove lid
     node: pf400_piper
     action: remove_lid
@@ -46,12 +46,12 @@ steps:
         target: lid_location
         target_approach: lid_safe_path
 
-  # Open BMG tray
+  # 2. Open BMG tray
   - name: open bmg
     node: bmg_billy
     action: open
 
-  # Transfer from exchange to BMG
+  # 3. Transfer from exchange to BMG
   - name: transfer plate without lid to bmg nest
     node: pf400_piper
     action: transfer
@@ -64,12 +64,12 @@ steps:
       source_approach: safe_path_exchange
       target_approach: safe_path_bmg
 
-  # Close BMG tray
+  # 4. Close BMG tray
   - name: close bmg
     node: bmg_billy
     action: close
 
-  # Run BMG assay
+  # 5. Run BMG assay
   - name: run BMG absorbance assay
     node: bmg_billy
     action: run_assay
@@ -77,10 +77,10 @@ steps:
       assay_name: NIDHI
     params:
       args:
-        data_output_file_name: bmg_data_output_name
+        data_output_file_name: bmg_data_file_name
         data_output_directory_path: data_output_directory_path
 
-  # Open BMG tray
+  # 6. Open BMG tray
   - name: open bmg
     node: bmg_billy
     action: open

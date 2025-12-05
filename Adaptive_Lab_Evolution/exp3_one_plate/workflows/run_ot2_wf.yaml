@@ -10,11 +10,9 @@ parameters:
     - key: ot2_protocol
 
 steps:
-  # Run OT-2 inoculation protocol
-  - name: Run OT-2 protocol
-    module: ot2_spongebob
+  # Run OT-2 protocol
+  - name: Run OT-2 spongebob
+    node: ot2_spongebob
     action: run_protocol
-    args:
-      use_existing_resources: False
     files:
       protocol: ot2_protocol

@@ -15,7 +15,7 @@ parameters:
     - key: current_tower_nest_safe_path
 
 steps:
-  # Transfer from OT-2 to exchange
+  # 0. Transfer from OT-2 to exchange
   - name: transfer from ot2 to exchange
     node: pf400_piper
     action: transfer
@@ -30,7 +30,7 @@ steps:
         source: ot2_location
         source_approach: ot2_safe_path
 
-  # Replace lid on exchange
+  # 1. Replace lid on exchange
   - name: replace lid
     node: pf400_piper
     action: replace_lid
@@ -46,17 +46,17 @@ steps:
         source: lid_location
         source_approach: lid_safe_path
 
-  # Return old plate to tower
-  - name: transfer old plate to tower
-    node: pf400_piper
-    action: transfer
-    args:
-      source_plate_rotation: narrow
-      target_plate_rotation: narrow
-    locations:
-      source: exchange_nest_low_narrow
-      source_approach: safe_path_exchange
-    params:
-      locations:
-        target: current_tower_nest
-        target_approach: current_tower_nest_safe_path
+  # # 2. Return old plate to tower
+  # - name: transfer old plate to tower
+  #   node: pf400_piper
+  #   action: transfer
+  #   args:
+  #     source_plate_rotation: narrow
+  #     target_plate_rotation: narrow
+  #   locations:
+  #     source: exchange_nest_low_narrow
+  #     source_approach: safe_path_exchange
+  #   params:
+  #     locations:
+  #       target: current_tower_nest
+  #       target_approach: current_tower_nest_safe_path

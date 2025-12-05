@@ -11,14 +11,14 @@ parameters:
     - key: lid_safe_path
     - key: incubator_location
     - key: incubation_seconds
-  
+
 steps:
-  # Open the BMG - might be redundant
+  # 0. Open the BMG - might be redundant
   - name: open BMG
     node: bmg_billy
     action: open
 
-  # Transfer from BMG to exchange
+  # 1. Transfer from BMG to exchange
   - name: transfer from BMG to exchange
     node: pf400_piper
     action: transfer
@@ -31,7 +31,7 @@ steps:
       source_approach: safe_path_bmg
       target_approach: safe_path_exchange
 
-  # Replace the lid
+  # 2. Replace the lid
   - name: replace lid on exchange
     node: pf400_piper
     action: replace_lid
@@ -47,12 +47,12 @@ steps:
         source: lid_location
         source_approach: lid_safe_path
 
-  # Open the incubator
+  # 3. Open the incubator
   - name: open incubator
     node: inheco_irene_2.0
     action: open
 
-  # Transfer from exchange to incubator
+  # 4. Transfer from exchange to incubator
   - name: transfer from exchange to incubator
     node: pf400_piper
     action: transfer
@@ -67,17 +67,17 @@ steps:
       locations:
         target: incubator_location
 
-  # Close the incubator
+  # 5. Close the incubator
   - name: close incubator
     node: inheco_irene_2.0
     action: close
 
-  # Close the BMG
+  # 6. Close the BMG
   - name: close BMG
     node: bmg_billy
     action: close
 
-  # Run incubation
+  # 7. Run incubation
   - name: run incubation
     node: inheco_irene_2.0
     action: incubate
