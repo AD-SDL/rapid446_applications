@@ -1,6 +1,5 @@
 """An Example Application"""
 
-import datetime
 import time
 from pathlib import Path
 
@@ -11,6 +10,7 @@ from madsci.experiment_application import (
     ExperimentApplicationConfig,
 )
 from pydantic import AnyUrl
+from datetime import datetime
 
 
 class ExampleApp(ExperimentApplication):
