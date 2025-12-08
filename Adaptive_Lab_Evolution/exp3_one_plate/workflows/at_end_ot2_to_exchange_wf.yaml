@@ -14,7 +14,7 @@ parameters:
 
 
 steps:
-  # 0. Transfer from OT-2 to exchange.  # TEST PARAMS SYNTAX
+  # 0. Transfer from OT-2 to exchange
   - name: transfer from OT-2 to exchange
     node: pf400_piper
     action: transfer
@@ -42,5 +42,5 @@ steps:
       target_approach: safe_path_exchange
     params:
       locations:
-        source: payload.lid_location
-        source_approach: payload.lid_safe_path
+        source: lid_location
+        source_approach: lid_safe_path

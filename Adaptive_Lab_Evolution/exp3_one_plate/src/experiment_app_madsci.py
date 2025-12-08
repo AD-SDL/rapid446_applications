@@ -8,20 +8,22 @@ from pathlib import Path
 import helper_functions
 from madsci.common.types.experiment_types import ExperimentDesign
 from madsci.common.types.node_types import NodeDefinition
+from madsci.common.types.resource_types import Resource
 from madsci.experiment_application import (
     ExperimentApplication,
     ExperimentApplicationConfig,
 )
-from madsci.common.types.resource_types import Resource
 from pydantic import AnyUrl
 
 
 class ALEApp(ExperimentApplication):
     """ALE Experiment Application
 
-    TODO:
+    # TODO:
     - collect bmg data output here and upload to globus?
     - add functionality to bmg to return associated plate resource id with data filename
+    - extract push_new_assay_plate function into a new file
+    - collect list of all associated assay plate resource ids?
     """
 
     experiment_design = ExperimentDesign(
@@ -103,7 +105,7 @@ class ALEApp(ExperimentApplication):
 
         # DEFINE PATHS AND VARIABLES ========
         # capture the experiment ID
-        experiment_id = self.experiment.experiment_id   # TODO: figure out how to get experiment ID
+        experiment_id = self.experiment.experiment_id
         experiment_label = "3"
 
         # directory paths
@@ -147,7 +149,7 @@ class ALEApp(ExperimentApplication):
         # total_outer_loops = 33 # 33 # inoculations into new plate every 10ish hours
         total_outer_loops = 1  # TESTING
         # total_inner_loops = 10 # 10 readings (T1 happens before the inner loop starts, only need 9 more inner loops)
-        total_inner_loops = 1 # TESTING
+        total_inner_loops = 2 # TESTING
 
         plate_num = 0
         reading_in_plate_num = 10
@@ -158,8 +160,6 @@ class ALEApp(ExperimentApplication):
         incubation_seconds_initial = 10 # 36000 seconds = 10 hours
         # incubation_seconds_between_readings = 3600 # 3600 seconds = 1 hour
         incubation_seconds_between_readings = 30  # TESTING
-
-        assay_plate_resources = {}
 
         exp1_variables = {
             "old_lid_location": "lidnest_2_wide", # use old lid location at start
@@ -206,14 +206,14 @@ class ALEApp(ExperimentApplication):
             ALL OTHER LOCATIONS: EMPTY
         """
 
-        # RESORUCES: Initial resources setup
+        # RESOURCES: Initial resources setup
         self.push_new_assay_plate_resource(
             plate_num=plate_num,
             location_name="exchange_nest_low_wide",
             experiment_id=experiment_id
         )
 
-        # # RUN THE EXPERIMENT
+        # RUN THE EXPERIMENT
         # 1. Move immediately into incubator with lid on for 10 hours -- WORKING
         if run_robots:
             workflow = self.workcell_client.submit_workflow(
@@ -305,7 +305,7 @@ class ALEApp(ExperimentApplication):
             if old_plate:
                 self.logger.log_error(f"An old plate was returned from push_new_assay_plate_resource(): {old_plate.resource_id}. There should have been no existing plate resource at location {payload['current_tower_nest']}")
 
-            # 4. Get new substrate plate, take contam reading, then move to OT-2 new location   # !!!!!
+            # 4. Get new substrate plate, take contam reading, then move to OT-2 new location   # WORKING
             timestamp_now = int(datetime.now().timestamp())
             payload["bmg_data_output_name"] = (
                 f"{experiment_label}_{timestamp_now}_{experiment_id}_exp1_{plate_num}_contam.txt"
@@ -350,19 +350,19 @@ class ALEApp(ExperimentApplication):
                     },
                 )
 
-            # # 6. Run inoculation ot2 protocol -- WORKING
-            # ot2_replacement_variables = helper_functions.collect_ot2_replacement_variables(payload)
-            # temp_ot2_file_str = helper_functions.generate_ot2_protocol(inoculate_protocol, ot2_replacement_variables)
-            # payload["current_ot2_protocol"] = temp_ot2_file_str
-            # if test_prints:
-            #     print(f"running ot2 inoculation with tip box @ deck {payload['tip_box_location']}")
-            # if run_robots:
-            #     workflow = self.workcell_client.submit_workflow(
-            #         run_ot2_wf.resolve(),
-            #         file_inputs={
-            #             "ot2_protocol": payload["current_ot2_protocol"],
-            #         },
-            #     )
+            # 6. Run inoculation ot2 protocol -- WORKING
+            ot2_replacement_variables = helper_functions.collect_ot2_replacement_variables(payload)
+            temp_ot2_file_str = helper_functions.generate_ot2_protocol(inoculate_protocol, ot2_replacement_variables)
+            payload["current_ot2_protocol"] = temp_ot2_file_str
+            if test_prints:
+                print(f"running ot2 inoculation with tip box @ deck {payload['tip_box_location']}")
+            if run_robots:
+                workflow = self.workcell_client.submit_workflow(
+                    run_ot2_wf.resolve(),
+                    file_inputs={
+                        "ot2_protocol": payload["current_ot2_protocol"],
+                    },
+                )
 
             # modify variables
             exp1_variables["tip_box_location"] += 1
@@ -420,7 +420,7 @@ class ALEApp(ExperimentApplication):
             payload["lid_safe_path"] = exp1_variables["old_safe_lid_location"]
             payload["ot2_location"] = exp1_variables["old_ot2_plate_location"]
 
-            # 9. Get rid of the old substrate plate  # !!! NOT WORKING: currently there's a bug with lids, the lid to replace before incubator got moved!
+            # 9. Get rid of the old substrate plate  # WORKING
             if run_robots:
                 workflow = self.workcell_client.submit_workflow(
                     remove_old_substrate_plate_wf.resolve(),
@@ -459,7 +459,7 @@ class ALEApp(ExperimentApplication):
                     print()
                     print(f"inner loop index = {j}")
 
-                # 10. Incubator to run BMG  (T1 - T10 readings)  # ! NOT TESTED
+                # 10. Incubator to run BMG  (T1 - T10 readings)  # WORKING
                 if test_prints:
                     print(f"running incubator to bmg, taking T{j+1} reading")
                 timestamp_now = int(datetime.now().timestamp())
@@ -467,12 +467,6 @@ class ALEApp(ExperimentApplication):
                     f"{experiment_label}_{timestamp_now}_{experiment_id}_exp1_{plate_num}_T{reading_in_plate_num}.txt"
                 )
                 if run_robots:
-                    # run_info = experiment_client.start_run(  # OLD WEI VERSION< KEEP UNTIL TESTING COMPLETE
-                    #     incubator_to_run_bmg_wf.resolve(),
-                    #     payload=payload,
-                    #     blocking=True,
-                    #     simulate=False,
-                    # )
                     workflow = self.workcell_client.submit_workflow(
                         incubator_to_run_bmg_wf.resolve(),
                         json_inputs={
@@ -501,16 +495,10 @@ class ALEApp(ExperimentApplication):
                 reading_in_plate_num += 1
 
                 if j < (total_inner_loops-1):
-                    # 11. Transfer from bmg to incubator, and incubate  # ! NOT TESTED
+                    # 11. Transfer from bmg to incubator, and incubate  # WORKING
                     if test_prints:
                         print("running bmg to incubator")
                     if run_robots:
-                        # experiment_client.start_run(   # OLD WEI VERSION< KEEP UNTIL TESTING COMPLETE
-                        #     bmg_to_run_incubator_wf.resolve(),
-                        #     payload=payload,
-                        #     blocking=True,
-                        #     simulate=False,
-                        # )
                         workflow = self.workcell_client.submit_workflow(
                             bmg_to_run_incubator_wf.resolve(),
                             json_inputs={
@@ -533,7 +521,7 @@ class ALEApp(ExperimentApplication):
 
 
                 else:  # plate will end in the bmg with bmg open
-                    # 12. transfer from bmg to ot2 old location  # ! NOT TESTED
+                    # 12. transfer from bmg to ot2 old location  # WORKING
                     if test_prints:
                         print("running bmg to ot2")
                     if run_robots:
@@ -558,16 +546,10 @@ class ALEApp(ExperimentApplication):
         # NOTE: if no more outer loops, plate ends at old ot-2 location with lid on lidnest 2
         # can't return plate to tower since we didn't grab a new substrate plate
 
-        # 13. Move from old ot-2 location to exchange, replace lid.  # ! NOT TESTED
+        # 13. Move from old ot-2 location to exchange, replace lid.  # WORKING
         if test_prints:
             print("END OF EXPEREMENT APP: returning old plate from ot2 to exchange")
         if run_robots:
-            # experiment_client.start_run(  # OLD WEI VERSION< KEEP UNTIL TESTING COMPLETE
-            #     at_end_ot2_to_exchange_wf.resolve(),
-            #     payload=payload,
-            #     blocking=True,
-            #     simulate=False,
-            # )
             workflow = self.workcell_client.submit_workflow(
                 at_end_ot2_to_exchange_wf.resolve(),
                 json_inputs={

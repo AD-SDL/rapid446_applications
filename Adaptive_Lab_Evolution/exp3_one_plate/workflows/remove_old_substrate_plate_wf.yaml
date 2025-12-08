@@ -46,17 +46,17 @@ steps:
         source: lid_location
         source_approach: lid_safe_path
 
-  # # 2. Return old plate to tower
-  # - name: transfer old plate to tower
-  #   node: pf400_piper
-  #   action: transfer
-  #   args:
-  #     source_plate_rotation: narrow
-  #     target_plate_rotation: narrow
-  #   locations:
-  #     source: exchange_nest_low_narrow
-  #     source_approach: safe_path_exchange
-  #   params:
-  #     locations:
-  #       target: current_tower_nest
-  #       target_approach: current_tower_nest_safe_path
+  # 2. Return old plate to tower
+  - name: transfer old plate to tower
+    node: pf400_piper
+    action: transfer
+    args:
+      source_plate_rotation: narrow
+      target_plate_rotation: narrow
+    locations:
+      source: exchange_nest_low_narrow
+      source_approach: safe_path_exchange
+    params:
+      locations:
+        target: current_tower_nest
+        target_approach: current_tower_nest_safe_path
