@@ -1,0 +1,31 @@
+name: Replace Lid on Flat Botton Plate and Return to Tower Nest 1 Workflow
+
+metadata:
+  author: Casey Stone
+  info: A Workcell Validation Workflow
+  version: 0.1
+
+steps:
+  - name: Replace Lid
+    node: pf400_piper
+    action: replace_lid
+    args:
+      source_plate_rotation: wide
+      target_plate_rotation: wide
+    locations:
+      source: lidnest_1_wide
+      target: exchange_nest_low_wide
+      source_approach: safe_path_lidnest_1
+      target_approach: safe_path_exchange
+
+  - name: Transfer to Tower slot 1
+    node: pf400_piper
+    action: transfer
+    args:
+      source_plate_rotation: narrow
+      target_plate_rotation: narrow
+    locations:
+      source: exchange_nest_low_narrow
+      target: tower_nest1
+      source_approach: safe_path_exchange
+      target_approach: safe_path_tower_nest1

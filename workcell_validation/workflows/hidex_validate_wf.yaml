@@ -1,0 +1,52 @@
+name: Hidex Sense Microplate Reader Validation Workflow
+
+metadata:
+  author: Casey Stone
+  info: A Workcell Validation Workflow
+  version: 0.1
+
+parameters:
+  json_inputs:
+    - key: hidex_assay_name
+
+steps:
+  - name: Open Hidex
+    node: hidex_geraldine
+    action: open
+
+  - name: Transfer to Hidex
+    node: pf400_piper
+    action: transfer
+    args:
+      source_plate_rotation: narrow
+      target_plate_rotation: narrow
+    locations:
+      source: exchange_nest_low_narrow
+      target: hidex_geraldine_low_nest
+      source_approach: safe_path_exchange
+      target_approach: safe_path_hidex
+
+  - name: Run assay
+    node: hidex_geraldine
+    action: run_assay
+    args:
+      wait_for_result: True
+    params:
+      args:
+        assay_name: hidex_assay_name
+
+  - name: Open Hidex
+    node: hidex_geraldine
+    action: open
+
+  - name: Transfer to Exchange
+    node: pf400_piper
+    action: transfer
+    args:
+      source_plate_rotation: narrow
+      target_plate_rotation: narrow
+    locations:
+      source: hidex_geraldine_low_nest
+      target: exchange_nest_low_narrow
+      source_approach: safe_path_hidex
+      target_approach: safe_path_exchange

@@ -1,0 +1,19 @@
+name: Get New PCR Plate from Tower Nest 2 Workflow
+
+metadata:
+  author: Casey Stone
+  info: A Workcell Validation Workflow
+  version: 0.1
+
+steps:
+  - name: Get new pcr plate from tower
+    node: pf400_piper
+    action: transfer
+    args:
+      source_plate_rotation: narrow
+      target_plate_rotation: narrow
+    locations:
+      source: tower_nest2
+      target: exchange_nest_low_narrow
+      source_approach: safe_path_tower_nest2
+      target_approach: safe_path_exchange

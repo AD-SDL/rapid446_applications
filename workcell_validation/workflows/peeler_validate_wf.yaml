@@ -1,0 +1,35 @@
+name: Sealer Validation Workflow
+
+metadata:
+  author: Casey Stone
+  info: A Workcell Validation Workflow
+  version: 0.1
+
+steps:
+  - name: Transfer to peeler
+    node: pf400_piper
+    action: transfer
+    args:
+      source_plate_rotation: narrow
+      target_plate_rotation: narrow
+    locations:
+      source: exchange_nest_low_narrow
+      target: peeler_nest
+      source_approach: safe_path_exchange
+      target_approach: safe_path_peeler
+
+  - name: Peel
+    node: peeler_penelope
+    action: peel
+
+  - name: Transfer to Exchange
+    node: pf400_piper
+    action: transfer
+    args:
+      source_plate_rotation: narrow
+      target_plate_rotation: narrow
+    locations:
+      source: peeler_nest
+      target: exchange_nest_low_narrow
+      source_approach: safe_path_peeler
+      target_approach: safe_path_exchange

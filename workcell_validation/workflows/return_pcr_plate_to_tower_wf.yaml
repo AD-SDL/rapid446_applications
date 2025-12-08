@@ -1,0 +1,19 @@
+name: Return PCR Plate to Tower Nest 2 Workflow
+
+metadata:
+  author: Casey Stone
+  info: A Workcell Validation Workflow
+  version: 0.1
+
+steps:
+  - name: Transfer to Tower slot 2
+    node: pf400_piper
+    action: transfer
+    args:
+      source_plate_rotation: narrow
+      target_plate_rotation: narrow
+    locations:
+      source: exchange_nest_low_narrow
+      target: tower_nest2
+      source_approach: safe_path_exchange
+      target_approach: safe_path_tower_nest2

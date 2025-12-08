@@ -1,0 +1,63 @@
+name: BMG VANTAstar Microplate Reader Validation Workflow
+
+metadata:
+  author: Casey Stone
+  info: A Workcell Validation Workflow
+  version: 0.1
+
+parameters:
+  json_inputs:
+    - key: bmg_assay_name
+    - key: bmg_data_file_name
+    - key: data_output_directory_path
+    - key: hidex_assay_name
+
+steps:
+  - name: Open BMG
+    node: bmg_billy
+    action: open
+
+  - name: Transfer Plate
+    node: pf400_piper
+    action: transfer
+    args:
+      source_plate_rotation: narrow
+      target_plate_rotation: narrow
+    locations:
+      source: exchange_nest_low_narrow
+      target: bmg_reader_nest
+      source_approach: safe_path_exchange
+      target_approach: safe_path_bmg
+
+  - name: close BMG
+    node: bmg_billy
+    action: close
+
+  - name: Run BMG Absorbance_Test assay
+    node: bmg_billy
+    action: run_assay
+    params:
+      args:
+        assay_name: bmg_assay_name
+        data_output_file_name: bmg_data_file_name
+        data_output_directory_path: data_output_directory_path
+
+  - name: Open BMG
+    node: bmg_billy
+    action: open
+
+  - name: Transfer Plate
+    node: pf400_piper
+    action: transfer
+    args:
+      source_plate_rotation: narrow
+      target_plate_rotation: narrow
+    locations:
+      source: bmg_reader_nest
+      target: exchange_nest_low_narrow
+      source_approach: safe_path_bmg
+      target_approach: safe_path_exchange
+
+  - name: close BMG
+    node: bmg_billy
+    action: close

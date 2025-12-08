@@ -1,0 +1,32 @@
+name: Get New Flat Bottom Plate from Tower Nest 1 and Remove Lid Workflow
+
+metadata:
+  author: Casey Stone
+  info: A Workcell Validation Workflow
+  version: 0.1
+
+steps:
+  # TOWERS AND REMOVE LID --------  # WORKING
+  - name: Get new flat bottom plate
+    node: pf400_piper
+    action: transfer
+    args:
+      source_plate_rotation: narrow
+      target_plate_rotation: narrow
+    locations:
+      source: tower_nest1
+      target: exchange_nest_low_narrow
+      source_approach: safe_path_tower_nest1
+      target_approach: safe_path_exchange
+
+  - name: Remove lid to LidNest
+    node: pf400_piper
+    action: remove_lid
+    args:
+      source_plate_rotation: wide
+      target_plate_rotation: wide
+    locations:
+      source: exchange_nest_low_wide
+      target: lidnest_1_wide
+      source_approach: safe_path_exchange
+      target_approach: safe_path_lidnest_1

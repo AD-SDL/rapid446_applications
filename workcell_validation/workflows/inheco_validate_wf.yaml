@@ -1,0 +1,135 @@
+name: Inheco Single Plate Incubator/Shaker Validation Workflow - tests both incubators
+
+metadata:
+  author: Casey Stone
+  info: A Workcell Validation Workflow
+  version: 0.1
+
+steps:
+  # INHECO IRENE SF0 --------------
+  - name: Open Inheco Irene SF0
+    node: inheco_irene_2.0
+    action: open
+
+  - name: Transfer Plate
+    node: pf400_piper
+    action: transfer
+    args:
+      source_plate_rotation: narrow
+      target_plate_rotation: narrow
+    locations:
+      source: exchange_nest_low_narrow
+      target: inheco_devID2_floor0_nest
+      source_approach: safe_path_exchange
+      target_approach: safe_path_inheco_dev2
+
+  - name: Close Inheco Irene
+    node: inheco_irene_2.0
+    action: close
+
+  - name: Set temperature Inheco Irene
+    node: inheco_irene_2.0
+    action: set_temperature
+    args:
+      temperature: 30
+      activate: True
+
+  - name: Incubate on Inheco Irene
+    node: inheco_irene_2.0
+    action: incubate
+    args:
+      incubation_time: 30
+      shaker_frequency: 10
+      temperature: 30
+      wait_for_incubation_time: True
+
+  - name: Open Inheco Irene SF0
+    node: inheco_irene_2.0
+    action: open
+
+  - name: Transfer Plate
+    node: pf400_piper
+    action: transfer
+    args:
+      source_plate_rotation: narrow
+      target_plate_rotation: narrow
+    locations:
+      source: inheco_devID2_floor0_nest
+      target: exchange_nest_low_narrow
+      source_approach: safe_path_inheco_dev2
+      target_approach: safe_path_exchange
+
+  - name: Close Inheco Irene
+    node: inheco_irene_2.0
+    action: close
+
+  - name: Set temperature Inheco Irene
+    node: inheco_irene_2.0
+    action: set_temperature
+    args:
+      temperature: 22.0
+      activate: False
+
+  # INHECO IRIS SF1 ----------------
+  - name: Open Inheco Iris SF1
+    node: inheco_iris_2.1
+    action: open
+
+  - name: Transfer Plate
+    node: pf400_piper
+    action: transfer
+    args:
+      source_plate_rotation: narrow
+      target_plate_rotation: narrow
+    locations:
+      source: exchange_nest_low_narrow
+      target: inheco_devID2_floor1_nest
+      source_approach: safe_path_exchange
+      target_approach: safe_path_inheco_dev2
+
+  - name: Close Inheco Iris
+    node: inheco_iris_2.1
+    action: close
+
+  - name: Set temperature Inheco Iris
+    node: inheco_iris_2.1
+    action: set_temperature
+    args:
+      temperature: 30
+      activate: True
+
+  - name: Incubate on Inheco Iris
+    node: inheco_iris_2.1
+    action: incubate
+    args:
+      incubation_time: 30
+      shaker_frequency: 10
+      temperature: 30
+      wait_for_incubation_time: True
+
+  - name: Open Inheco Iris SF1
+    node: inheco_iris_2.1
+    action: open
+
+  - name: Transfer Plate
+    node: pf400_piper
+    action: transfer
+    args:
+      source_plate_rotation: narrow
+      target_plate_rotation: narrow
+    locations:
+      source: inheco_devID2_floor1_nest
+      target: exchange_nest_low_narrow
+      source_approach: safe_path_inheco_dev2
+      target_approach: safe_path_exchange
+
+  - name: Close Inheco Iris
+    node: inheco_iris_2.1
+    action: close
+
+  - name: Set temperature Inheco Iris
+    node: inheco_iris_2.1
+    action: set_temperature
+    args:
+      temperature: 22.0
+      activate: False

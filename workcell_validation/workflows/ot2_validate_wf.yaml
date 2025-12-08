@@ -1,0 +1,60 @@
+name: OT2 Validation Workflow - tests both OT-2s
+
+metadata:
+  author: Casey Stone
+  info: A Workcell Validation Workflow
+  version: 0.1
+
+parameters:
+  file_inputs:
+    - key: ot2_protocol
+
+steps:
+  # OT-2s ---------------------   # WORKING
+  - name: Transfer Plate
+    node: pf400_piper
+    action: transfer
+    args:
+      source_plate_rotation: wide
+      target_plate_rotation: wide
+    locations:
+      source: exchange_nest_high_wide
+      target: ot2_spongebob_nest1_wide
+      source_approach: safe_path_exchange
+      target_approach: safe_path_ot2_spongebob
+
+  - name: Run OT-2 spongebob
+    node: ot2_spongebob
+    action: run_protocol
+    files:
+      protocol: ot2_protocol
+
+  - name: Transfer Plate
+    node: pf400_piper
+    action: transfer
+    args:
+      source_plate_rotation: wide
+      target_plate_rotation: wide
+    locations:
+      source: ot2_spongebob_nest1_wide
+      target: ot2_patrick_nest1_wide
+      source_approach: safe_path_ot2_spongebob
+      target_approach: safe_path_ot2_patrick
+
+  - name: Run OT-2 patrick
+    node: ot2_patrick
+    action: run_protocol
+    files:
+      protocol: ot2_protocol
+
+  - name: Transfer Plate
+    node: pf400_piper
+    action: transfer
+    args:
+      source_plate_rotation: wide
+      target_plate_rotation: wide
+    locations:
+      source: ot2_patrick_nest1_wide
+      target: exchange_nest_high_wide
+      source_approach: safe_path_ot2_patrick
+      target_approach: safe_path_exchange
