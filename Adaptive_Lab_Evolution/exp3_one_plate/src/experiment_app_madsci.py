@@ -21,16 +21,14 @@ class ALEApp(ExperimentApplication):
 
     # TODO:
     - collect bmg data output here and upload to globus?
-    - add functionality to bmg to return associated plate resource id with data filename
-    - extract push_new_assay_plate function into a new file
-    - collect list of all associated assay plate resource ids?
+    - change the experiment live based on a configuration file
+
     """
 
     experiment_design = ExperimentDesign(
         experiment_name="ALE_App",
     )
     config = ExperimentApplicationConfig(node_url=AnyUrl("http://localhost:6000"))
-
     experiment_id = None
     experiment_label = None
 
@@ -39,8 +37,6 @@ class ALEApp(ExperimentApplication):
         """Initializes the ALE Experiment App"""
 
         super().__init__()
-
-
         self.init_assay_plate_resource_template()
 
 
@@ -56,64 +52,69 @@ class ALEApp(ExperimentApplication):
             tags=["Plate", "ANSI/SLAS", "96 Well", "Flat Bottom", "Labware"],
         )
 
+
     def push_new_assay_plate_resource(
-        self,
-        plate_num: int,
-        location_name: str,
-        experiment_id: int,
-    ) -> None | Resource:
-        """
-        Pushes a new assay plate resource into the specified location, popping an existing plate in that location if necessary.
+            self,
+            plate_num: int,
+            location_name: str,
+            experiment_id: int,
+        ) -> None | Resource:
+            """
+            Pushes a new assay plate resource into the specified location, popping an existing plate in that location if necessary.
+            """
+            # get the resource id of the resource associated with the given location
+            associated_resource_id = self.location_client.get_location_by_name(location_name).resource_id
 
-        # TODO: extract into another file
-        """
-        # get the resource id of the resource associated with the given location
-        associated_resource_id = self.location_client.get_location_by_name(location_name).resource_id
+            # get the resource object from the resource id
+            resource_object = self.resource_client.get_resource(associated_resource_id)
 
-        # get the resource object from the resource id
-        resource_object = self.resource_client.get_resource(associated_resource_id)
+            # check if the resource object currently has child resources (a plate already at that location)
+            old_plate = None
+            if resource_object.child:
+                    # there is already a plate at this location
+                    self.logger.log_info(f"A plate with ID {resource_object.child.resource_id} already exists at location: {location_name}")
 
-        # check if the resource object currently has child resources (a plate already at that location)
-        old_plate = None
-        if resource_object.child:
-                # there is already a plate at this location
-                self.logger.log_info(f"A plate with ID {resource_object.child.resource_id} already exists at location: {location_name}")
-
-                # pop the old plate
-                popped_plate, updated_parent = self.resource_client.pop(resource=associated_resource_id)
-                self.logger.log_info(f"Popped plate with ID {resource_object.child.resource_id} from location: {location_name}")
-                old_plate = popped_plate
+                    # pop the old plate
+                    popped_plate, updated_parent = self.resource_client.pop(resource=associated_resource_id)
+                    self.logger.log_info(f"Popped plate with ID {resource_object.child.resource_id} from location: {location_name}")
+                    old_plate = popped_plate
 
 
-        # create a new assay plate resource and push it into the resource object associated with the given location
-        new_plate = self.resource_client.create_resource_from_template(
-            template_name = "flat_bottom_96_well_plate",
-            resource_name = f"assay_plate_exp3_{experiment_id}_plate{plate_num}",
-        )
-        self.logger.log_info(f"Created new plate resource {new_plate.resource_name}, {new_plate.resource_id}")
+            # create a new assay plate resource and push it into the resource object associated with the given location
+            new_plate = self.resource_client.create_resource_from_template(
+                template_name = "flat_bottom_96_well_plate",
+                resource_name = f"assay_plate_exp3_{experiment_id}_plate{plate_num}",
+            )
+            self.logger.log_info(f"Created new plate resource {new_plate.resource_name}, {new_plate.resource_id}")
 
-        self.resource_client.push(
-            resource = associated_resource_id,
-            child = new_plate.resource_id,
-        )
-        self.logger.log_info(f"Pushed new plate resource into location {location_name}")
-        return old_plate
+            self.resource_client.push(
+                resource = associated_resource_id,
+                child = new_plate.resource_id,
+            )
+            self.logger.log_info(f"Pushed new plate resource into location {location_name}")
+            return new_plate, old_plate
 
 
     def run_experiment(self) -> None:
         """main experiment function"""
 
         # DEFINE PATHS AND VARIABLES ========
-        # capture the experiment ID
+        run_robots = False  # if False, no robots will run
+        run_resources = True
+        test_prints = True  # if True, will print out extra info for testing purposes
+
+        # Experiment ID and name
         experiment_id = self.experiment.experiment_id
         experiment_label = "3"
 
-        # directory paths
+        # Directory paths
         app_directory = Path(__file__).parent.parent   # experiment app
         wf_directory = app_directory / "workflows"  # workflows
         protocol_directory = app_directory / "protocols"    # protocols
+        csv_data_directory = "/home/rpl/workspace/Nidhi_data"
+        bmg_data_output_directory = "C:\\Users\\RPL\\NIDHI_DATA"  # BMG data output directory on BMG PC
 
-        # workflow paths
+        # Workflow paths
         run_ot2_wf = wf_directory / "run_ot2_wf.yaml"
         exchange_to_run_incubator_wf = (
             wf_directory / "exchange_to_run_incubator_wf.yaml"
@@ -140,26 +141,37 @@ class ALEApp(ExperimentApplication):
             wf_directory / "at_end_ot2_to_exchange_wf.yaml"
         )
 
-        # protocol paths (for OT-2)
+        # Protocol paths (for OT-2)
         inoculate_protocol = protocol_directory / "inoculate.py"
 
-        # important variables
-        run_robots = True  # if False, no robots will run
-        test_prints = True  # if True, will print out extra info for testing purposes
+        # Important variables
         # total_outer_loops = 33 # 33 # inoculations into new plate every 10ish hours
-        total_outer_loops = 1  # TESTING
+        total_outer_loops = 3  # TESTING
         # total_inner_loops = 10 # 10 readings (T1 happens before the inner loop starts, only need 9 more inner loops)
         total_inner_loops = 2 # TESTING
-
-        plate_num = 0
-        reading_in_plate_num = 10
-        current_tower_nest = 1
-        csv_data_directory = "/home/rpl/workspace/Nidhi_data"
-        bmg_data_output_directory = "C:\\Users\\RPL\\NIDHI_DATA"  # BMG data output directory on BMG PC
-
         incubation_seconds_initial = 10 # 36000 seconds = 10 hours
         # incubation_seconds_between_readings = 3600 # 3600 seconds = 1 hour
         incubation_seconds_between_readings = 30  # TESTING
+
+        plate_num = 0
+        reading_in_plate_num = 10
+        assay_plate_list = {}
+
+        current_rack_nest_index = 0
+        rack_nest_location_names = [
+            "rack_row1_nest1",
+            "rack_row1_nest2",
+            "rack_row1_nest3",
+            "rack_row2_nest1",
+            "rack_row2_nest2",
+            "rack_row2_nest3",
+            "rack_row3_nest1",
+            "rack_row3_nest2",
+            "rack_row3_nest3",
+            "rack_row4_nest1",
+            "rack_row4_nest2",
+            "rack_row4_nest3",
+        ]
 
         exp1_variables = {
             "old_lid_location": "lidnest_2_wide", # use old lid location at start
@@ -173,8 +185,6 @@ class ALEApp(ExperimentApplication):
             "incubator_node": "inheco_devID2_floor0",
             "incubator_location": "inheco_devID2_floor0_nest",
             "tip_box_location": 4,
-            "new_stack": "stack1",
-            "trash_stack": "stack4",
         }
 
         # initial payload setup
@@ -189,8 +199,8 @@ class ALEApp(ExperimentApplication):
             "incubator_location": exp1_variables["incubator_location"],
             "incubation_seconds": incubation_seconds_initial,
             "current_ot2_protocol": None,
-            "current_tower_nest": "tower_nest" + str(current_tower_nest),
-            "current_tower_nest_safe_path": "safe_path_tower_nest" + str(current_tower_nest),
+            "current_rack_nest": rack_nest_location_names[current_rack_nest_index],
+            "current_rack_nest_safe_path": "safe_path_" + rack_nest_location_names[current_rack_nest_index],
             "use_existing_resources": False,
             "bmg_assay_name": "NIDHI",
         }
@@ -201,17 +211,21 @@ class ALEApp(ExperimentApplication):
 
         Location:
             exchange: inoculated microplate plate with lid
-            Tower decks 1-5: extra substrate microplates with lids
+            ALL RACK NESTS (rows 1-4, nests 1-3 in each row): extra substrate microplates with lids
             OT-2 (ot2biobeta) decks 4-11: 20uL tip racks
             ALL OTHER LOCATIONS: EMPTY
         """
 
         # RESOURCES: Initial resources setup
-        self.push_new_assay_plate_resource(
-            plate_num=plate_num,
-            location_name="exchange_nest_low_wide",
-            experiment_id=experiment_id
-        )
+        if run_resources:
+            new_plate, old_plate = self.push_new_assay_plate_resource(
+                plate_num=plate_num,
+                location_name="exchange_nest_low_wide",
+                experiment_id=experiment_id
+            )
+            assay_plate_list[plate_num] = new_plate.resource_id, new_plate.resource_name
+            # TESTING
+            time.sleep(5)
 
         # RUN THE EXPERIMENT
         # 1. Move immediately into incubator with lid on for 10 hours -- WORKING
@@ -295,15 +309,23 @@ class ALEApp(ExperimentApplication):
             payload["ot2_location"] = exp1_variables["new_ot2_plate_location"]
             payload["incubation_seconds"] = incubation_seconds_between_readings
 
-            # RESOURCES: Populate current tower nest with a new assay plate
-            old_plate = self.push_new_assay_plate_resource(
-                plate_num=plate_num,
-                location_name=payload["current_tower_nest"],
-                experiment_id=experiment_id,
-            )
-            # Log error if old plate is found, there should be no old plate returned here
-            if old_plate:
-                self.logger.log_error(f"An old plate was returned from push_new_assay_plate_resource(): {old_plate.resource_id}. There should have been no existing plate resource at location {payload['current_tower_nest']}")
+            # RESOURCES: Populate current rack nest with a new assay plate
+            if run_resources:
+                new_plate, old_plate = self.push_new_assay_plate_resource(
+                    plate_num=plate_num,
+                    location_name=payload["current_rack_nest"],
+                    experiment_id=experiment_id,
+                )
+                assay_plate_list[plate_num] = new_plate.resource_id, new_plate.resource_name
+                # Log error if old plate is found, there should be no old plate returned here
+                if old_plate:
+                    if i < len(rack_nest_location_names):
+                        self.logger.log_error(f"An old plate was returned from push_new_assay_plate_resource(): {old_plate.resource_id}. There should have been no existing plate resource at location {payload['current_rack_nest']}")
+                # TESTING
+                print(f"{assay_plate_list=}")
+                time.sleep(5)
+
+
 
             # 4. Get new substrate plate, take contam reading, then move to OT-2 new location   # WORKING
             timestamp_now = int(datetime.now().timestamp())
@@ -311,10 +333,10 @@ class ALEApp(ExperimentApplication):
                 f"{experiment_label}_{timestamp_now}_{experiment_id}_exp1_{plate_num}_contam.txt"
             )
             if test_prints:
-                print("getting new plate from tower")
+                print("getting new plate from rack")
                 print(f"\tplate num: {plate_num}")
-                print(f"\ttower location: {payload['current_tower_nest']}")
-                print(f"\ttower safe path: {payload['current_tower_nest_safe_path']}")
+                print(f"\track location: {payload['current_rack_nest']}")
+                print(f"\track safe path: {payload['current_rack_nest_safe_path']}")
             if run_robots:
                 workflow = self.workcell_client.submit_workflow(
                     get_new_plate_and_run_bmg_wf.resolve(),
@@ -323,8 +345,8 @@ class ALEApp(ExperimentApplication):
                         "data_output_directory_path": bmg_data_output_directory,
                         "lid_location": payload["lid_location"],
                         "lid_safe_path": payload["lid_safe_path"],
-                        "current_tower_nest": payload["current_tower_nest"],
-                        "current_tower_nest_safe_path": payload["current_tower_nest_safe_path"],
+                        "current_rack_nest": payload["current_rack_nest"],
+                        "current_rack_nest_safe_path": payload["current_rack_nest_safe_path"],
                     },
                 )
                 # write utc bmg timestamp to csv data file
@@ -429,17 +451,17 @@ class ALEApp(ExperimentApplication):
                         "lid_safe_path": payload["lid_safe_path"],
                         "ot2_location": payload["ot2_location"],
                         "ot2_safe_path": payload["ot2_safe_path"],
-                        "current_tower_nest": payload["current_tower_nest"],
-                        "current_tower_nest_safe_path": payload["current_tower_nest_safe_path"]
+                        "current_rack_nest": payload["current_rack_nest"],
+                        "current_rack_nest_safe_path": payload["current_rack_nest_safe_path"]
                     },
                 )
 
             # modify variables
-            current_tower_nest += 1
-            if current_tower_nest == 6:  # reset if necessary
-                current_tower_nest = 1
-            payload["current_tower_nest"] = "tower_deck" + str(current_tower_nest)
-            payload["current_tower_nest_safe_path"] = "safe_path_tower_deck" + str(current_tower_nest)
+            current_rack_nest_index += 1
+            if current_rack_nest_index == 12:  # reset if necessary
+                current_rack_nest_index = 0
+            payload["current_rack_nest"] = rack_nest_location_names[current_rack_nest_index]
+            payload["current_rack_nest_safe_path"] = "safe_path_" + rack_nest_location_names[current_rack_nest_index]
 
             # wait for incubation to finish
             if test_prints:
@@ -525,12 +547,6 @@ class ALEApp(ExperimentApplication):
                     if test_prints:
                         print("running bmg to ot2")
                     if run_robots:
-                        # experiment_client.start_run(  # OLD WEI VERSION< KEEP UNTIL TESTING COMPLETE
-                        #     bmg_to_ot2_wf.resolve(),
-                        #     payload=payload,
-                        #     blocking=True,
-                        #     simulate=False,
-                        # )
                         workflow = self.workcell_client.submit_workflow(
                             bmg_to_ot2_wf.resolve(),
                             json_inputs={
@@ -544,7 +560,7 @@ class ALEApp(ExperimentApplication):
         # OUTER LOOP ENDS HERE
 
         # NOTE: if no more outer loops, plate ends at old ot-2 location with lid on lidnest 2
-        # can't return plate to tower since we didn't grab a new substrate plate
+        # can't return plate to rack since we didn't grab a new substrate plate
 
         # 13. Move from old ot-2 location to exchange, replace lid.  # WORKING
         if test_prints:
