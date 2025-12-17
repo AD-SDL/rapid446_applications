@@ -5,7 +5,6 @@ import time
 from datetime import datetime
 from pathlib import Path
 
-import helper_functions
 from madsci.common.types.experiment_types import ExperimentDesign
 from madsci.common.types.node_types import NodeDefinition
 from madsci.common.types.resource_types import Resource
@@ -48,13 +47,11 @@ class PDApp(ExperimentApplication):
             description="Template for 200ul PCR plate",
             tags=["Plate", "ANSI/SLAS", "96 Well", "PCR", "Labware"],
         )
-    
+
 
     def push_new_assay_plate_resource(
             self,
-            plate_num: int,
             location_name: str,
-            experiment_id: int,
         ) -> None | Resource:
             """
             Pushes a new assay plate resource into the specified location, popping an existing plate in that location if necessary.
@@ -80,7 +77,7 @@ class PDApp(ExperimentApplication):
             # create a new assay plate resource and push it into the resource object associated with the given location
             new_plate = self.resource_client.create_resource_from_template(
                 template_name = "opentrons_96_wellplate_200ul_pcr_full_skirt",
-                resource_name = f"assay_plate_exp3_{experiment_id}_plate{plate_num}",
+                resource_name = "golden_gate_plate",
             )
             self.logger.log_info(f"Created new plate resource {new_plate.resource_name}, {new_plate.resource_id}")
 
@@ -90,16 +87,14 @@ class PDApp(ExperimentApplication):
             )
             self.logger.log_info(f"Pushed new plate resource into location {location_name}")
             return new_plate, old_plate
-  
+
 
     def run_experiment(self) -> None:
         """main experiment function"""
 
         #TODO: plate starting on ot2 patrick deck 6 on temp block
         new_plate, old_plate = self.push_new_assay_plate_resource(
-                plate_num=1,
                 location_name="ot2_patrick_nest6_temp_block_wide",
-                experiment_id=experiment_id,
             )
 
         # DEFINE PATHS AND VARIABLES ========
@@ -114,16 +109,20 @@ class PDApp(ExperimentApplication):
         # Directory paths
         app_directory = Path(__file__).parent.parent   # experiment app
         wf_directory = app_directory / "workflows"  # workflows
+        transfers_directory = wf_directory / "transfers"
         protocol_directory = app_directory / "protocols"    # protocols
 
         # Workflow paths
         run_ot2_wf = wf_directory / "run_ot2_wf.yaml"
         ot2_to_thermocycler = (
-            wf_directory / "ot2_to_thermocycler_wf.yaml"
-        )
-
-        # # workflow paths (pf400 transfers)
-        # ot2_temp_block_to_thermocycler = wf_directory / "ot2_temp_block_to_thermocycler.yaml"
+            transfers_directory / "ot2_to_thermocycler.yaml"
+        )        # payload["current_ot2_protocol"] = golden_gate_protocol
+        # workflow = self.workcell_client.submit_workflow(
+        #     run_ot2_wf.resolve(),
+        #     file_inputs={
+        #         "ot2_protocol": payload["current_ot2_protocol"],
+        #     },
+        # ) wf_directory / "ot2_temp_block_to_thermocycler.yaml"
 
 
         # Protocol paths (for OT-2)
@@ -132,24 +131,24 @@ class PDApp(ExperimentApplication):
         payload = {}
 
 
-    
+
         # EXPERIMENT ACTIONS -------------------------------------------------------
 
         #TODO: TEST HARDCODED VERSION
         #run ot2 protocol
-        payload["current_ot2_protocol"] = golden_gate_protocol
-        workflow = self.workcell_client.submit_workflow(
-            run_ot2_wf.resolve(),
-            file_inputs={
-                "ot2_protocol": payload["current_ot2_protocol"],
-            },
-        )
+        # payload["current_ot2_protocol"] = golden_gate_protocol
+        # workflow = self.workcell_client.submit_workflow(
+        #     run_ot2_wf.resolve(),
+        #     file_inputs={
+        #         "ot2_protocol": payload["current_ot2_protocol"],
+        #     },
+        # )
 
         #transfer destination plate to thermocycler and run
         workflow = self.workcell_client.submit_workflow(
             ot2_to_thermocycler.resolve(),
         )
-        
+
 
 
 
