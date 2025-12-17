@@ -1,4 +1,4 @@
-name: Get New PCR Plate from Tower Nest 2 Workflow
+name: Get New PCR Plate from Rack Row 1 Nest 2 Workflow
 
 metadata:
   author: Casey Stone
@@ -13,7 +13,7 @@ steps:
       source_plate_rotation: narrow
       target_plate_rotation: narrow
     locations:
-      source: tower_nest2
+      source: rack_row1_nest2
       target: exchange_nest_low_narrow
-      source_approach: safe_path_tower_nest2
+      source_approach: safe_path_rack_row1_nest2
       target_approach: safe_path_exchange

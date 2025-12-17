@@ -1,4 +1,4 @@
-name: Replace Lid on Flat Botton Plate and Return to Tower Nest 1 Workflow
+name: Replace Lid on Flat Botton Plate and Return to Rack Row 1 Nest 1 Workflow
 
 metadata:
   author: Casey Stone
@@ -18,7 +18,7 @@ steps:
       source_approach: safe_path_lidnest_1
       target_approach: safe_path_exchange
 
-  - name: Transfer to Tower slot 1
+  - name: Transfer to Rack Row 1 Nest 1
     node: pf400_piper
     action: transfer
     args:
@@ -26,6 +26,6 @@ steps:
       target_plate_rotation: narrow
     locations:
       source: exchange_nest_low_narrow
-      target: tower_nest1
+      target: rack_row1_nest1
       source_approach: safe_path_exchange
-      target_approach: safe_path_tower_nest1
+      target_approach: safe_path_rack_row1_nest1

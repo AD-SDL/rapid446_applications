@@ -1,4 +1,4 @@
-name: Return PCR Plate to Tower Nest 2 Workflow
+name: Return PCR Plate to Rack Row 1 Nest 2 Workflow
 
 metadata:
   author: Casey Stone
@@ -6,7 +6,7 @@ metadata:
   version: 0.1
 
 steps:
-  - name: Transfer to Tower slot 2
+  - name: Transfer to Rack Row 1 Nest 2
     node: pf400_piper
     action: transfer
     args:
@@ -14,6 +14,6 @@ steps:
       target_plate_rotation: narrow
     locations:
       source: exchange_nest_low_narrow
-      target: tower_nest2
+      target: rack_row1_nest2
       source_approach: safe_path_exchange
-      target_approach: safe_path_tower_nest2
+      target_approach: safe_path_rack_row1_nest2

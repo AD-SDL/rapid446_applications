@@ -16,57 +16,57 @@ parameters:
 steps:
   # # Start with plate with lid on exchange
 
-  # # Remove the lid to lid nest 3
-  # - name: remove lid from plate on exchange
-  #   node: pf400_piper
-  #   action: remove_lid
-  #   args:
-  #     source_plate_rotation: narrow
-  #     target_plate_rotation: narrow
-  #     lid_height: 8
-  #   locations:
-  #     source: exchange_nest_low_narrow
-  #     target: lidnest_3_narrow
-  #     source_approach: safe_path_exchange
-  #     target_approach: safe_path_lidnest_3
+  # Remove the lid to lid nest 3
+  - name: remove lid from plate on exchange
+    node: pf400_piper
+    action: remove_lid
+    args:
+      source_plate_rotation: narrow
+      target_plate_rotation: narrow
+      lid_height: 8
+    locations:
+      source: exchange_nest_low_narrow
+      target: lidnest_3_narrow
+      source_approach: safe_path_exchange
+      target_approach: safe_path_lidnest_3
 
-  # # Transfer into OT-2 deck 1
-  # - name: Transfer to OT-2
-  #   node: pf400_piper
-  #   action: transfer
-  #   args:
-  #     source_plate_rotation: wide
-  #     target_plate_rotation: wide
-  #   locations:
-  #     source: exchange_nest_high_wide
-  #     target: ot2_spongebob_nest1_wide
-  #     source_approach: safe_path_exchange
-  #     target_approach: safe_path_ot2_spongebob
+  # Transfer into OT-2 nest 1
+  - name: Transfer to OT-2
+    node: pf400_piper
+    action: transfer
+    args:
+      source_plate_rotation: wide
+      target_plate_rotation: wide
+    locations:
+      source: exchange_nest_high_wide
+      target: ot2_spongebob_nest1_wide
+      source_approach: safe_path_exchange
+      target_approach: safe_path_ot2_spongebob
 
-  # # Run OT-2 protocol
-  # - name: Run OT-2 spongebob
-  #   node: ot2_spongebob
-  #   action: run_protocol
-  #   files:
-  #     protocol: ot2_protocol
+  # Run OT-2 protocol
+  - name: Run OT-2 spongebob
+    node: ot2_spongebob
+    action: run_protocol
+    files:
+      protocol: ot2_protocol
 
-  # # Open BMG tray
-  # - name: Open the BMG plate reader tray
-  #   node: bmg_billy
-  #   action: open
+  # Open BMG tray
+  - name: Open the BMG plate reader tray
+    node: bmg_billy
+    action: open
 
-  # # Transfer plate from ot2 to exchange
-  # - name: Transfer plate without lid to exchange location
-  #   node: pf400_piper
-  #   action: transfer
-  #   args:
-  #     source_plate_rotation: wide
-  #     target_plate_rotation: wide
-  #   locations:
-  #     source: ot2_spongebob_nest1_wide
-  #     target: exchange_nest_high_wide
-  #     source_approach: safe_path_ot2_spongebob
-  #     target_approach: safe_path_exchange
+  # Transfer plate from ot2 to exchange
+  - name: Transfer plate without lid to exchange location
+    node: pf400_piper
+    action: transfer
+    args:
+      source_plate_rotation: wide
+      target_plate_rotation: wide
+    locations:
+      source: ot2_spongebob_nest1_wide
+      target: exchange_nest_high_wide
+      source_approach: safe_path_ot2_spongebob
+      target_approach: safe_path_exchange
 
   # Transfer plate without lid to bmg nest
   - name: Transfer plate without lid to bmg nest

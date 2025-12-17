@@ -35,11 +35,11 @@ class ExampleApp(ExperimentApplication):
         bmg_validate_wf = wf_directory / "bmg_validate_wf.yaml"
         hidex_validate_wf = wf_directory / "hidex_validate_wf.yaml"
         inheco_validate_wf = wf_directory / "inheco_validate_wf.yaml"
-        replace_lid_return_to_tower_wf = wf_directory / "replace_lid_return_to_tower_wf.yaml"
+        replace_lid_return_to_rack_wf = wf_directory / "replace_lid_return_to_rack_wf.yaml"
         get_new_pcr_plate_wf = wf_directory / "get_new_pcr_plate_wf.yaml"
         sealer_validate_wf = wf_directory / "sealer_validate_wf.yaml"
         peeler_validate_wf = wf_directory / "peeler_validate_wf.yaml"
-        return_pcr_plate_to_tower_wf = wf_directory / "return_pcr_plate_to_tower_wf.yaml"
+        return_pcr_plate_to_rack_wf = wf_directory / "return_pcr_plate_to_rack_wf.yaml"
 
         # protocols
         test_ot2_protocol = protocol_directory / "test_ot2_protocol.py"
@@ -48,7 +48,7 @@ class ExampleApp(ExperimentApplication):
 
         # TODO: Validate SciClops
 
-        # 1. Get new flat bottom plate with lid from Tower Nest 1 and place on exchange
+        # 1. Get new flat bottom plate with lid from Rack Row 1 Nest 1 and place on exchange
         workflow = self.workcell_client.submit_workflow(
             get_flat_bottom_plate_remove_lid_wf.resolve()
         )
@@ -82,12 +82,12 @@ class ExampleApp(ExperimentApplication):
             inheco_validate_wf.resolve()
         )
 
-        # 6. Replace lid on flat bottom plate and return to Tower Nest 1
+        # 6. Replace lid on flat bottom plate and return to Rack Row 1 Nest 1
         workflow = self.workcell_client.submit_workflow(
-            replace_lid_return_to_tower_wf.resolve()
+            replace_lid_return_to_rack_wf.resolve()
         )
 
-        # 7. Get a new PCR plate from Tower Nest 2 and transfer to exchange
+        # 7. Get a new PCR plate from Rack Row 1 Nest 2 and transfer to exchange
         workflow = self.workcell_client.submit_workflow(
             get_new_pcr_plate_wf.resolve()
         )
@@ -106,9 +106,9 @@ class ExampleApp(ExperimentApplication):
 
         # TODO: Validate Biometra TRobot II Themocyclers
 
-        # 10. Return PCR plate to Tower Nest 2
+        # 10. Return PCR plate to Rack Row 1 Nest 2
         workflow = self.workcell_client.submit_workflow(
-            return_pcr_plate_to_tower_wf.resolve()
+            return_pcr_plate_to_rack_wf.resolve()
         )
 
 if __name__ == "__main__":
