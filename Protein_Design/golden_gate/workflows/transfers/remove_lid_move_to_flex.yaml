@@ -1,0 +1,42 @@
+name: Remove Lid, move to Flex
+author: Abe Stroka
+info: Workflow for using PF400 to retrieve fresh plate from stack, remove the lid, and place in the OT-Flex
+version: '0.1'
+
+flowdef:
+  - name: transfer
+    module: biopf400
+    action: transfer
+    args:
+      source: tower_deck1
+      target: exchange_deck_low_narrow
+      source_approach: safe_path_tower_deck1
+      target_approach: safe_path_exchange
+      source_plate_rotation: narrow
+      target_plate_rotation: narrow
+    comment: Get plate from stack
+
+  - name: remove lid
+    module: biopf400
+    action: remove_lid
+    args:
+      source: exchange_deck_low_wide
+      target: lidnest_1_wide
+      source_approach: safe_path_exchange
+      target_approach: safe_path_lidnest_1
+      source_plate_rotation: wide
+      target_plate_rotation: wide
+      lid_height: 8
+    comment: Removes lid from plate
+
+  - name: transfer
+    module: biopf400
+    action: transfer
+    args:
+      source: exchange_deck_low_narrow
+      target: otflex_deckA
+      source_approach: safe_path_exchange
+      target_approach: safe_path_flexA
+      source_plate_rotation: narrow
+      target_plate_rotation: narrow
+    comment: place plate on OT-2

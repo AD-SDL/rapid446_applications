@@ -1,0 +1,85 @@
+name: Run OT-2 Protocol WF
+
+metadata:
+  author: Abe Stroka
+  info: Workflow for tranfering plate from temperature block of ot-2 patrick to the biometra thermocycler
+  version: '0.1'
+
+
+
+steps:
+  #open biometra
+  - name: Open biometra
+    node: biometra_beauford_96
+    action: open
+
+  #transfer from ot2 6 (C3) on temperature block to the exchange to rotate
+  - name: Transfer plate to thermocycler
+    node: pf400_piper
+    action: transfer
+    args:
+      source_plate_rotation: wide
+      target_plate_rotation: wide
+      source_approach_height_offset: 10
+    location:
+      source: ot2_patrick_nest6_wide
+      target: exchange_nest_high_wide
+      source_approach: safe_path_ot2_patrick_nest4_high
+      target_approach: safe_path_exchange
+
+  #transfer from exchange to sealer
+  - name: Transfer plate to thermocycler
+    node: pf400_piper
+    action: transfer
+    args:
+      source_plate_rotation: narrow
+      target_plate_rotation: narrow
+    location:
+      source: exchange_nest_high_narrow
+      target: sealer_nest
+      source_approach: safe_path_exchange
+      target_approach: safe_path_sealer
+
+  - name: seal
+    module: bio_sealer
+    action: seal
+
+  # Transfer from sealer to exchange (need to swap grip from narrow to wide)
+
+  - name: Transfer plate to exchange
+    node: pf400_piper
+    action: transfer
+    args:
+      source_plate_rotation: narrow
+      target_plate_rotation: narrow
+    location:
+      source: sealer_nest
+      target: exchange_deck_high_narrow
+      source_approach: safe_path_sealer
+      target_approach: safe_path_exchange
+
+
+  #transfer from exchange to the biometra
+  - name: Transfer plate to thermocycler
+    node: pf400_piper
+    action: transfer
+    args:
+      source_plate_rotation: wide
+      target_plate_rotation: wide
+    location:
+      source: exchange_deck_low_narrow
+      target: biometra_96_beauford
+      source_approach: safe_path_exchange
+      target_approach: biometra_safe_path
+
+  #close biometra
+  - name: Close biometra
+    node: biometra_beauford_96
+    action: close
+
+  #run golden gate protocol on biometra
+  - name: Run golden gate on biometra
+    node: biometra_beauford_96
+    action: run_protocol
+    files:
+      protocol: 1

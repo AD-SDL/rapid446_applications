@@ -1,0 +1,15 @@
+name: Run Hidex
+author: Abe Stroka
+info: Workflow for running one thermocycler protocol from payload
+version: '0.1'
+
+
+flowdef:
+  - name: Run thermocycler protocol
+    module: bio_biometra3_96
+    action: run_protocol
+    args:
+      foo: bar
+    files:
+      protocol: 1  # TODO: What is the number of the Golden Gate thermocycler protocol
+    comment: Run hidex protocol

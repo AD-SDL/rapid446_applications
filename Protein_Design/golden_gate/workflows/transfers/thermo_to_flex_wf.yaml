@@ -1,0 +1,66 @@
+name: biometra3_96 to Flex A
+author: Abe Stroka
+info: Moves plate from the biometra 96-well themocycler position A of the flex
+version: '0.1'
+
+
+flowdef:
+#thermocycler to exchange
+  - name: transfer
+    module: biopf400
+    action: transfer
+    args:
+      source: bio_biometra3_nest
+      target: exchange_deck_high_wide
+      source_approach: safe_path_biometra3
+      target_approach: safe_path_exchange
+      source_plate_rotation: wide
+      target_plate_rotation: wide
+    comment: moves plate from biometra 96 thermocycler to exchange
+
+# exchnage to peeler
+  - name: transfer
+    module: biopf400
+    action: transfer
+    args:
+      source: exchange_deck_high_narrow
+      target: peeler_nest
+      source_approach: safe_path_exchange
+      target_approach: safe_path_peeler
+      source_plate_rotation: narrow
+      target_plate_rotation: narrow
+    comment: transfer to sealer
+
+#peel
+  - name: peel
+    module: bio_peeler
+    action: peel
+    args:
+      foo: bar
+    comment: peel the pcr plate
+
+# peeler to exchange
+  - name: transfer
+    module: biopf400
+    action: transfer
+    args:
+      source: peeler_nest
+      target: exchange_deck_high_narrow
+      source_approach: safe_path_peeler
+      target_approach: safe_path_exchange
+      source_plate_rotation: narrow
+      target_plate_rotation: narrow
+    comment: moves plate from exchange to biometra 96 thermocycler
+
+# exchange to flex
+  - name: transfer
+    module: biopf400
+    action: transfer
+    args:
+      source: exchange_deck_low_narrow
+      target: otflex_deckA
+      source_approach: safe_path_exchange
+      target_approach: safe_path_flexA
+      source_plate_rotation: narrow
+      target_plate_rotation: narrow
+    comment: place plate on flex
