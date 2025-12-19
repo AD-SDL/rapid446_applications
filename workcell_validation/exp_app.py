@@ -1,16 +1,16 @@
 """An Example Application"""
 
 import time
+from datetime import datetime
 from pathlib import Path
 
+from madsci.client import ExperimentClient, WorkcellClient
 from madsci.common.types.experiment_types import ExperimentDesign
-from madsci.common.types.node_types import NodeDefinition
 from madsci.experiment_application import (
     ExperimentApplication,
     ExperimentApplicationConfig,
 )
 from pydantic import AnyUrl
-from datetime import datetime
 
 
 class ExampleApp(ExperimentApplication):
@@ -20,6 +20,9 @@ class ExampleApp(ExperimentApplication):
         experiment_name="Example_App",
     )
     config = ExperimentApplicationConfig(node_url=AnyUrl("http://localhost:6000"))
+
+    experiment_client = ExperimentClient()
+    workcell_client = WorkcellClient()
 
     def run_experiment(self) -> None:
         """main experiment function"""

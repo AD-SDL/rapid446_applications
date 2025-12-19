@@ -7,6 +7,7 @@ from pathlib import Path
 
 import helper_functions
 from madsci.common.types.experiment_types import ExperimentDesign
+from madsci.client import ExperimentClient, WorkcellClient
 from madsci.common.types.node_types import NodeDefinition
 from madsci.common.types.resource_types import Resource
 from madsci.experiment_application import (
@@ -29,6 +30,8 @@ class ALEApp(ExperimentApplication):
         experiment_name="ALE_App",
     )
     config = ExperimentApplicationConfig(node_url=AnyUrl("http://localhost:6000"))
+    experiment_client = ExperimentClient()
+    workcell_client = WorkcellClient()
     experiment_id = None
     experiment_label = None
 
@@ -105,7 +108,7 @@ class ALEApp(ExperimentApplication):
 
         # Experiment ID and name
         experiment_id = self.experiment.experiment_id
-        experiment_label = "3"
+        experiment_label = "TFMN1"
 
         # Directory paths
         app_directory = Path(__file__).parent.parent   # experiment app
