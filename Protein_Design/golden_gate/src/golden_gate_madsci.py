@@ -5,6 +5,7 @@ import time
 from datetime import datetime
 from pathlib import Path
 
+from madsci.client import ExperimentClient, WorkcellClient
 from madsci.common.types.experiment_types import ExperimentDesign
 from madsci.common.types.node_types import NodeDefinition
 from madsci.common.types.resource_types import Resource
@@ -26,6 +27,8 @@ class PDApp(ExperimentApplication):
         experiment_name="PD_App",
     )
     config = ExperimentApplicationConfig(node_url=AnyUrl("http://localhost:6000"))
+    experiment_client = ExperimentClient()
+    workcell_client = WorkcellClient()
     experiment_id = None
     experiment_label = None
 
@@ -93,9 +96,9 @@ class PDApp(ExperimentApplication):
         """main experiment function"""
 
         #TODO: plate starting on ot2 patrick deck 6 on temp block
-        new_plate, old_plate = self.push_new_assay_plate_resource(
-                location_name="ot2_patrick_nest6_temp_block_wide",
-            )
+        # new_plate, old_plate = self.push_new_assay_plate_resource(
+        #         location_name="ot2_patrick_nest6_temp_block_wide",
+        #     )
 
         # DEFINE PATHS AND VARIABLES ========
         run_robots = False  # if False, no robots will run
@@ -103,17 +106,18 @@ class PDApp(ExperimentApplication):
         test_prints = True  # if True, will print out extra info for testing purposes
 
         # Experiment ID and name
-        experiment_id = self.experiment.experiment_id
+        # experiment_id = self.experiment.experiment_id
         experiment_label = "1"
 
         # Directory paths
         app_directory = Path(__file__).parent.parent   # experiment app
         wf_directory = app_directory / "workflows"  # workflows
+        run_directory = wf_directory / "run_instrument"
         transfers_directory = wf_directory / "transfers"
         protocol_directory = app_directory / "protocols"    # protocols
 
         # Workflow paths
-        run_ot2_wf = wf_directory / "run_ot2_wf.yaml"
+        run_ot2_wf = run_directory / "run_ot2_wf.yaml"
         ot2_to_thermocycler = (
             transfers_directory / "ot2_to_thermocycler.yaml"
         )        # payload["current_ot2_protocol"] = golden_gate_protocol
@@ -136,18 +140,18 @@ class PDApp(ExperimentApplication):
 
         #TODO: TEST HARDCODED VERSION
         #run ot2 protocol
-        # payload["current_ot2_protocol"] = golden_gate_protocol
-        # workflow = self.workcell_client.submit_workflow(
-        #     run_ot2_wf.resolve(),
-        #     file_inputs={
-        #         "ot2_protocol": payload["current_ot2_protocol"],
-        #     },
-        # )
+        payload["current_ot2_protocol"] = golden_gate_protocol
+        workflow = self.workcell_client.submit_workflow(
+            run_ot2_wf.resolve(),
+            file_inputs={
+                "ot2_protocol": payload["current_ot2_protocol"],
+            },
+        )
 
         #transfer destination plate to thermocycler and run
-        workflow = self.workcell_client.submit_workflow(
-            ot2_to_thermocycler.resolve(),
-        )
+        # workflow = self.workcell_client.submit_workflow(
+        #     ot2_to_thermocycler.resolve(),
+        # )
 
 
 
