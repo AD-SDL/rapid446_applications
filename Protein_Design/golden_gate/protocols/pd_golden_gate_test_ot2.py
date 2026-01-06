@@ -20,10 +20,11 @@ config = {
     # 'combinations': [[18,10,2],[11,19,3],[4,20,12],[21,13,5]],
     'combinations': [[1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2]],
     # gbabnigg.changes.start
-    'use_combinations': True,
+    'use_combinations': False,
     # the below 2D array defines which source wells to combine for each destination well
     # 2025-11-03.example
-    'non_combinatorial_sources': [
+    'non_combinatorial_sources': [[1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2]],
+    # [
         # [1,2,3,4],
         # [9,2,3,12],
         # [9,10,3,4],
@@ -33,10 +34,10 @@ config = {
         # [17,18,19,4],
         # [17,18,19,20],
 
-        [1,2,3,4],
-        [9,2,3,12],
-        [9,10,3,4],
-        [9,10,3,12],
+        # [1,2,3,4],
+        # [9,2,3,12],
+        # [9,10,3,4],
+        # [9,10,3,12],
         # [9,10,11,12],
         # [9,18,3,4],
         # [17,18,19,4],
@@ -50,11 +51,11 @@ config = {
         # [9,18,3,4],
         # [17,18,19,4],
         # [17,18,19,20]
-    ],
+    # ],
     # gbabnigg.changes.end
     'transfer_volume': 2,  # µL from each source well
-    'aspirate_transfer_volume': 5.5,
-    'dispense_transfer_volume': 5,
+    'aspirate_transfer_volume': 2,
+    'dispense_transfer_volume': 2,
 
     # Master mix settings
     'master_mix_volume': 12,  # µL per destination well
