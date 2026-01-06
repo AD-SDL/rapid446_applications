@@ -18,7 +18,7 @@ requirements = {"robotType": "OT-2", "apiLevel": "2.20"}
 config = {
     # Combinatorial mixing
     # 'combinations': [[18,10,2],[11,19,3],[4,20,12],[21,13,5]],
-    'combinations': [[1], [1], [1], [1], [1], [1], [1], [1], [1], [1], [1], [1], [1], [1], [1], [1], [1], [1], [1], [1], [1], [1], [1], [1], [1], [1], [1]],
+    'combinations': [[1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2], [1, 2]],
     # gbabnigg.changes.start
     'use_combinations': True,
     # the below 2D array defines which source wells to combine for each destination well
