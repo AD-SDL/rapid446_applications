@@ -186,6 +186,10 @@ def transfer_combinatorial_liquids(protocol, source_plate, dest_plate, pipette, 
             # Dispense to destination
             pipette.flow_rate.dispense = 29
             pipette.dispense(dispense_transfer_volume, dest_well)
+
+            pipette.touch_tip(dest_well, v_offset=-2)
+
+
             
             # Blow out after dispensing
             # pipette.blow_out(dest_well)
