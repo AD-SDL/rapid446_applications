@@ -22,7 +22,7 @@ config = {
     # gbabnigg.changes.start
     'use_combinations': True,
     # the below 2D array defines which source wells to combine for each destination well
-    # 2025-11-03.example    
+    # 2025-11-03.example
     'non_combinatorial_sources': [
         # [1,2,3,4],
         # [9,2,3,12],
@@ -52,7 +52,7 @@ config = {
         [17,18,19,20]
     ],
     # gbabnigg.changes.end
-    'transfer_volume': 2.5,  # µL from each source well
+    'transfer_volume': 2,  # µL from each source well
     'aspirate_transfer_volume': 2,
     'dispense_transfer_volume': 2,
 
@@ -131,7 +131,7 @@ def transfer_combinatorial_liquids(protocol, source_plate, dest_plate, pipette, 
         config: Configuration dictionary containing combinations and transfer_volume
     """
 
-    
+
     transfer_volume = config['transfer_volume']
     #reverse pipetting values
     aspirate_transfer_volume = config['aspirate_transfer_volume']
@@ -177,24 +177,24 @@ def transfer_combinatorial_liquids(protocol, source_plate, dest_plate, pipette, 
 
             # Pick up tip for transfer
             pipette.pick_up_tip()
-            
+
             # Aspirate from source
             #default flow rate is 35
             # pipette.flow_rate.aspirate = 18
             pipette.aspirate(aspirate_transfer_volume, source_well)
-            
+
             # Dispense to destination
             pipette.flow_rate.dispense = 29
             pipette.dispense(dispense_transfer_volume, dest_well)
 
-            pipette.touch_tip(dest_well, v_offset=-2)
+            pipette.touch_tip(dest_well, v_offset=-5)
 
 
-            
+
             # Blow out after dispensing
             # pipette.blow_out(dest_well)
             pipette.drop_tip()
-            
+
             # Check if this is the last member of the combination
             #TODO: mixing temporarily removed
             # if idx == len(combination) - 1:
@@ -206,7 +206,7 @@ def transfer_combinatorial_liquids(protocol, source_plate, dest_plate, pipette, 
             #     pipette.drop_tip()
             # Drop tip
             # pipette.drop_tip()
-            
+
         dest_well_number += 1
 
 def add_master_mix_to_combinations(protocol, source_plate, dest_plate, pipette, config):
