@@ -17,9 +17,10 @@ requirements = {"robotType": "OT-2", "apiLevel": "2.20"}
 # Protocol Configuration
 config = {
     # Combinatorial mixing
-    'combinations': [[18,10,2],[11,19,3],[4,20,12],[21,13,5]],
+    # 'combinations': [[18,10,2],[11,19,3],[4,20,12],[21,13,5]],
+    'combinations': [[5,6,7,8], [25,26,27,28], [37,38,39,40]],
     # gbabnigg.changes.start
-    'use_combinations': False,
+    'use_combinations': True,
     # the below 2D array defines which source wells to combine for each destination well
     # 2025-11-03.example    
     'non_combinatorial_sources': [
@@ -52,13 +53,13 @@ config = {
     ],
     # gbabnigg.changes.end
     'transfer_volume': 2.5,  # µL from each source well
-    'aspirate_transfer_volume': 5.5,
-    'dispense_transfer_volume': 5,
+    'aspirate_transfer_volume': 2,
+    'dispense_transfer_volume': 2,
 
     # Master mix settings
     'master_mix_volume': 12,  # µL per destination well
     'master_mix_well_volume': 100,  # µL per master mix well
-    'master_mix_start_well': 32,  # 0-indexed well number
+    'master_mix_start_well': 48,  # 0-indexed well number
 
     # Temperature settings
     'temperature': 4,  # °C
@@ -161,7 +162,7 @@ def transfer_combinatorial_liquids(protocol, source_plate, dest_plate, pipette, 
         print(f"Destination well {i+1}: Sources {combo}")
 
     # Perform transfers
-    dest_well_number = 9
+    dest_well_number = 1
 
     for combination in all_combinations:
         # For each combination, transfer from all source wells to one destination well
@@ -192,13 +193,13 @@ def transfer_combinatorial_liquids(protocol, source_plate, dest_plate, pipette, 
             
             # Check if this is the last member of the combination
             #TODO: mixing temporarily removed
-            if idx == len(combination) - 1:
-                pipette.pick_up_tip()
-                protocol.comment(f"  - Mixing in destination well {dest_well_number} after last transfer")
-                # Mix using the same tip
-                pipette.mix(repetitions=3, volume=transfer_volume * len(combination) * 0.7, location=dest_well, rate=0.2)
-                # pipette.blow_out(dest_well)
-                pipette.drop_tip()
+            # if idx == len(combination) - 1:
+            #     pipette.pick_up_tip()
+            #     protocol.comment(f"  - Mixing in destination well {dest_well_number} after last transfer")
+            #     # Mix using the same tip
+            #     pipette.mix(repetitions=3, volume=transfer_volume * len(combination) * 0.7, location=dest_well, rate=0.2)
+            #     # pipette.blow_out(dest_well)
+            #     pipette.drop_tip()
             # Drop tip
             # pipette.drop_tip()
             
@@ -234,7 +235,7 @@ def add_master_mix_to_combinations(protocol, source_plate, dest_plate, pipette, 
 
     # Track current master mix well and remaining volume
     current_master_mix_well = master_mix_start_well
-    remaining_dispenses = dispenses_per_well + 1
+    remaining_dispenses = dispenses_per_well
 
     protocol.comment(f"\nAdding {master_mix_volume}µL master mix to each destination well:")
 
@@ -258,7 +259,8 @@ def add_master_mix_to_combinations(protocol, source_plate, dest_plate, pipette, 
             master_mix_volume,
             master_mix_well,
             dest_well,
-            new_tip='always'  # Use fresh tip for each master mix transfer
+            new_tip='always',
+            mix_after=(3, 15),  # Use fresh tip for each master mix transfer
         )
 
         # Update remaining dispenses
@@ -357,10 +359,10 @@ def run(protocol: protocol_api.ProtocolContext):
     )
 
     # Add master mix to each destination well
-    # last_master_mix_well = add_master_mix_to_combinations(
-    #     protocol=protocol,
-    #     source_plate=source_plate,
-    #     dest_plate=dest_plate,
-    #     pipette=p50s,
-    #     config=config
-    # )
+    last_master_mix_well = add_master_mix_to_combinations(
+        protocol=protocol,
+        source_plate=source_plate,
+        dest_plate=dest_plate,
+        pipette=p50s,
+        config=config
+    )

@@ -237,7 +237,7 @@ def add_master_mix_to_combinations(protocol, source_plate, dest_plate, pipette, 
 
     # Track current master mix well and remaining volume
     current_master_mix_well = master_mix_start_well
-    remaining_dispenses = dispenses_per_well + 1
+    remaining_dispenses = dispenses_per_well
 
     protocol.comment(f"\nAdding {master_mix_volume}µL master mix to each destination well:")
 
