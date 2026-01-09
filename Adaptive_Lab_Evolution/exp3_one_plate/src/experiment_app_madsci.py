@@ -7,7 +7,7 @@ from pathlib import Path
 
 import helper_functions
 from madsci.common.types.experiment_types import ExperimentDesign
-from madsci.client import ExperimentClient, WorkcellClient
+from madsci.client import ExperimentClient, WorkcellClient, LocationClient, ResourceClient
 from madsci.common.types.node_types import NodeDefinition
 from madsci.common.types.resource_types import Resource
 from madsci.experiment_application import (
@@ -32,6 +32,8 @@ class ALEApp(ExperimentApplication):
     config = ExperimentApplicationConfig(node_url=AnyUrl("http://localhost:6000"))
     experiment_client = ExperimentClient()
     workcell_client = WorkcellClient()
+    location_client = LocationClient()
+    resource_client = ResourceClient()
     experiment_id = None
     experiment_label = None
 
@@ -102,13 +104,13 @@ class ALEApp(ExperimentApplication):
         """main experiment function"""
 
         # DEFINE PATHS AND VARIABLES ========
-        run_robots = False  # if False, no robots will run
+        run_robots = True  # if False, no robots will run
         run_resources = True
         test_prints = True  # if True, will print out extra info for testing purposes
 
         # Experiment ID and name
         experiment_id = self.experiment.experiment_id
-        experiment_label = "TFMN1"
+        experiment_label = "TFMN1_WeekendTestRun"
 
         # Directory paths
         app_directory = Path(__file__).parent.parent   # experiment app
@@ -150,11 +152,9 @@ class ALEApp(ExperimentApplication):
         # Important variables
         # total_outer_loops = 33 # 33 # inoculations into new plate every 10ish hours
         total_outer_loops = 3  # TESTING
-        # total_inner_loops = 10 # 10 readings (T1 happens before the inner loop starts, only need 9 more inner loops)
-        total_inner_loops = 2 # TESTING
+        total_inner_loops = 12 # 12 readings = ~ 12 hours between incubations
         incubation_seconds_initial = 10 # 36000 seconds = 10 hours
-        # incubation_seconds_between_readings = 3600 # 3600 seconds = 1 hour
-        incubation_seconds_between_readings = 30  # TESTING
+        incubation_seconds_between_readings = 3600 # 3600 seconds = 1 hour
 
         plate_num = 0
         reading_in_plate_num = 10
