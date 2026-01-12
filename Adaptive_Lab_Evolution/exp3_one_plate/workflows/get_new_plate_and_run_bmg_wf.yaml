@@ -1,8 +1,8 @@
-name: Get new plate from tower, take contam BMG reading WF
+name: Get new plate from rack, take contam BMG reading WF
 
 metadata:
   author: Casey Stone
-  info: Workflow for getting a new substrate plate from the tower and taking initial contamination reading
+  info: Workflow for getting a new substrate plate from the rack and taking initial contamination reading
   version: '0.1'
 
 parameters:
@@ -11,12 +11,12 @@ parameters:
     - key: data_output_directory_path
     - key: lid_location
     - key: lid_safe_path
-    - key: current_tower_nest
-    - key: current_tower_nest_safe_path
+    - key: current_rack_nest
+    - key: current_rack_nest_safe_path
 
 steps:
-  # 0. Get new plate from current tower nest
-  - name: transfer from tower to exchange
+  # 0. Get new plate from current rack nest
+  - name: transfer from rack to exchange
     node: pf400_piper
     action: transfer
     args:
@@ -27,8 +27,8 @@ steps:
       target_approach: safe_path_exchange
     params:
       locations:
-        source: current_tower_nest
-        source_approach: current_tower_nest_safe_path
+        source: current_rack_nest
+        source_approach: current_rack_nest_safe_path
 
   # 1. Remove lid
   - name: remove lid
