@@ -18,7 +18,8 @@ requirements = {"robotType": "OT-2", "apiLevel": "2.20"}
 config = {
     # Combinatorial mixing
     # 'combinations': [[18,10,2],[11,19,3],[4,20,12],[21,13,5]],
-    'combinations': [[5,6,7,8], [25,26,27,28], [37,38,39,40]],
+    # 'combinations': [[5,6,7,8], [25,26,27,28], [37,38,39,40]],
+    'combinations': [[5,25,37], [6,26,38], [7,27,39], [8,28,40]],
     # gbabnigg.changes.start
     'use_combinations': True,
     # the below 2D array defines which source wells to combine for each destination well
@@ -98,13 +99,13 @@ config = {
     # 'tip_rack_04_offset': ot2_patrick[9],
     # 'tip_rack_05_offset': ot2_patrick[7]
 
-    'fragments_plate_initial_offset': [0.3, 1.1, -0.7],
+    'fragments_plate_initial_offset': [0.1, 1.1, -0.8],
     'gg_plate_offset': [0.7, 1.7, -1.2],
-    'tip_rack_01_offset': [-0.6, 0.4, -0.2],
-    'tip_rack_02_offset': [-0.6, 0.5, 0.4],
-    'tip_rack_03_offset': [-0.6, 0.5, -1.2],
-    'tip_rack_04_offset': [-0.4, 0.5, -1.0],
-    'tip_rack_05_offset': [-1.0, 0.8, -0.8]
+    'tip_rack_01_offset': [0.3, 0.9, -0.6],
+    'tip_rack_02_offset': [0.4, 1.2, -0.4],
+    'tip_rack_03_offset': [0.7, 1.1, -0.5],
+    'tip_rack_04_offset': [0.4, 1.3, -0.7],
+    'tip_rack_05_offset': [0.3, 1.2, -0.3]
 }
 
 
