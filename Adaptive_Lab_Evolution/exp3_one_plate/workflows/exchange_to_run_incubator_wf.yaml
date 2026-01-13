@@ -43,7 +43,7 @@ steps:
     args:
       temperature: 30.0
       shaker_frequency: 6.6
-      wait_for_incubation_time: True
+      wait_for_incubation_time: False
     params:
       args:
         incubation_time: incubation_seconds
