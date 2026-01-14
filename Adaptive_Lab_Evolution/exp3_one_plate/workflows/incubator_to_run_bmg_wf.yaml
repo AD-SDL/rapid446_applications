@@ -87,6 +87,7 @@ steps:
   - name: Run BMG absorbance assay
     node: bmg_billy
     action: run_assay
+    key: bmg_data
     args:
       assay_name: NIDHI
     params:

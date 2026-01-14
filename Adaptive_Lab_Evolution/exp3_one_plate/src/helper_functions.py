@@ -50,7 +50,8 @@ def write_timestamps_to_csv(
         csv_directory_path: str,
         experiment_id: str,
         bmg_filename: str,
-        accurate_timestamp: str
+        accurate_timestamp: str,
+        resource_id: str,
     ):
     """Writes the more accurate timestamp data from each two plate
         substrate experiment to a file in the specified csv directory"""
@@ -66,10 +67,10 @@ def write_timestamps_to_csv(
 
             # write header row if file was just created
             if not already_exists:
-                csv_writer.writerow(["bmg filename", "utc timestamp"])
+                csv_writer.writerow(["bmg filename", "utc timestamp", "resource id"])
 
             # write the data to the csv
-            csv_writer.writerow([bmg_filename, accurate_timestamp])
+            csv_writer.writerow([bmg_filename, accurate_timestamp, resource_id])
 
 
     except Exception as e:

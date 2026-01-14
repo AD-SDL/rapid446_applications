@@ -110,7 +110,7 @@ class ALEApp(ExperimentApplication):
 
         # Experiment ID and name
         experiment_id = self.experiment.experiment_id
-        experiment_label = "TFMN1_TEST5"
+        experiment_label = "TFMN1_TEST6"
 
         # Directory paths
         app_directory = Path(__file__).parent.parent   # experiment app
@@ -150,10 +150,13 @@ class ALEApp(ExperimentApplication):
         inoculate_protocol = protocol_directory / "inoculate.py"
 
         # Important variables
-        total_outer_loops = 40 # 40 # inoculations into new plate every 12ish hours
-        total_inner_loops = 12 # 12 readings = ~ 12 hours between incubations
+        # total_outer_loops = 40 # 40 # inoculations into new plate every 12ish hours
+        total_outer_loops = 2 # 40 # inoculations into new plate every 12ish hours  # TESTING
+        # total_inner_loops = 12 # 12 readings = ~ 12 hours between incubations
+        total_inner_loops = 2 # TESTING
         incubation_seconds_initial = 10 # 36000 seconds = 10 hours
-        incubation_seconds_between_readings = 3600 # 3600 seconds = 1 hour
+        # incubation_seconds_between_readings = 3600 # 3600 seconds = 1 hour
+        incubation_seconds_between_readings = 36 # 3600 seconds = 1 hour  # TESTING
 
         plate_num = 0
         reading_in_plate_num = 10
@@ -226,11 +229,9 @@ class ALEApp(ExperimentApplication):
                 experiment_id=experiment_id
             )
             assay_plate_list[plate_num] = new_plate.resource_id, new_plate.resource_name
-            # TESTING
-            time.sleep(5)
 
         # RUN THE EXPERIMENT
-        # 1. Move immediately into incubator with lid on for 10 hours -- WORKING
+        # 1. Move immediately into incubator with lid on for 10 hours
         if run_robots:
             workflow = self.workcell_client.submit_workflow(
                 exchange_to_run_incubator_wf.resolve(),
@@ -257,7 +258,7 @@ class ALEApp(ExperimentApplication):
                     print("Incubation complete.")
                     break
 
-        # 2. Transfer plate 0 into bmg and take reading (plate0_T10) --  WORKING
+        # 2. Transfer plate 0 into bmg and take reading (plate0_T10)
         timestamp_now = int(datetime.now().timestamp())
         payload["bmg_data_output_name"] = (
             f"{experiment_label}_{timestamp_now}_{experiment_id}_exp1_{plate_num}_T{reading_in_plate_num}.txt"
@@ -274,20 +275,24 @@ class ALEApp(ExperimentApplication):
                     "data_output_directory_path": bmg_data_output_directory,
                 },
             )
+            # collect associated resource id
+            datapoint_id = workflow.get_datapoint_id(step_key="bmg_data", label="json_result")
+            resource_id = self.data_client.get_datapoint_value(datapoint_id=datapoint_id)
             # write utc bmg timestamp to csv data file
             helper_functions.write_timestamps_to_csv(
                 csv_directory_path=csv_data_directory,
                 experiment_id=experiment_id,
                 bmg_filename=payload["bmg_data_output_name"],
                 accurate_timestamp=workflow.steps[8].end_time,  # index 8 = bmg reading
+                resource_id=resource_id,
             )
             if test_prints:
-                print(f"\twriting data to csv: {payload['bmg_data_output_name']}, with timestamp {workflow.steps[8].end_time}")
+                print(f"\twriting data to csv: {payload['bmg_data_output_name']}, with timestamp {workflow.steps[8].end_time}, and respource id {resource_id}")
         else:
             if test_prints:
                 print(f"\twriting data to csv: {payload['bmg_data_output_name']}")
 
-        # 3. Transfer old plate into the OT-2  -- working
+        # 3. Transfer old plate into the OT-2
         if run_robots:
             workflow = self.workcell_client.submit_workflow(
                 bmg_to_ot2_wf.resolve(),
@@ -329,7 +334,7 @@ class ALEApp(ExperimentApplication):
 
 
 
-            # 4. Get new substrate plate, take contam reading, then move to OT-2 new location   # WORKING
+            # 4. Get new substrate plate, take contam reading, then move to OT-2 new location
             timestamp_now = int(datetime.now().timestamp())
             payload["bmg_data_output_name"] = (
                 f"{experiment_label}_{timestamp_now}_{experiment_id}_exp1_{plate_num}_contam.txt"
@@ -351,12 +356,16 @@ class ALEApp(ExperimentApplication):
                         "current_rack_nest_safe_path": payload["current_rack_nest_safe_path"],
                     },
                 )
+                # collect associated resource id
+                datapoint_id = workflow.get_datapoint_id(step_key="bmg_data", label="json_result")
+                resource_id = self.data_client.get_datapoint_value(datapoint_id=datapoint_id)
                 # write utc bmg timestamp to csv data file
                 helper_functions.write_timestamps_to_csv(
                     csv_directory_path=csv_data_directory,
                     experiment_id=experiment_id,
                     bmg_filename=payload["bmg_data_output_name"],
-                    accurate_timestamp=workflow.steps[5].end_time,  # index 5 = bmg reading
+                    accurate_timestamp=workflow.steps[5].end_time, # index 5 = bmg reading
+                    resource_id=resource_id,
                 )
                 if test_prints:
                     print(f"\twriting data to csv: {payload['bmg_data_output_name']}, with timestamp {workflow.steps[5].end_time}")
@@ -364,7 +373,7 @@ class ALEApp(ExperimentApplication):
                 if test_prints:
                     print(f"\twriting data to csv: {payload['bmg_data_output_name']}")
 
-            # 5. Transfer new plate from bmg to new ot2 location -- WORKING
+            # 5. Transfer new plate from bmg to new ot2 location
             if run_robots:
                 workflow = self.workcell_client.submit_workflow(
                     bmg_to_ot2_wf.resolve(),
@@ -374,7 +383,7 @@ class ALEApp(ExperimentApplication):
                     },
                 )
 
-            # 6. Run inoculation ot2 protocol -- WORKING
+            # 6. Run inoculation ot2 protocol
             ot2_replacement_variables = helper_functions.collect_ot2_replacement_variables(payload)
             temp_ot2_file_str = helper_functions.generate_ot2_protocol(inoculate_protocol, ot2_replacement_variables)
             payload["current_ot2_protocol"] = temp_ot2_file_str
@@ -394,7 +403,7 @@ class ALEApp(ExperimentApplication):
                 exp1_variables["tip_box_location"] = 4
             payload["tip_box_location"] = exp1_variables["tip_box_location"]
 
-            # 7. Transfer new plate into bmg and take T0 reading  -- WORKING, didn't test writing timestamp to csv
+            # 7. Transfer new plate into bmg and take T0 reading
             timestamp_now = int(datetime.now().timestamp())
             payload["bmg_data_output_name"] = (
                 f"{experiment_label}_{timestamp_now}_{experiment_id}_exp1_{plate_num}_T{reading_in_plate_num}.txt"
@@ -409,15 +418,19 @@ class ALEApp(ExperimentApplication):
                         "ot2_safe_path": payload["ot2_safe_path"]
                     },
                 )
+                # collect associated resource id
+                datapoint_id = workflow.get_datapoint_id(step_key="bmg_data", label="json_result")
+                resource_id = self.data_client.get_datapoint_value(datapoint_id=datapoint_id)
                 # write utc bmg timestamp to csv data file
                 helper_functions.write_timestamps_to_csv(
                     csv_directory_path=csv_data_directory,
                     experiment_id=experiment_id,
                     bmg_filename=payload["bmg_data_output_name"],
                     accurate_timestamp=workflow.steps[4].end_time,  # index 5 = bmg reading
+                    resource_id=resource_id,
                 )
                 if test_prints:
-                    print(f"\twriting data to csv: {payload['bmg_data_output_name']}, with timestamp {workflow.steps[4].end_time}")
+                    print(f"\twriting data to csv: {payload['bmg_data_output_name']}, with timestamp {workflow.steps[4].end_time}, and resource id {resource_id}")
             else:
                 if test_prints:
                     print(f"\twriting data to csv: {payload['bmg_data_output_name']}")
@@ -425,7 +438,7 @@ class ALEApp(ExperimentApplication):
             # modify variables
             reading_in_plate_num += 1
 
-            # 8. Transfer from bmg to incubator and incubate (1hr)  -- WORKING
+            # 8. Transfer from bmg to incubator and incubate (1hr)
             if run_robots:
                 workflow = self.workcell_client.submit_workflow(
                     bmg_to_run_incubator_wf.resolve(),
@@ -444,7 +457,7 @@ class ALEApp(ExperimentApplication):
             payload["lid_safe_path"] = exp1_variables["old_safe_lid_location"]
             payload["ot2_location"] = exp1_variables["old_ot2_plate_location"]
 
-            # 9. Get rid of the old substrate plate  # WORKING
+            # 9. Get rid of the old substrate plate
             if run_robots:
                 workflow = self.workcell_client.submit_workflow(
                     remove_old_substrate_plate_wf.resolve(),
@@ -483,7 +496,7 @@ class ALEApp(ExperimentApplication):
                     print()
                     print(f"inner loop index = {j}")
 
-                # 10. Incubator to run BMG  (T1 - T10 readings)  # WORKING
+                # 10. Incubator to run BMG  (T1 - T10 readings)
                 if test_prints:
                     print(f"running incubator to bmg, taking T{j+1} reading")
                 timestamp_now = int(datetime.now().timestamp())
@@ -502,15 +515,19 @@ class ALEApp(ExperimentApplication):
                             "data_output_directory_path": bmg_data_output_directory,
                         },
                     )
+                    # collect associated resource id
+                    datapoint_id = workflow.get_datapoint_id(step_key="bmg_data", label="json_result")
+                    resource_id = self.data_client.get_datapoint_value(datapoint_id=datapoint_id)
                     # write utc bmg timestamp to csv data file
                     helper_functions.write_timestamps_to_csv(
                         csv_directory_path=csv_data_directory,
                         experiment_id=experiment_id,
                         bmg_filename=payload["bmg_data_output_name"],
                         accurate_timestamp=workflow.steps[8].end_time,  # index 8 = bmg reading
+                        resource_id=resource_id,
                     )
                     if test_prints:
-                        print(f"\twriting data to csv: {payload['bmg_data_output_name']}, with timestamp {workflow.steps[8].end_time}")
+                        print(f"\twriting data to csv: {payload['bmg_data_output_name']}, with timestamp {workflow.steps[8].end_time}, and resource id {resource_id}")
                 else:
                     if test_prints:
                         print(f"\twriting data to csv: {payload['bmg_data_output_name']}")
@@ -519,7 +536,7 @@ class ALEApp(ExperimentApplication):
                 reading_in_plate_num += 1
 
                 if j < (total_inner_loops-1):
-                    # 11. Transfer from bmg to incubator, and incubate  # WORKING
+                    # 11. Transfer from bmg to incubator, and incubate
                     if test_prints:
                         print("running bmg to incubator")
                     if run_robots:
@@ -545,7 +562,7 @@ class ALEApp(ExperimentApplication):
 
 
                 else:  # plate will end in the bmg with bmg open
-                    # 12. transfer from bmg to ot2 old location  # WORKING
+                    # 12. transfer from bmg to ot2 old location
                     if test_prints:
                         print("running bmg to ot2")
                     if run_robots:
@@ -564,7 +581,7 @@ class ALEApp(ExperimentApplication):
         # NOTE: if no more outer loops, plate ends at old ot-2 location with lid on lidnest 2
         # can't return plate to rack since we didn't grab a new substrate plate
 
-        # 13. Move from old ot-2 location to exchange, replace lid.  # WORKING
+        # 13. Move from old ot-2 location to exchange, replace lid.
         if test_prints:
             print("END OF EXPEREMENT APP: returning old plate from ot2 to exchange")
         if run_robots:
