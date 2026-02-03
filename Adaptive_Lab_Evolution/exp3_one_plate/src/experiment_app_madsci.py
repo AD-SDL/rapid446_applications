@@ -110,7 +110,7 @@ class ALEApp(ExperimentApplication):
 
         # Experiment ID and name
         experiment_id = self.experiment.experiment_id
-        experiment_label = "TFMN2"
+        experiment_label = "TFMN3"
 
         # Directory paths
         app_directory = Path(__file__).parent.parent   # experiment app
@@ -150,13 +150,13 @@ class ALEApp(ExperimentApplication):
         inoculate_protocol = protocol_directory / "inoculate.py"
 
         # Important variables
-        total_outer_loops = 40 # 40 # inoculations into new plate every 12ish hours
-        total_inner_loops = 12 # 12 readings = ~ 12 hours between incubations
-        incubation_seconds_initial = 10 # 36000 seconds = 10 hours
+        total_outer_loops = 40 # 40 inoculations into new substrate plates
+        total_inner_loops = 20 # 20 readings = ~20 hours between inoculations
+        incubation_seconds_initial = 10 # 10 seconds to skip incubating the first plate
         incubation_seconds_between_readings = 3600 # 3600 seconds = 1 hour
 
         plate_num = 0
-        reading_in_plate_num = 12
+        reading_in_plate_num = 20  # start measurement of input plate at T20
         assay_plate_list = {}
 
         current_rack_nest_index = 0
