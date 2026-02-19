@@ -42,9 +42,9 @@ steps:
       source_approach: safe_path_exchange
       target_approach: safe_path_sealer
 
-  # - name: seal
-  #   node: sealer_sassy
-  #   action: seal
+  - name: seal
+    node: sealer_sassy
+    action: seal
 
   # Transfer from sealer to exchange (need to swap grip from narrow to wide)
 
@@ -81,11 +81,11 @@ steps:
     args:
       plate_type: 96
 
-  # #run golden gate protocol on biometra
-  # - name: Run golden gate on biometra
-  #   node: biometra_beuford_96
-  #   action: run_protocol
-  #   args:
-  #     program: 1
-  #     plate_type: 96
+  #run golden gate protocol on biometra
+  - name: Run golden gate on biometra
+    node: biometra_beuford_96
+    action: run_protocol
+    args:
+      program: 1
+      plate_type: 96
 
