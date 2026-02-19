@@ -19,20 +19,17 @@ config = {
     # Combinatorial mixing
     # 'combinations': [[18,10,2],[11,19,3],[4,20,12],[21,13,5]],
     # 'combinations': [[5,6,7,8], [25,26,27,28], [37,38,39,40]],
-    'combinations': [[5,25,37], [6,26,38], [7,27,39], [8,28,40]],
-    # gbabnigg.changes.start
+    'combinations': [[1,9,17], [2,10,18], [3,11,19], [4,12,20]],
     'use_combinations': True,
-    # the below 2D array defines which source wells to combine for each destination well
-    # 2025-11-03.example
     'non_combinatorial_sources': [
-        # [1,2,3,4],
-        # [9,2,3,12],
-        # [9,10,3,4],
-        # [9,10,3,12],
-        # [9,10,11,12],
-        # [9,18,3,4],
-        # [17,18,19,4],
-        # [17,18,19,20],
+        [1,2,3,4],
+        [9,2,3,12],
+        [9,10,3,4],
+        [9,10,3,12],
+        [9,10,11,12],
+        [9,18,3,4],
+        [17,18,19,4],
+        [17,18,19,20],
 
         [1,2,3,4],
         [9,2,3,12],
@@ -74,7 +71,6 @@ config = {
     'tip_rack_type_50_04': 'opentrons_96_filtertiprack_20ul',
     'tip_rack_type_50_05': 'opentrons_96_filtertiprack_20ul',
     'pipette_type_20': 'p20_single_gen2',
-    # 'tip_rack_type_200_01': 'opentrons_flex_96_tiprack_200ul',
     'pipette_type_1000': 'flex_8channel_1000',
 
     # Deck positions
@@ -87,17 +83,8 @@ config = {
     'tip_rack_position_50_03': 'B2',
     'tip_rack_position_50_04': 'B3',
     'tip_rack_position_50_05': 'B1',
-    # 'tip_rack_position_200_01': 'A2',
-    'reagent_block': 'A1',
 
     #Offsets
-    # 'fragments_plate_initial_offset': ot2_patrick[1],
-    # 'gg_plate_offset': ot2_patrick[3],
-    # 'tip_rack_01_offset': ot2_patrick[4],
-    # 'tip_rack_02_offset': ot2_patrick[5],
-    # 'tip_rack_03_offset': ot2_patrick[8],
-    # 'tip_rack_04_offset': ot2_patrick[9],
-    # 'tip_rack_05_offset': ot2_patrick[7]
 
     'fragments_plate_initial_offset': [0.1, 1.1, -0.8],
     'gg_plate_offset': [0.7, 1.7, -1.2],
@@ -289,30 +276,19 @@ def run(protocol: protocol_api.ProtocolContext):
     # Set temperature
     temp_mod_1.set_temperature(config['temperature']) #TODO: make seperate, or just set earlier, only 1 hour with plate
     temp_mod_2.set_temperature(config['temperature'])
-    # Load source plate initially on A4
-    # source_plate = protocol.load_labware(config['source_plate_type'], config['source_plate_initial_position'])
+
     source_plate = temp_adapter_1.load_labware(config['fragments_plate_type'])
 
-    # Move source plate to temperature module
-    # protocol.move_labware(
-    #     labware=source_plate,
-    #     new_location=temp_adapter,
-    #     use_gripper=True
-    # )
 
     # chute = protocol.load_waste_chute()
 
-    # source_plate.set_offset(x=0.40, y=0.50, z=2.40)
-    # source_plate.set_offset(x=0.7, y=0.30, z=0.2)
-    # source_plate.set_offset(x=0.0, y=0.80, z=-1.5)
+
     source_plate.set_offset(x=config['fragments_plate_initial_offset'][0], y=config['fragments_plate_initial_offset'][1], z=config['fragments_plate_initial_offset'][2])
 
 
     # Load destination plate
-    # dest_plate = protocol.load_labware(config['gg_plate_type'], config['gg_plate_position'])
     dest_plate = temp_adapter_2.load_labware(config['gg_plate_type'])
-    # dest_plate.set_offset(x=0.4, y=0.4, z=0.0)
-    # dest_plate.set_offset(x=0.0, y=0.8, z=-1.5)
+
     dest_plate.set_offset(x=config['gg_plate_offset'][0], y=config['gg_plate_offset'][1], z=config['gg_plate_offset'][2])
 
     tiprack_50_1 = protocol.load_labware(
@@ -340,10 +316,6 @@ def run(protocol: protocol_api.ProtocolContext):
     tiprack_50_5.set_offset(x=config['tip_rack_05_offset'][0], y=config['tip_rack_05_offset'][1], z=config['tip_rack_05_offset'][2])
 
 
-    # # 8-channel P1000
-    # tiprack_200 = protocol.load_labware(
-    #     load_name=config['tip_rack_type_200_01'], location=config['tip_rack_position_200_01']
-    # )
 
     # Pipettes
     # p50 = protocol.load_instrument('flex_8channel_50', mount='right', tip_racks=[tiprack_50_1, tiprack_50_2, tiprack_50_3, tiprack_50_4, tiprack_50_5])
@@ -354,7 +326,7 @@ def run(protocol: protocol_api.ProtocolContext):
 
 
 
-    # Perform combinatorial transfers #TODO: SWAP?  so adding small vols into large quant of master mix
+    # Perform combinatorial transfers 
     total_dest_wells = transfer_combinatorial_liquids(
         protocol=protocol,
         source_plate=source_plate,
