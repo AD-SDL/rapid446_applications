@@ -1,0 +1,34 @@
+name: pcr from flex to ot2
+
+metadata:
+  author: Abe Stroka
+  info: Workflow for transfering pcr plate from flex to cool block on ot2 deck 4
+  version: '0.1'
+
+
+steps:
+  - name: transfer 
+    module: pf400_piper
+    action: transfer
+    args:
+      source: otflex_deckA
+      target: exchange_deck_low_narrow
+      source_approach: safe_path_flexA
+      target_approach: safe_path_exchange
+      source_plate_rotation: narrow
+      target_plate_rotation: narrow
+    comment: moves plate from flex A to exchange
+  
+  - name: transfer
+    module: pf400_piper
+    action: transfer
+    args:
+      target_approach_height_offset: 10
+      source_plate_rotation: wide
+      target_plate_rotation: wide
+    locations:
+      source_approach: safe_path_exchange
+      target_approach: safe_path_ot2_patrick_nest4_high
+      source: exchange_deck_high_wide
+      target: ot2_patrick_nest4_temp_block_wide
+    comment: place plate on ot2 cool block C1
