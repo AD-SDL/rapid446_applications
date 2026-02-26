@@ -14,9 +14,9 @@ steps:
       target_plate_rotation: narrow
     locations:
       source_approach: safe_path_exchange
-      target_approach: #TODO: rack nest
+      target_approach: safe_path_rack_row2_nest2
       source: exchange_deck_high_narrow
-      target: #TODO: rack nest
+      target: rack_row2_nest2
 
   
   - name: ot2 temp block deck 6 to exchange
@@ -40,6 +40,6 @@ steps:
       target_plate_rotation: narrow
     locations:
       source_approach: safe_path_exchange
-      target_approach: #TODO: rack nest
+      target_approach: safe_path_rack_row2_nest3
       source: exchange_deck_high_narrow
-      target: #TODO: rack nest
+      target: rack_row2_nest3

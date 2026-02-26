@@ -31,9 +31,9 @@ steps:
       target_plate_rotation: narrow
     locations:
       source: exchange_nest_high_narrow
-      target: #TODO: rack_1
+      target: rack_row1_nest1
       source_approach: safe_path_exchange
-      target_approach: safe_path_rack1
+      target_approach: safe_path_rack_row1_nest1
   
   #transfer empty box 2 to exchange
   - name: Transfer empty tip box 2 to exchange
@@ -59,9 +59,9 @@ steps:
       target_plate_rotation: narrow
     locations:
       source: exchange_nest_high_narrow
-      target: #TODO: rack_1
+      target: rack_row1_nest2
       source_approach: safe_path_exchange
-      target_approach: safe_path_rack2
+      target_approach: safe_path_rack_row1_nest2
   
   #transfer fresh tip box to position 3
   - name: Transfer fresh box from rack to exchange
@@ -71,9 +71,9 @@ steps:
       source_plate_rotation: narrow
       target_plate_rotation: narrow
     locations:
-      source: #TODO: rack_3
+      source: rack_row1_nest3
       target: exchange_nest_high_narrow
-      source_approach: safe_path_rack3
+      source_approach: safe_path_rack_row1_nest3
       target_approach: safe_path_exchange
 
 

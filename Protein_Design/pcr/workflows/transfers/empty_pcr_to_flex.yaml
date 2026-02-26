@@ -15,9 +15,9 @@ steps:
       source_plate_rotation: narrow
       target_plate_rotation: narrow
     locations:
-      source_approach: #TODO: rack nest
+      source_approach: safe_path_rack_row2_nest1
       target_approach: safe_path_exchange
-      source: #TODO: rack nest
+      source: rack_row2_nest1
       target: exchange_deck_high_narrow
     comment: place plate on exchange
   
