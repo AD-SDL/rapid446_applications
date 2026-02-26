@@ -15,12 +15,13 @@ steps:
       source_plate_rotation: wide
       target_plate_rotation: wide
       # source_approach_height_offset: 10
+      grab_offset: 10
     locations:
       source: ot2_patrick_nest1_wide
       target: exchange_nest_high_wide
-      source_approach: safe_path_ot2_patrick_nest1_high
+      source_approach: safe_path_ot2_patrick_nest4_high
       target_approach: safe_path_exchange
-    
+
 
   #transfer empty box 1 from exchange to rack
   - name: Transfer box to rack
@@ -29,12 +30,13 @@ steps:
     args:
       source_plate_rotation: narrow
       target_plate_rotation: narrow
+      grab_offset: 10
     locations:
       source: exchange_nest_high_narrow
       target: rack_row1_nest1
       source_approach: safe_path_exchange
       target_approach: safe_path_rack_row1_nest1
-  
+
   #transfer empty box 2 to exchange
   - name: Transfer empty tip box 2 to exchange
     node: pf400_piper
@@ -42,13 +44,14 @@ steps:
     args:
       source_plate_rotation: wide
       target_plate_rotation: wide
+      grab_offset: 10
       # source_approach_height_offset: 10
     locations:
       source: ot2_patrick_nest3_wide
       target: exchange_nest_high_wide
-      source_approach: safe_path_ot2_patrick_nest3_high
+      source_approach: safe_path_ot2_patrick_nest6_high
       target_approach: safe_path_exchange
-  
+
 
   #transfer empty box 2 from exchange to rack
   - name: Transfer box to rack
@@ -57,12 +60,13 @@ steps:
     args:
       source_plate_rotation: narrow
       target_plate_rotation: narrow
+      grab_offset: 10
     locations:
       source: exchange_nest_high_narrow
       target: rack_row1_nest2
       source_approach: safe_path_exchange
       target_approach: safe_path_rack_row1_nest2
-  
+
   #transfer fresh tip box to position 3
   - name: Transfer fresh box from rack to exchange
     node: pf400_piper
@@ -70,6 +74,7 @@ steps:
     args:
       source_plate_rotation: narrow
       target_plate_rotation: narrow
+      grab_offset: 10
     locations:
       source: rack_row1_nest3
       target: exchange_nest_high_narrow
@@ -83,10 +88,11 @@ steps:
     args:
       source_plate_rotation: wide
       target_plate_rotation: wide
+      grab_offset: 10
       # source_approach_height_offset: 10
     locations:
       source: exchange_nest_high_wide
       target: ot2_patrick_nest3_wide
       source_approach: safe_path_exchange
-      target_approach: safe_path_ot2_patrick_nest3_high
+      target_approach: safe_path_ot2_patrick_nest6_high
 

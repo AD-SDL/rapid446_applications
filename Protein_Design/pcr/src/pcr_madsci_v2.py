@@ -5,8 +5,8 @@ import time
 from datetime import datetime
 from pathlib import Path
 
-from madsci.client import ExperimentClient, WorkcellClient
 from madsci.common.types.experiment_types import ExperimentDesign
+from madsci.client import ExperimentClient, WorkcellClient, LocationClient, ResourceClient
 from madsci.common.types.node_types import NodeDefinition
 from madsci.common.types.resource_types import Resource
 from madsci.experiment_application import (
@@ -14,6 +14,7 @@ from madsci.experiment_application import (
     ExperimentApplicationConfig,
 )
 from pydantic import AnyUrl
+
 
 
 class PDApp(ExperimentApplication):
@@ -29,6 +30,8 @@ class PDApp(ExperimentApplication):
     config = ExperimentApplicationConfig(node_url=AnyUrl("http://localhost:6000"))
     experiment_client = ExperimentClient()
     workcell_client = WorkcellClient()
+    location_client = LocationClient()
+    resource_client = ResourceClient()
     experiment_id = None
     experiment_label = None
 
@@ -51,17 +54,48 @@ class PDApp(ExperimentApplication):
             tags=["Plate", "ANSI/SLAS", "96 Well", "PCR", "Labware"],
         )
 
+        self.resource_client.create_template(
+            resource=Resource(
+                resource_description="ot2 20ul tiprack",
+            ),
+            template_name="opentrons_96_filtertiprack_20ul",
+            description="Template for ot2 20ul tiprack",
+            tags=["Tiprack", "ANSI/SLAS", "96 Well", "Labware"],
+        )
+
+        self.resource_client.create_template(
+            resource=Resource(
+                resource_description="otflex 50ul tiprack",
+            ),
+            template_name="opentrons_flex_96_filtertiprack_50ul",
+            description="Template for OT-Flex 50ul tiprack",
+            tags=["Tiprack", "ANSI/SLAS", "96 Well", "Labware"],
+        )
+
+        self.resource_client.create_template(
+            resource=Resource(
+                resource_description="otflex 200ul tiprack",
+            ),
+            template_name="opentrons_flex_96_filtertiprack_200ul",
+            description="Template for 200ul OT-Flex tiprack",
+            tags=["Tiprack", "ANSI/SLAS", "96 Well", "Labware"],
+        )
+
 
     def push_new_assay_plate_resource(
             self,
+            plate_num: int,
             location_name: str,
+            experiment_id: int,
+            name: str,
         ) -> None | Resource:
             """
             Pushes a new assay plate resource into the specified location, popping an existing plate in that location if necessary.
             """
             # get the resource id of the resource associated with the given location
             associated_resource_id = self.location_client.get_location_by_name(location_name).resource_id
-
+            print("Location name: ", location_name)
+            print("ASSC Resource id: ", associated_resource_id)
             # get the resource object from the resource id
             resource_object = self.resource_client.get_resource(associated_resource_id)
 
@@ -78,10 +112,13 @@ class PDApp(ExperimentApplication):
 
 
             # create a new assay plate resource and push it into the resource object associated with the given location
+            # if name == "opentrons_96_wellplate_200ul_pcr_full_skirt":
+
             new_plate = self.resource_client.create_resource_from_template(
-                template_name = "opentrons_96_wellplate_200ul_pcr_full_skirt",
-                resource_name = "golden_gate_plate",
+                template_name = name,
+                resource_name = f"resource_{experiment_id}_plate{plate_num}",
             )
+
             self.logger.log_info(f"Created new plate resource {new_plate.resource_name}, {new_plate.resource_id}")
 
             self.resource_client.push(
@@ -90,7 +127,6 @@ class PDApp(ExperimentApplication):
             )
             self.logger.log_info(f"Pushed new plate resource into location {location_name}")
             return new_plate, old_plate
-
 
     def run_experiment(self) -> None:
         """main experiment function"""
@@ -101,13 +137,13 @@ class PDApp(ExperimentApplication):
         #     )
 
         # DEFINE PATHS AND VARIABLES ========
-        run_robots = False  # if False, no robots will run
+        # run_robots = False  # if False, no robots will run
         run_resources = True
-        test_prints = True  # if True, will print out extra info for testing purposes
+        # test_prints = True  # if True, will print out extra info for testing purposes
 
         # Experiment ID and name
-        # experiment_id = self.experiment.experiment_id
-        experiment_label = "1"
+        experiment_id = self.experiment.experiment_id
+        experiment_label = "TEST"
 
         # Directory paths
         app_directory = Path(__file__).parent.parent   # experiment app
@@ -120,7 +156,8 @@ class PDApp(ExperimentApplication):
         run_ot2_wf = run_directory / "run_ot2_wf.yaml"
         run_flex_wf = run_directory / "run_flex.yaml"
         run_thermo_wf = run_directory / "run_thermo.yaml"
- 
+        open_thermo_wf = run_directory / "open_thermo.yaml"
+
         replace_tip_boxes_ot2_pcr = (
              transfers_directory / "replace_tip_boxes_ot2_pcr.yaml"
         )
@@ -157,6 +194,63 @@ class PDApp(ExperimentApplication):
         B1_to_A4 = protocol_directory / "pcr_B1_to_A4.py"
 
         payload = {}
+        plate_num = 1
+
+
+        if run_resources:
+            new_plate, old_plate = self.push_new_assay_plate_resource(
+                plate_num=plate_num,
+                location_name="ot2_patrick_nest4_temp_block_wide",
+                experiment_id=experiment_id,
+                name="opentrons_96_wellplate_200ul_pcr_full_skirt"
+            )
+
+            plate_num+=1
+
+            new_plate, old_plate = self.push_new_assay_plate_resource(
+                plate_num=plate_num,
+                location_name="ot2_patrick_nest1_wide",
+                experiment_id=experiment_id,
+                name="opentrons_96_filtertiprack_20ul"
+            )
+
+            plate_num+=1
+
+            new_plate, old_plate = self.push_new_assay_plate_resource(
+                plate_num=plate_num,
+                location_name="ot2_patrick_nest3_wide",
+                experiment_id=experiment_id,
+                name="opentrons_96_filtertiprack_20ul"
+            )
+
+            plate_num+=1
+
+            new_plate, old_plate = self.push_new_assay_plate_resource(
+                plate_num=plate_num,
+                location_name="rack_row1_nest3",
+                experiment_id=experiment_id,
+                name="opentrons_96_filtertiprack_20ul"
+            )
+
+            plate_num+=1
+
+            new_plate, old_plate = self.push_new_assay_plate_resource(
+                plate_num=plate_num,
+                location_name="rack_row2_nest1",
+                experiment_id=experiment_id,
+                name="opentrons_96_wellplate_200ul_pcr_full_skirt"
+            )
+
+            plate_num+=1
+
+            new_plate, old_plate = self.push_new_assay_plate_resource(
+                plate_num=plate_num,
+                location_name="bio_biometra3_nest",
+                experiment_id=experiment_id,
+                name="opentrons_96_wellplate_200ul_pcr_full_skirt"
+            )
+
+            plate_num+=1
 
 
 
@@ -204,13 +298,13 @@ class PDApp(ExperimentApplication):
 
 
         #flex protocol, 24 ul pcr master mix to cols 1-4 of empty pcr plate
-        payload["current_flex_protocol"] = pcr_flex_protocol
-        workflow = self.workcell_client.submit_workflow(
-            run_flex_wf.resolve(),
-            file_inputs={
-                "flex_protocol": payload["current_flex_protocol"],
-            },
-        )
+        # payload["current_flex_protocol"] = pcr_flex_protocol
+        # workflow = self.workcell_client.submit_workflow(
+        #     run_flex_wf.resolve(),
+        #     file_inputs={
+        #         "flex_protocol": payload["current_flex_protocol"],
+        #     },
+        # )
 
         #move pcr plate to cooled block on ot2 position 4
 
@@ -229,13 +323,13 @@ class PDApp(ExperimentApplication):
 
         # dilute golden gate products with 20ul of water and mix
         # 1 ul of diluted golden gate product to cols 1-4 of pcr product plate, mix
-        payload["current_ot2_protocol"] = pcr_ot2_protocol
-        workflow = self.workcell_client.submit_workflow(
-            run_ot2_wf.resolve(),
-            file_inputs={
-                "ot2_protocol": payload["current_ot2_protocol"],
-            },
-        )
+        # payload["current_ot2_protocol"] = pcr_ot2_protocol
+        # workflow = self.workcell_client.submit_workflow(
+        #     run_ot2_wf.resolve(),
+        #     file_inputs={
+        #         "ot2_protocol": payload["current_ot2_protocol"],
+        #     },
+        # )
 
 
         #seal and thermocycle pcr product plate
@@ -243,10 +337,16 @@ class PDApp(ExperimentApplication):
             seal_and_thermocycle.resolve(),
         )
 
-        #run thermocycler
+        # #run thermocycler
+        # workflow = self.workcell_client.submit_workflow(
+        #     run_thermo_wf.resolve(),
+        # )
+
+        #FOR TESTING OPEN THERMOCYCLER
         workflow = self.workcell_client.submit_workflow(
-            run_thermo_wf.resolve(),
+            open_thermo_wf.resolve(),
         )
+
 
         #trash fragment and golden gate plate
 

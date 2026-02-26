@@ -13,7 +13,7 @@ steps:
       plate_type: 96
 
   #peel plate
-  
+
   - name: transfer
     module: pf400_piper
     action: transfer
@@ -27,7 +27,7 @@ steps:
       target_approach: safe_path_exchange
     comment: moves plate from biometra 96 thermocycler to exchange
 
-  
+
   - name: transfer
     module: pf400_piper
     action: transfer
@@ -41,14 +41,14 @@ steps:
       target_approach: safe_path_peeler
     comment: transfer to peeler
 
-  
-  - name: peel
-    module: bio_peeler
-    action: peel
-    args:
-      foo: bar
-    comment: peel the pcr plate
-  
+
+  # - name: peel
+  #   module: bio_peeler
+  #   action: peel
+  #   args:
+  #     foo: bar
+  #   comment: peel the pcr plate
+
 
   #peeler to exchange
   - name: transfer
