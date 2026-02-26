@@ -1,0 +1,17 @@
+name: Run OT-Flex
+author: Abe Stroka
+info: Workflow for running one OT-Flex protocol from payload
+version: '0.1'
+
+
+flowdef:
+  - name: Run OT-Flex protocol
+    module: otflexbio1
+    action: run_protocol
+    args:
+      foo: bar
+    files:
+      protocol: payload.current_flex_protocol
+    comment: Run OT-Flex protocol
+
+
