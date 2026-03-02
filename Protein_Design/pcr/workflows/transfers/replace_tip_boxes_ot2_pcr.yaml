@@ -15,7 +15,7 @@ steps:
       source_plate_rotation: wide
       target_plate_rotation: wide
       # source_approach_height_offset: 10
-      grab_offset: 10
+      grab_offset: 15
     locations:
       source: ot2_patrick_nest1_wide
       target: exchange_nest_high_wide
@@ -30,7 +30,7 @@ steps:
     args:
       source_plate_rotation: narrow
       target_plate_rotation: narrow
-      grab_offset: 10
+      grab_offset: 15
     locations:
       source: exchange_nest_high_narrow
       target: rack_row1_nest1
@@ -44,7 +44,7 @@ steps:
     args:
       source_plate_rotation: wide
       target_plate_rotation: wide
-      grab_offset: 10
+      grab_offset: 15
       # source_approach_height_offset: 10
     locations:
       source: ot2_patrick_nest3_wide
@@ -60,7 +60,7 @@ steps:
     args:
       source_plate_rotation: narrow
       target_plate_rotation: narrow
-      grab_offset: 10
+      grab_offset: 15
     locations:
       source: exchange_nest_high_narrow
       target: rack_row1_nest2
@@ -74,7 +74,7 @@ steps:
     args:
       source_plate_rotation: narrow
       target_plate_rotation: narrow
-      grab_offset: 10
+      grab_offset: 15
     locations:
       source: rack_row1_nest3
       target: exchange_nest_high_narrow
@@ -88,7 +88,7 @@ steps:
     args:
       source_plate_rotation: wide
       target_plate_rotation: wide
-      grab_offset: 10
+      grab_offset: 15
       # source_approach_height_offset: 10
     locations:
       source: exchange_nest_high_wide

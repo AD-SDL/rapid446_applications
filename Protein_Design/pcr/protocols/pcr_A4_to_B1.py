@@ -80,7 +80,7 @@ def run(protocol: protocol_api.ProtocolContext):
     # Load source plate initially on A4
     # source_plate = protocol.load_labware(config['source_plate_type'], config['source_plate_initial_position'])
     # source_plate = temp_adapter_1.load_labware(config['fragments_plate_type'])
-    pcr_plate = temp_adapter_2.load_labware(config['pcr_plate_type'])
+    # pcr_plate = temp_adapter_2.load_labware(config['pcr_plate_type'])
 
     chute = protocol.load_waste_chute()
 
@@ -94,29 +94,29 @@ def run(protocol: protocol_api.ProtocolContext):
     # pcr_plate.set_offset(x=0.4, y=0.4, z=0.0)
 
     # gg_plate = protocol.load_labware(config['gg_plate_type'], config['gg_plate_position'])
-    pcr_plate.set_offset(x=0.7, y=0.30, z=0.2)
+    # pcr_plate.set_offset(x=0.7, y=0.30, z=0.2)
 
-    reagent_plate = protocol.load_labware(config['reagent_plate_type'], config['reagent_plate_position'])
-
-
-    tiprack_50_1 = protocol.load_labware(
-        load_name=config['tip_rack_type_50_01'], location=config['tip_rack_position_50_01']
-    )
-    tiprack_50_2 = protocol.load_labware(
-        load_name=config['tip_rack_type_50_02'], location=config['tip_rack_position_50_02']
-    )
-    tiprack_300_1 = protocol.load_labware(
-        load_name=config['tip_rack_type_300_01'], location=config['tip_rack_position_300_01']
-    )
+    # reagent_plate = protocol.load_labware(config['reagent_plate_type'], config['reagent_plate_position'])
 
 
+    # tiprack_50_1 = protocol.load_labware(
+    #     load_name=config['tip_rack_type_50_01'], location=config['tip_rack_position_50_01']
+    # )
+    # tiprack_50_2 = protocol.load_labware(
+    #     load_name=config['tip_rack_type_50_02'], location=config['tip_rack_position_50_02']
+    # )
+    # tiprack_300_1 = protocol.load_labware(
+    #     load_name=config['tip_rack_type_300_01'], location=config['tip_rack_position_300_01']
+    # )
 
-    # Pipettes
-    p50 = protocol.load_instrument('flex_8channel_50', mount='right', tip_racks=[tiprack_50_1, tiprack_50_2])
-    p1000 = protocol.load_instrument('flex_8channel_1000', mount='left', tip_racks=[tiprack_300_1])
 
-    p50.configure_nozzle_layout(style='COLUMN', start='A1', tip_racks=[tiprack_50_1, tiprack_50_2])
-    p1000.configure_nozzle_layout(style='COLUMN', start='A1', tip_racks=[tiprack_300_1])
+
+    # # Pipettes
+    # p50 = protocol.load_instrument('flex_8channel_50', mount='right', tip_racks=[tiprack_50_1, tiprack_50_2])
+    # p1000 = protocol.load_instrument('flex_8channel_1000', mount='left', tip_racks=[tiprack_300_1])
+
+    # p50.configure_nozzle_layout(style='COLUMN', start='A1', tip_racks=[tiprack_50_1, tiprack_50_2])
+    # p1000.configure_nozzle_layout(style='COLUMN', start='A1', tip_racks=[tiprack_300_1])
     # p1000.configure_nozzle_layout(style=SINGLE, start='A1', tip_racks=[tiprack_200])
 
 
