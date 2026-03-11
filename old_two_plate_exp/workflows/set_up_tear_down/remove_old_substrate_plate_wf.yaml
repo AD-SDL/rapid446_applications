@@ -1,0 +1,47 @@
+name: Trash the used substrate plate - Substrate App Workflow
+
+metadata:
+  author: Casey Stone
+  info: Workflow for incubating on tekmatic incubator
+  version: 0.1
+
+flowdef:
+name: Remove old substrate plate - Substrate App Workflow
+author: Casey Stone
+info: Workflow for using PF400 to remove old substrate plate from OT-2 back to stack
+version: '0.1'
+
+flowdef:
+  - name: transfer
+    module: biopf400
+    action: transfer
+    args:
+      source: payload.ot2_location 
+      target: exchange_deck_high_wide
+      source_approach: payload.ot2_safe_path
+      target_approach: safe_path_exchange
+      source_plate_rotation: wide
+      target_plate_rotation: wide
+    comment: Transfer used substrate plate from ot2biobeta deck 2 to exchange
+
+  - name: replace lid
+    module: biopf400
+    action: replace_lid
+    args:
+      source: lidnest_3_narrow
+      target: exchange_deck_low_narrow
+      source_approach: safe_path_lidnest_3
+      target_approach: safe_path_exchange
+      source_plate_rotation: narrow
+      target_plate_rotation: narrow
+      lid_height: 8
+    comment: Replace lid on plate at exchange
+
+  - name: Place plate in specified trash stack
+    module: sciclops
+    action: transfer_labware
+    args: 
+      source: exchange
+      target: payload.trash_stack
+      has_lid: True
+    comment: Transfer plate from exchange to trash stack

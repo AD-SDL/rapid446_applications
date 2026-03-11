@@ -1,0 +1,66 @@
+name: Transfer to BMG and read absorbance
+
+metadata:
+  author: Casey Stone
+  info: Workflow for moving to bmg and reading
+  version: 0.1
+
+# TODO: TEST
+flowdef:
+  - name: open incubator 
+    module: payload.incubator_node
+    action: open
+
+  - name: transfer to exchange
+    module: biopf400
+    action: transfer
+    args:
+      source: payload.incubator_location
+      target: exchange_deck_low_narrow
+      source_approach: safe_path_inheco_dev2
+      target_approach: safe_path_exchange
+      source_plate_rotation: narrow
+      target_plate_rotation: narrow
+    comment: transfer microplate with lid to exchange
+
+  - name: remove lid
+    module: sciclops
+    action: remove_lid
+    args: 
+      source: exchange
+      target: payload.lid_location  
+
+  - name: open bmg
+    module: bio_bmg
+    action: open
+
+  - name: transfer to bmg
+    module: biopf400
+    action: transfer
+    args:
+      source: exchange_deck_low_narrow
+      target: bmg_reader_nest
+      source_approach: safe_path_exchange
+      target_approach: safe_path_bmg
+      source_plate_rotation: narrow
+      target_plate_rotation: narrow
+    comment: transfer microplate with lid to exchange
+
+  - name: close bmg
+    module: bio_bmg
+    action: close
+
+  - name: close incubator
+    module: payload.incubator_node
+    action: close
+
+  - name: Run BMG absorbance assay
+    module: bio_bmg
+    action: run_assay
+    args:
+      assay_name: NIDHI
+      data_output_file_name: payload.bmg_data_output_name
+
+  - name: open bmg
+    module: bio_bmg
+    action: open

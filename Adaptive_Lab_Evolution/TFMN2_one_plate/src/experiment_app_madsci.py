@@ -110,7 +110,7 @@ class ALEApp(ExperimentApplication):
 
         # Experiment ID and name
         experiment_id = self.experiment.experiment_id
-        experiment_label = "TFMN3"
+        experiment_label = "TFMN2"
 
         # Directory paths
         app_directory = Path(__file__).parent.parent   # experiment app
@@ -150,13 +150,13 @@ class ALEApp(ExperimentApplication):
         inoculate_protocol = protocol_directory / "inoculate.py"
 
         # Important variables
-        total_outer_loops = 40 # 40 inoculations into new substrate plates
-        total_inner_loops = 12 # 12 readings = ~24 hours between inoculations (2 hours between readings)
-        incubation_seconds_initial = 10 # 10 seconds to skip incubating the first plate
-        incubation_seconds_between_readings = 7200 # 7200 seconds = 2 hour
+        total_outer_loops = 40 # 40 # inoculations into new plate every 12ish hours
+        total_inner_loops = 12 # 12 readings = ~ 12 hours between incubations
+        incubation_seconds_initial = 10 # 36000 seconds = 10 hours
+        incubation_seconds_between_readings = 3600 # 3600 seconds = 1 hour
 
-        plate_num = 6
-        reading_in_plate_num = 20  # start measurement of input plate at T20
+        plate_num = 0
+        reading_in_plate_num = 12
         assay_plate_list = {}
 
         current_rack_nest_index = 0
@@ -243,7 +243,7 @@ class ALEApp(ExperimentApplication):
 
         # wait for incubation to finish
         if test_prints:
-            print("running 10 second incubation")
+            print("running 10 hour incubation")
         if run_robots:
             while time.time() - incubation_start_time < payload["incubation_seconds"]:
                 print(
@@ -433,7 +433,7 @@ class ALEApp(ExperimentApplication):
                     print(f"\twriting data to csv: {payload['bmg_data_output_name']}")
 
             # modify variables
-            reading_in_plate_num += 2
+            reading_in_plate_num += 1
 
             # 8. Transfer from bmg to incubator and incubate (1hr)
             if run_robots:
@@ -495,7 +495,7 @@ class ALEApp(ExperimentApplication):
 
                 # 10. Incubator to run BMG  (T1 - T10 readings)
                 if test_prints:
-                    print(f"running incubator to bmg, taking T{reading_in_plate_num} reading")
+                    print(f"running incubator to bmg, taking T{j+1} reading")
                 timestamp_now = int(datetime.now().timestamp())
                 payload["bmg_data_output_name"] = (
                     f"{experiment_label}_{timestamp_now}_{experiment_id}_exp1_{plate_num}_T{reading_in_plate_num}.txt"
@@ -530,7 +530,7 @@ class ALEApp(ExperimentApplication):
                         print(f"\twriting data to csv: {payload['bmg_data_output_name']}")
 
                 # modify variables
-                reading_in_plate_num += 2
+                reading_in_plate_num += 1
 
                 if j < (total_inner_loops-1):
                     # 11. Transfer from bmg to incubator, and incubate

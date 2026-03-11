@@ -1,0 +1,36 @@
+name: Get new plate from stack - Substrate App Workflow
+author: Casey Stone
+info: Workflow for preparing decks for first OT-2 inoculations
+version: '0.1'
+
+flowdef:
+  # Grab a new substrate plate from stack 1
+  - name: Get plate stack 1
+    module: sciclops
+    action: transfer_labware
+    args: 
+      source: payload.stack
+      target: exchange
+      has_lid: True
+    comment: Get new substrate plate, type experiment 1
+
+  # Remove the lid
+  - name: Remove Lid 
+    module: sciclops
+    action: remove_lid
+    args: 
+      source: exchange
+      target: payload.lid_location
+
+  # Transfer into OT-2 deck 1
+  - name: pf400 transfer
+    module: biopf400
+    action: transfer
+    args:
+      source: exchange_deck_high_wide
+      target: payload.ot2_location
+      source_approach: safe_path_exchange
+      target_approach: payload.ot2_safe_path
+      source_plate_rotation: wide
+      target_plate_rotation: wide
+    comment: Transfer new substrate plate from exchange to OT-2 

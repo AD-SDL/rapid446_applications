@@ -1,0 +1,72 @@
+name: Setup for First Inoculation - Substrate App Workflow
+author: Casey Stone
+info: Workflow for preparing decks for first OT-2 inoculations
+version: '0.1'
+
+# WORKING
+# TODO: why does pf400 start moving before sciclops is finished?
+
+flowdef:
+  # # Grab a new substrate plate from stack 1
+  # - name: Get plate stack 1
+  #   module: sciclops
+  #   action: transfer_labware
+  #   args:
+  #     source: stack1
+  #     target: exchange
+  #     has_lid: True
+  #   comment: Get new substrate plate, type experiment 1
+
+  # # Remove the lid
+  # - name: Remove Lid
+  #   module: sciclops
+  #   action: remove_lid
+  #   args:
+  #     source: exchange
+  #     target: lidnest1
+
+  # Transfer into OT-2 deck 1
+  - name: pf400 transfer
+    module: biopf400
+    action: transfer
+    args:
+      source: exchange_deck_high_wide
+      target: ot2biobeta_deck1_wide
+      source_approach: safe_path_exchange
+      target_approach: safe_path_ot2biobeta
+      source_plate_rotation: wide
+      target_plate_rotation: wide
+    comment: Transfer new substrate plate from exchange to OT-2
+
+  # # Grab a new substrate plate from stack 2
+  # - name: Get plate stack 1
+  #   module: sciclops
+  #   action: transfer_labware
+  #   args:
+  #     source: stack2
+  #     target: exchange
+  #     has_lid: True
+  #   comment: Get new substrate plate, type experiment 1
+
+  # # Remove the lid
+  # - name: Remove Lid
+  #   module: sciclops
+  #   action: remove_lid
+  #   args:
+  #     source: exchange
+  #     target: lidnest2
+  #   comment: Remove lid and place on lidnest 2
+
+  # # Transfer into OT-2 deck 3
+  # - name: pf400 transfer
+  #   module: biopf400
+  #   action: transfer
+  #   args:
+  #     source: exchange_deck_high_wide
+  #     target: ot2biobeta_deck3_wide
+  #     source_approach: safe_path_exchange
+  #     target_approach: safe_path_ot2biobeta
+  #     source_plate_rotation: wide
+  #     target_plate_rotation: wide
+  #   comment: Transfer new substrate plate from exchange to OT-2
+

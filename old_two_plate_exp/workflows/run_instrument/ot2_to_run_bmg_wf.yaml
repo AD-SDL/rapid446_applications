@@ -1,0 +1,48 @@
+name: Move from OT-2 into BMG and take reading - Substrate App Workflow
+
+metadata:
+  author: Casey Stone
+  info: Workflow for transferring substrate plate from OT-2 to BMG plate reader
+  version: 0.1
+
+flowdef:
+  - name: Open the BMG plate reader tray
+    module: bio_bmg
+    action: open
+
+  - name: Transfer plate without lid to exchange location
+    module: biopf400
+    action: transfer
+    args:
+      source: payload.ot2_location  
+      target: exchange_deck_high_wide
+      source_approach: payload.ot2_safe_path
+      target_approach: safe_path_exchange
+      source_plate_rotation: wide
+      target_plate_rotation: wide
+
+  - name: Transfer plate without lid to bmg nest
+    module: biopf400
+    action: transfer
+    args:
+      source: exchange_deck_low_narrow
+      target: bmg_reader_nest
+      source_approach: safe_path_exchange
+      target_approach: safe_path_bmg
+      source_plate_rotation: narrow
+      target_plate_rotation: narrow
+
+  - name: Close the BMG reader tray
+    module: bio_bmg
+    action: close
+      
+  - name: Run BMG Inoculation and reading assay
+    module: bio_bmg
+    action: run_assay
+    args:
+      assay_name: NIDHI
+      data_output_file_name: payload.bmg_data_output_name
+
+  - name: Open the BMG plate reader tray
+    module: bio_bmg
+    action: open

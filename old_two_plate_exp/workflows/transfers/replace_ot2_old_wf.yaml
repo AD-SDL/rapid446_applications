@@ -1,0 +1,40 @@
+name: Return old substrate plate to OT-2 - Substrate App Workflow
+
+metadata:
+  author: Casey Stone
+  info: Return old substrate plate to specified OT-2
+  version: 0.1
+
+# TODO: TEST!
+
+flowdef:
+  - name: Open the BMG plate reader tray
+    module: bio_bmg
+    action: open
+
+  - name: Transfer plate without lid from from bmg to exchange
+    module: biopf400
+    action: transfer
+    args:
+      source: bmg_reader_nest
+      target: exchange_deck_low_narrow
+      source_approach: safe_path_bmg
+      target_approach: safe_path_exchange
+      source_plate_rotation: narrow
+      target_plate_rotation: narrow
+
+  - name: Close the BMG plate reader tray
+    module: bio_bmg
+    action: close
+
+  - name: Transfer plate without lid from exchange to OT-2 (deck 1 or 3 depending on loop)
+    module: biopf400
+    action: transfer
+    args:
+      source: exchange_deck_high_wide
+      target: payload.ot2_location
+      source_approach: safe_path_exchange
+      target_approach: payload.ot2_safe_path
+      source_plate_rotation: wide
+      target_plate_rotation: wide
+

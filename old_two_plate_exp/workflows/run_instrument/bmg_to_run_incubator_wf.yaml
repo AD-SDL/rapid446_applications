@@ -1,0 +1,69 @@
+name: Run the Tekmatic incubator - Substrate App Workflow
+
+metadata:
+  author: Casey Stone
+  info: Workflow for incubating on tekmatic incubator
+  version: 0.1
+
+flowdef:
+  # open bmg just in case
+  - name: open bmg
+    module: bio_bmg
+    action: open
+
+  # transfer from bmg to exchange  
+  - name: Transfer plate without lid from bmg to exchange
+    module: biopf400
+    action: transfer
+    args:
+      source: bmg_reader_nest
+      target: exchange_deck_low_narrow
+      source_approach: safe_path_bmg
+      target_approach: safe_path_exchange
+      source_plate_rotation: narrow
+      target_plate_rotation: narrow
+
+  # replace the lid
+  - name: Replace lid from Sciclops lid nest
+    module: sciclops
+    action: replace_lid
+    args: 
+      source: payload.lid_location
+      target: exchange
+
+  - name: open incubator
+    module: payload.incubator_node 
+    action: open
+
+  # transfer from exchange to tekmatic, seems fine
+  # TODO: could go a little lower in z height for the inheco sf 0
+  - name: transfer
+    module: biopf400
+    action: transfer
+    args:
+      source: exchange_deck_low_narrow
+      target: payload.incubator_location
+      source_approach: safe_path_exchange
+      target_approach: safe_path_inheco_dev2
+      source_plate_rotation: narrow
+      target_plate_rotation: narrow
+    comment: Transfer plate with lid from bmg reader to specified tekmatic incubator
+
+  - name: close incubator
+    module: payload.incubator_node
+    action: close
+
+  - name: close bmg
+    module: bio_bmg
+    action: close
+
+  - name: run incubation
+    module: payload.incubator_node
+    action: incubate
+    args:
+      temperature: 30.0
+      shaker_frequency: 6.6
+      wait_for_incubation_time: False
+      incubation_time: payload.incubation_seconds   # TODO!! # 3600 is one hour
+    comment: incubate for specified time
+
