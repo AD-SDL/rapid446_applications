@@ -1,12 +1,12 @@
-name: fragments_and_empty_to_flex
+name: seal_and_thermocycle_pcr
 
 metadata:
   author: Abe Stroka
-  info: Workflow for transfering fragments plate from ot2 to flex, and empty pcr plate to flex cooling block
+  info: Workflow for transfering pcr plate from ot2 to thermocycler
   version: '0.1'
 
-steps:
 
+steps:
   - name: transfer from ot2 to exchange
     node: pf400_piper
     action: transfer
@@ -64,4 +64,3 @@ steps:
       source_approach: safe_path_exchange
       target_approach: safe_path_otflex_sandy_nestA
     comment: moves plate from exchange to flex A
-

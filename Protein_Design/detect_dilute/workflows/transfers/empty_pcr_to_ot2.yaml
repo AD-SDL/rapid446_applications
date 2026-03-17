@@ -1,0 +1,38 @@
+name: fragments_and_empty_to_flex
+
+metadata:
+  author: Abe Stroka
+  info: Workflow for transfering fragments plate from ot2 to flex, and empty pcr plate to flex cooling block
+  version: '0.1'
+
+steps:
+  #fragments plate from nest 4 ot2 to flex cooling block
+  - name: transfer
+    node: pf400_piper
+    action: transfer
+    args:
+      # source_approach_height_offset: 10
+      source_plate_rotation: narrow
+      target_plate_rotation: narrow
+    locations:
+      source_approach: safe_path_rack_row3_nest3
+      target_approach: safe_path_exchange
+      source: rack_row2_nest1
+      target: exchange_nest_low_narrow
+    comment: place plate on exchange
+
+
+  - name: transfer
+    node: pf400_piper
+    action: transfer
+    args:
+      target_approach_height_offset: 10
+      source_plate_rotation: wide
+      target_plate_rotation: wide
+    locations:
+      source_approach: safe_path_exchange
+      target_approach: safe_path_ot2_patrick_nest6_high
+      source: exchange_nest_high_wide
+      target: ot2_patrick_nest4_temp_block_wide
+    comment: place plate on ot2 cool block C3
+
