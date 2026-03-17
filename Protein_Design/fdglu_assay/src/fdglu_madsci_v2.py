@@ -155,6 +155,7 @@ class PDApp(ExperimentApplication):
         # Workflow paths
         run_ot2_wf = run_directory / "run_ot2_wf.yaml"
         run_flex_wf = run_directory / "run_flex.yaml"
+        run_hidex = run_directory / "run_hidex.yaml"
         ot2_to_thermocycler = (
             transfers_directory / "ot2_to_thermocycler.yaml"
         ) 
@@ -174,6 +175,9 @@ class PDApp(ExperimentApplication):
 
         cfps_plate_to_peeler_to_flex_2 = (
              transfers_directory / "cfps_plate_to_peeler_to_flex2.yaml"
+        )
+        fdglu_to_hidex = (
+             transfers_directory / "fdglu_to_hidex.yaml"
         )
 
         payload = {}
@@ -236,6 +240,14 @@ class PDApp(ExperimentApplication):
             cfps_plate_to_peeler_to_flex_2.resolve(),
         )
 
+        payload["current_flex_protocol"] = A4_to_B2 #TODO
+        workflow = self.workcell_client.submit_workflow(
+            run_flex_wf.resolve(),
+            file_inputs={
+                "flex_protocol": payload["current_flex_protocol"],
+            },
+        )
+
         # flex fdglu protocol
 
          # payload["current_flex_protocol"] = cfps_flex_protocol
@@ -247,44 +259,26 @@ class PDApp(ExperimentApplication):
         # )
 
         #move fdglu assay plate to hidex
+        payload["current_flex_protocol"] = B3_to_A4 #TODO
+        workflow = self.workcell_client.submit_workflow(
+            run_flex_wf.resolve(),
+            file_inputs={
+                "flex_protocol": payload["current_flex_protocol"],
+            },
+        )
 
         #run hidex
+        workflow = self.workcell_client.submit_workflow(
+            cfps_plate_to_peeler_to_flex.resolve(),
+        )
 
+        workflow = self.workcell_client.submit_workflow(
+            fdglu_to_hidex.resolve(),
+        )
 
-
-
-
-
-
-
-
-
-
-########################
-        #TODO: TEST HARDCODED VERSION
-        #run ot2 protocol step 1
-        # payload["current_ot2_protocol"] = golden_gate_protocol
-        # workflow = self.workcell_client.submit_workflow(
-        #     run_ot2_wf.resolve(),
-        #     file_inputs={
-        #         "ot2_protocol": payload["current_ot2_protocol"],
-        #     },
-        # )
-
-        #swap tip boxes
-
-        #run ot2 protocol step 2
-
-        #swap tip boxes
-
-        #run ot2 protocol step 3 with master mix multi dispense
-
-        #transfer destination plate to thermocycler and run
-        # workflow = self.workcell_client.submit_workflow(
-        #     ot2_to_thermocycler.resolve(),
-        # )
-
-
+        workflow = self.workcell_client.submit_workflow(
+            run_hidex.resolve(),
+        )
 
 
 
