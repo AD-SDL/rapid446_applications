@@ -5,8 +5,8 @@ import time
 from datetime import datetime
 from pathlib import Path
 
-from madsci.client import ExperimentClient, WorkcellClient
 from madsci.common.types.experiment_types import ExperimentDesign
+from madsci.client import ExperimentClient, WorkcellClient, LocationClient, ResourceClient
 from madsci.common.types.node_types import NodeDefinition
 from madsci.common.types.resource_types import Resource
 from madsci.experiment_application import (
@@ -14,6 +14,7 @@ from madsci.experiment_application import (
     ExperimentApplicationConfig,
 )
 from pydantic import AnyUrl
+
 
 
 class PDApp(ExperimentApplication):
@@ -29,6 +30,8 @@ class PDApp(ExperimentApplication):
     config = ExperimentApplicationConfig(node_url=AnyUrl("http://localhost:6000"))
     experiment_client = ExperimentClient()
     workcell_client = WorkcellClient()
+    location_client = LocationClient()
+    resource_client = ResourceClient()
     experiment_id = None
     experiment_label = None
 
@@ -77,6 +80,7 @@ class PDApp(ExperimentApplication):
             description="Template for 200ul OT-Flex tiprack",
             tags=["Tiprack", "ANSI/SLAS", "96 Well", "Labware"],
         )
+
 
     def push_new_assay_plate_resource(
             self,
@@ -158,7 +162,7 @@ class PDApp(ExperimentApplication):
 
 
         # Protocol paths (for OT-2)
-        golden_gate_protocol = protocol_directory / "pd_golden_gate_ot2.py"
+        golden_gate_protocol = protocol_directory / "pd_golden_gate_ot2_v2.py"
 
         seal_and_thermocycle = (
              transfers_directory / "seal_and_thermocycle_pcr.yaml"
@@ -170,7 +174,6 @@ class PDApp(ExperimentApplication):
 
         # EXPERIMENT ACTIONS -------------------------------------------------------
 
-        #TODO: TEST HARDCODED VERSION
         #run ot2 protocol step 1
         payload["current_ot2_protocol"] = golden_gate_protocol
         workflow = self.workcell_client.submit_workflow(
@@ -180,6 +183,7 @@ class PDApp(ExperimentApplication):
             },
         )
 
+###### depending on combinatorial length, will need additional tips
         #swap tip boxes
 
         #run ot2 protocol step 2

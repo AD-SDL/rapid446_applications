@@ -160,6 +160,8 @@ class PDApp(ExperimentApplication):
 
         # Protocol paths (for OT-2)
         golden_gate_protocol = protocol_directory / "pd_golden_gate_ot2.py"
+        dd_ot2_protocol = protocol_directory / "pd_dd_v2_ot2.py"
+        dd_flex_protocol = protocol_directory / "pd_dd_v2_flex.py"
 
         thermocycler_to_flex = (
              transfers_directory / "thermocycler_to_flex.yaml"
@@ -285,14 +287,14 @@ class PDApp(ExperimentApplication):
 
 #TODO
 
-        #move controls from flex to ot-2
-        workflow = self.workcell_client.submit_workflow(
-            controls_flex_to_ot2.resolve(),
-        )
+        # #move controls from flex to ot-2
+        # workflow = self.workcell_client.submit_workflow(
+        #     controls_flex_to_ot2.resolve(),
+        # )
 
         #ot2 dilution protocol
 
-        payload["current_ot2_protocol"] = pcr_ot2_protocol
+        payload["current_ot2_protocol"] = dd_ot2_protocol
         workflow = self.workcell_client.submit_workflow(
             run_ot2_wf.resolve(),
             file_inputs={
@@ -300,15 +302,15 @@ class PDApp(ExperimentApplication):
             },
         )
 
-        #move sybrgreen plate to the hidex
-        workflow = self.workcell_client.submit_workflow(
-            ot2_to_hidex.resolve(),
-        )
+        # #move sybrgreen plate to the hidex
+        # workflow = self.workcell_client.submit_workflow(
+        #     ot2_to_hidex.resolve(),
+        # )
 
-        #run hidex protocol
-        workflow = self.workcell_client.submit_workflow(
-            run_hidex.resolve(),
-        )
+        # #run hidex protocol
+        # workflow = self.workcell_client.submit_workflow(
+        #     run_hidex.resolve(),
+        # )
 
 
 
