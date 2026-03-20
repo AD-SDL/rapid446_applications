@@ -37,7 +37,7 @@ config = {
     'reagent_plate_type': 'nest_12_reservoir_15ml',
     'tip_rack_type_50_01': 'opentrons_flex_96_tiprack_50ul',
     'tip_rack_type_50_02': 'opentrons_flex_96_tiprack_50ul',
-    'tip_rack_type_300_01': 'opentrons_flex_96_tiprack_300ul',
+    'tip_rack_type_200_01': 'opentrons_flex_96_tiprack_200ul',
     'pipette_type_50': 'flex_8channel_50',
     'pipette_type_1000': 'flex_8channel_1000',
 
@@ -48,7 +48,7 @@ config = {
     'pcr_plate_position': 'C1',
     'tip_rack_position_50_01': 'A2',
     'tip_rack_position_50_02': 'A3',
-    'tip_rack_position_300_01': 'A1',
+    'tip_rack_position_200_01': 'A1',
     'reagent_plate_position': 'D2'
 }
 
@@ -188,18 +188,18 @@ def run(protocol: protocol_api.ProtocolContext):
     tiprack_50_2 = protocol.load_labware(
         load_name=config['tip_rack_type_50_02'], location=config['tip_rack_position_50_02']
     )
-    tiprack_300_1 = protocol.load_labware(
-        load_name=config['tip_rack_type_300_01'], location=config['tip_rack_position_300_01']
+    tiprack_200_1 = protocol.load_labware(
+        load_name=config['tip_rack_type_200_01'], location=config['tip_rack_position_200_01']
     )
 
 
 
     # Pipettes
     p50 = protocol.load_instrument('flex_8channel_50', mount='right', tip_racks=[tiprack_50_1, tiprack_50_2])
-    p1000 = protocol.load_instrument('flex_8channel_1000', mount='left', tip_racks=[tiprack_300_1])
+    p1000 = protocol.load_instrument('flex_8channel_1000', mount='left', tip_racks=[tiprack_200_1])
 
     p50.configure_nozzle_layout(style='COLUMN', start='A1', tip_racks=[tiprack_50_1, tiprack_50_2])
-    p1000.configure_nozzle_layout(style='COLUMN', start='A1', tip_racks=[tiprack_300_1])
+    p1000.configure_nozzle_layout(style='COLUMN', start='A1', tip_racks=[tiprack_200_1])
     # p1000.configure_nozzle_layout(style=SINGLE, start='A1', tip_racks=[tiprack_200])
 
 
@@ -209,7 +209,7 @@ def run(protocol: protocol_api.ProtocolContext):
         protocol=protocol,
         source_plate=source_plate,
         pcr_plate=pcr_plate,
-        pipette=p50,
+        pipette=p1000,
         config=config
     )
 

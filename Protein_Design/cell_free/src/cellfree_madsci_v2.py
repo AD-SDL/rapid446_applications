@@ -166,7 +166,8 @@ class PDApp(ExperimentApplication):
 
 
         # Protocol paths (for OT-2)
-        # golden_gate_protocol = protocol_directory / "pd_golden_gate_ot2.py"
+        cfps_flex_protocol = protocol_directory / "cell_free_pd_flex_v2.py"
+        cfps_ot2_protocol = protocol_directory / "cell_free_pd_ot2_v2.py"
 
         rmf_mixes_to_flex = (
              transfers_directory / "rmf_mixes_to_flex.yaml"
@@ -222,13 +223,13 @@ class PDApp(ExperimentApplication):
 
         #cfps master mix protocol in flex
 
-        # payload["current_flex_protocol"] = cfps_flex_protocol
-        # workflow = self.workcell_client.submit_workflow(
-        #     run_flex_wf.resolve(),
-        #     file_inputs={
-        #         "flex_protocol": payload["current_flex_protocol"],
-        #     },
-        # )
+        payload["current_flex_protocol"] = cfps_flex_protocol
+        workflow = self.workcell_client.submit_workflow(
+            run_flex_wf.resolve(),
+            file_inputs={
+                "flex_protocol": payload["current_flex_protocol"],
+            },
+        )
 
         #move cfps plate to cool block in ot2 (4)
         payload["current_flex_protocol"] = C1_to_A4
@@ -259,15 +260,15 @@ class PDApp(ExperimentApplication):
 
         #ot2 protocol diluted pcr to cfps plate cols 1-5
 
-        # # dilute golden gate products with 20ul of water and mix
-        # # 1 ul of diluted golden gate product to cols 1-4 of pcr product plate, mix
-        # # payload["current_ot2_protocol"] = cfps_ot2_protocol
-        # # workflow = self.workcell_client.submit_workflow(
-        # #     run_ot2_wf.resolve(),
-        # #     file_inputs={
-        # #         "ot2_protocol": payload["current_ot2_protocol"],
-        # #     },
-        # # )
+        # dilute golden gate products with 20ul of water and mix
+        # 1 ul of diluted golden gate product to cols 1-4 of pcr product plate, mix
+        payload["current_ot2_protocol"] = cfps_ot2_protocol
+        workflow = self.workcell_client.submit_workflow(
+            run_ot2_wf.resolve(),
+            file_inputs={
+                "ot2_protocol": payload["current_ot2_protocol"],
+            },
+        )
 
         #seal cfps, move to flex heater-shaker, incubate at 37 deg for 2.5 hours
         workflow = self.workcell_client.submit_workflow(

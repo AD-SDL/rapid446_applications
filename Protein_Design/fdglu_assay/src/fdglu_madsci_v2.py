@@ -161,7 +161,7 @@ class PDApp(ExperimentApplication):
         ) 
 
         # Protocol paths (for OT-2)
-        golden_gate_protocol = protocol_directory / "pd_golden_gate_ot2.py"
+        fdglu_flex_protocol = protocol_directory / "fdglu_madsci_v2.py"
 
         A4_to_B1 = protocol_directory / "pcr_A4_to_B1.py"
 
@@ -250,13 +250,13 @@ class PDApp(ExperimentApplication):
 
         # flex fdglu protocol
 
-         # payload["current_flex_protocol"] = cfps_flex_protocol
-        # workflow = self.workcell_client.submit_workflow(
-        #     run_flex_wf.resolve(),
-        #     file_inputs={
-        #         "flex_protocol": payload["current_flex_protocol"],
-        #     },
-        # )
+        payload["current_flex_protocol"] = fdglu_flex_protocol
+        workflow = self.workcell_client.submit_workflow(
+            run_flex_wf.resolve(),
+            file_inputs={
+                "flex_protocol": payload["current_flex_protocol"],
+            },
+        )
 
         #move fdglu assay plate to hidex
         payload["current_flex_protocol"] = B3_to_A4 #TODO

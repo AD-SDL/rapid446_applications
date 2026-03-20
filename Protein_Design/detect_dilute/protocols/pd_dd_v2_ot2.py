@@ -20,12 +20,13 @@ config = {
     'water_volume': 18,
     'combinations': [[18,10,2],[11,19,3],[4,20,12],[21,13,5]],
     "num_controls": 5,
+    'control_volume': 20,
 
     # Master mix and reagent settings
     'water_well': 1,
     'columns_to_move_for_dilute': 6,
     'control_volume': 20,
-    'pcr_plate_control_column': 1,
+    'pcr_plate_control_column': 5,
 
 
     # Temperature settings
@@ -84,14 +85,7 @@ def water_to_pcr_dilution_wells(protocol, diluted_pcr, reagent_plate, pipette, c
             # mix_after = (3, 20)
         )
     pipette.drop_tip()
-    # payload = {"current_flex_protocol": str(run_dd)}
 
-    # experiment_client.start_run(
-    #     run_flex_wf.resolve(),
-    #     payload=payload,
-    #     blocking=True,
-    #     simulate=False,
-    # )
 
 def pcr_to_water(protocol, pcr_plate, diluted_pcr, pipette, config):
     pcr_sample_volume = config['pcr_sample_volume']
@@ -114,21 +108,33 @@ def pcr_to_water(protocol, pcr_plate, diluted_pcr, pipette, config):
 
 def controls_to_pcr(protocol, diluted_pcr, controls_plate, pipette, config):
     control_volume = config['control_volume']
-    num_controls = config['num_controls']
     control_column = config['pcr_plate_control_column']
+    source_well = controls_plate.columns()[0]
+    dest_well = diluted_pcr.columns()[control_column-1]
+    pipette.transfer(
+        control_volume,
+        source_well,
+        dest_well,
+        new_tip = "always"
+    )
 
-    starting_dest_well = 88 # last col #TODO hardcoded
+# def controls_to_pcr(protocol, diluted_pcr, controls_plate, pipette, config):
+#     control_volume = config['control_volume']
+#     num_controls = config['num_controls']
+#     control_column = config['pcr_plate_control_column']
 
-    for well in range(1, num_controls + 1):
-        source_well = controls_plate.wells()[well-1]
-        dest_well = diluted_pcr.wells()[starting_dest_well]
-        pipette.transfer(
-            control_volume,
-            source_well,
-            dest_well,
-            new_tip='always',  # Use fresh tip for each transfer
-        )
-        starting_dest_well+=1
+#     starting_dest_well = 88 # last col #TODO hardcoded
+
+#     for well in range(1, num_controls + 1):
+#         source_well = controls_plate.wells()[well-1]
+#         dest_well = diluted_pcr.wells()[starting_dest_well]
+#         pipette.transfer(
+#             control_volume,
+#             source_well,
+#             dest_well,
+#             new_tip='always',  # Use fresh tip for each transfer
+#         )
+#         starting_dest_well+=1
 
 def run(protocol: protocol_api.ProtocolContext):
     # Load temperature module and adapter
@@ -180,5 +186,5 @@ def run(protocol: protocol_api.ProtocolContext):
     controls_to_pcr(protocol=protocol,
                     diluted_pcr=diluted_plate,
                     controls_plate=controls_plate,
-                    pipette=p50s,
+                    pipette=p50,
                     config=config)
