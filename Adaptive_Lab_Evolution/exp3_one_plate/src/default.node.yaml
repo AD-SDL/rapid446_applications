@@ -1,7 +1,7 @@
-node_name: DEMO_app
-node_id: 01KM17ZQVA5MMQ4Y7A6K8Z1M43
+node_name: ALE_app
+node_id: 01KBGFTPVHJ125AQ0XCXVP02XD
 node_description: null
 node_type: device
-module_name: DMEO_app
+module_name: ALE_app
 module_version: 0.0.1
 capabilities: null
