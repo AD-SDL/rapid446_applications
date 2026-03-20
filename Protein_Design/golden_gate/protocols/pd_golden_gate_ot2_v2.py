@@ -2,7 +2,7 @@ from opentrons import protocol_api
 import itertools
 from opentrons.protocol_api import SINGLE
 # from ot2_offsets import ot2_spongebob, ot2_patrick
-
+import ast
 
 metadata = {
     'protocolName': 'Protein Design Golden Gate 81 reagents for the OT-2',
@@ -19,37 +19,40 @@ config = {
     # Combinatorial mixing
     # 'combinations': [[18,10,2],[11,19,3],[4,20,12],[21,13,5]],
     # 'combinations': [[5,6,7,8], [25,26,27,28], [37,38,39,40]],
-    'combinations': [[1], [2,10,18], [3,11,19], [4,12,20]],
-    'use_combinations': True,
-    'non_combinatorial_sources': [
-        [1,2,3,4],
-        [9,2,3,12],
-        [9,10,3,4],
-        [9,10,3,12],
-        [9,10,11,12],
-        [9,18,3,4],
-        [17,18,19,4],
-        [17,18,19,20],
+    # 'combinations': [[1], [2,10,18], [3,11,19], [4,12,20]],
+    # 'use_combinations': True,
+    # 'non_combinatorial_sources': [
+    #     [1,2,3,4],
+    #     [9,2,3,12],
+    #     [9,10,3,4],
+    #     [9,10,3,12],
+    #     [9,10,11,12],
+    #     [9,18,3,4],
+    #     [17,18,19,4],
+    #     [17,18,19,20],
 
-        [1,2,3,4],
-        [9,2,3,12],
-        [9,10,3,4],
-        [9,10,3,12],
-        [9,10,11,12],
-        [9,18,3,4],
-        [17,18,19,4],
-        [17,18,19,20],
+    #     [1,2,3,4],
+    #     [9,2,3,12],
+    #     [9,10,3,4],
+    #     [9,10,3,12],
+    #     [9,10,11,12],
+    #     [9,18,3,4],
+    #     [17,18,19,4],
+    #     [17,18,19,20],
 
-        [1,2,3,4],
-        [9,2,3,12],
-        [9,10,3,4],
-        [9,10,3,12],
-        [9,10,11,12],
-        [9,18,3,4],
-        [17,18,19,4],
-        [17,18,19,20]
-    ],
-    # gbabnigg.changes.end
+    #     [1,2,3,4],
+    #     [9,2,3,12],
+    #     [9,10,3,4],
+    #     [9,10,3,12],
+    #     [9,10,11,12],
+    #     [9,18,3,4],
+    #     [17,18,19,4],
+    #     [17,18,19,20]
+    # ],
+    'combinations': "$combinations",
+    'use_combinations': bool("$use_combinations"),
+    'non_combinatorial_sources': "$non_combinatorial_sources",
+
     'transfer_volume': 2,  # µL from each source well
     'aspirate_transfer_volume': 2,
     'dispense_transfer_volume': 2,
@@ -124,8 +127,10 @@ def transfer_combinatorial_liquids(protocol, source_plate, dest_plate, pipette, 
     combinations = None
     total_combinations = 0
     all_combinations = None
-    if  config['use_combinations'] is True:
-        combinations = config['combinations']
+    if config['use_combinations'] is True:
+        combinations_string = config['combinations']
+        combinations = ast.literal_eval(combinations_string)
+        # combinations = combinations.split(',')
         total_combinations = calculate_total_combinations(combinations)
         # Generate all possible combinations
         all_combinations = generate_all_combinations(combinations)
@@ -186,7 +191,6 @@ def transfer_combinatorial_liquids(protocol, source_plate, dest_plate, pipette, 
             #     pipette.drop_tip()
             # Drop tip
             # pipette.drop_tip()
-
         dest_well_number += 1
 
 def add_master_mix_to_combinations(protocol, source_plate, dest_plate, pipette, config):
@@ -304,7 +308,7 @@ def run(protocol: protocol_api.ProtocolContext):
 
 
 
-    # Perform combinatorial transfers 
+    # Perform combinatorial transfers
     total_dest_wells = transfer_combinatorial_liquids(
         protocol=protocol,
         source_plate=source_plate,

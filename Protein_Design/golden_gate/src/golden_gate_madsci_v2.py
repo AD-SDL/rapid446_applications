@@ -15,6 +15,11 @@ from madsci.experiment_application import (
 )
 from pydantic import AnyUrl
 
+from REST_connection.REST_connect import RESTHandlerPD
+import helper_functions
+
+
+
 
 
 class PDApp(ExperimentApplication):
@@ -32,6 +37,7 @@ class PDApp(ExperimentApplication):
     workcell_client = WorkcellClient()
     location_client = LocationClient()
     resource_client = ResourceClient()
+    rest_handler = RESTHandlerPD()
     experiment_id = None
     experiment_label = None
 
@@ -155,10 +161,10 @@ class PDApp(ExperimentApplication):
         # Workflow paths
         run_ot2_wf = run_directory / "run_ot2_wf.yaml"
         run_thermo_wf = run_directory / "run_thermo.yaml"
-        
+
         ot2_to_thermocycler = (
             transfers_directory / "ot2_to_thermocycler.yaml"
-        )       
+        )
 
 
         # Protocol paths (for OT-2)
@@ -170,12 +176,24 @@ class PDApp(ExperimentApplication):
 
         payload = {}
 
+        combination_data = self.rest_handler.collect_combinations(oracle_id=1008)
+        # print("combination_data", combination_data)
+        # print(combination_data["combinations"])
+        # print(combination_data["use_combinations"])
+        # print(combination_data["non_combinatorial_sources"])
+
+        payload["combinations"] = combination_data["combinations"]
+        payload["use_combinations"] = combination_data["use_combinations"]
+        payload["non_combinatorial_sources"] = combination_data["non_combinatorial_sources"]
+
 
 
         # EXPERIMENT ACTIONS -------------------------------------------------------
 
-        #run ot2 protocol step 1
-        payload["current_ot2_protocol"] = golden_gate_protocol
+        # run ot2 protocol step 1
+        ot2_replacement_variables = helper_functions.collect_ot2_replacement_variables(payload)
+        temp_ot2_file_str = helper_functions.generate_ot2_protocol(golden_gate_protocol, ot2_replacement_variables)
+        payload["current_ot2_protocol"] = temp_ot2_file_str
         workflow = self.workcell_client.submit_workflow(
             run_ot2_wf.resolve(),
             file_inputs={
@@ -192,15 +210,17 @@ class PDApp(ExperimentApplication):
 
         #run ot2 protocol step 3 with master mix multi dispense
 
-        # transfer destination plate to thermocycler and run
-        workflow = self.workcell_client.submit_workflow(
-            seal_and_thermocycle.resolve(),
-        )
+        #########################
 
-        #run thermocycler
-        workflow = self.workcell_client.submit_workflow(
-            run_thermo_wf.resolve(),
-        )
+        # transfer destination plate to thermocycler and run
+        # workflow = self.workcell_client.submit_workflow(
+        #     seal_and_thermocycle.resolve(),
+        # )
+
+        # #run thermocycler
+        # workflow = self.workcell_client.submit_workflow(
+        #     run_thermo_wf.resolve(),
+        # )
 
 
 
