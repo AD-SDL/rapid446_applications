@@ -4,7 +4,7 @@ from opentrons.protocol_api import SINGLE
 
 
 metadata = {
-    'protocolName': 'Protein Design fdglu',
+    'protocolName': 'Protein Design fdglu Flex',
     'author': 'LDRD team ',
     'description': 'fdglu assay preparation',
     'source': 'FlexAS/pd_fdglu_assay_81.py'
@@ -55,7 +55,7 @@ config = {
     'pcr_adapter_type': 'opentrons_96_pcr_adapter',  # Aluminum adapter for PCR plates
     'tip_rack_type_50_01': 'opentrons_flex_96_tiprack_50ul',
     'tip_rack_type_50_02': 'opentrons_flex_96_tiprack_50ul',
-    'tip_rack_type_300_01': 'opentrons_flex_96_tiprack_300ul',
+    'tip_rack_type_200_01': 'opentrons_flex_96_tiprack_200ul',
     'pipette_type_50': 'flex_8channel_50',
     'pipette_type_1000': 'flex_8channel_1000',
     'reagent_plate_type': 'nest_12_reservoir_15ml',
@@ -71,7 +71,7 @@ config = {
     'fdglu_plate_position': 'B3',
     'tip_rack_position_50_01': 'A2',
     'tip_rack_position_50_02': 'A3',
-    'tip_rack_position_300_01': 'A1',
+    'tip_rack_position_200_01': 'A1',
 }
 
 
@@ -111,8 +111,7 @@ def calculate_internal_standards_column(config):
 
 
 def remove_rmf(protocol, cfps_plate, reagent_plate, pipette, config):
-    # remove 23 ul from wells f12, g12, h12
-    # wells_to_remove = [93, 94, 95]
+
     wells_to_remove = [37, 38, 39]
     dest_well = reagent_plate.wells()[11] # last col of reagent plate
     for well in wells_to_remove:
@@ -235,27 +234,28 @@ def run(protocol):
     tiprack_50_2 = protocol.load_labware(
         load_name=config['tip_rack_type_50_02'], location=config['tip_rack_position_50_02']
     )
-    tiprack_300_1 = protocol.load_labware(
-        load_name=config['tip_rack_type_300_01'], location=config['tip_rack_position_300_01']
+    tiprack_200_1 = protocol.load_labware(
+        load_name=config['tip_rack_type_200_01'], location=config['tip_rack_position_200_01']
     )
 
 
 
     # Pipettes
     p50 = protocol.load_instrument('flex_8channel_50', mount='right', tip_racks=[tiprack_50_1, tiprack_50_2])
-    p1000 = protocol.load_instrument('flex_8channel_1000', mount='left', tip_racks=[tiprack_300_1])
+    p1000 = protocol.load_instrument('flex_8channel_1000', mount='left', tip_racks=[tiprack_200_1])
 
     p50.configure_nozzle_layout(style='SINGLE', start='A1', tip_racks=[tiprack_50_1, tiprack_50_2])
-    p1000.configure_nozzle_layout(style='COLUMN', start='A1', tip_racks=[tiprack_300_1])
+    p1000.configure_nozzle_layout(style='COLUMN', start='A1', tip_racks=[tiprack_200_1])
 
 
     chute = protocol.load_waste_chute()
 
-    remove_rmf(protocol=protocol,
-               cfps_plate=cfps_plate,
-               reagent_plate=reagent_plate,
-               pipette=p50,
-               config = config)
+
+    # remove_rmf(protocol=protocol,
+    #            cfps_plate=cfps_plate,
+    #            reagent_plate=reagent_plate,
+    #            pipette=p50,
+    #            config = config)
 
     fdglu_to_plate(protocol=protocol,
                    reagent_plate=reagent_plate,
@@ -271,10 +271,10 @@ def run(protocol):
                  pipette=p50,
                  config=config)
     
-    p50.configure_nozzle_layout(style='SINGLE', start='A1', tip_racks=[tiprack_50_1, tiprack_50_2])
+    # p50.configure_nozzle_layout(style='SINGLE', start='A1', tip_racks=[tiprack_50_1, tiprack_50_2])
 
-    controls_to_dest(protocol=protocol,
-                     controls_plate=controls_plate,
-                     fdglu_plate=fdglu_plate,
-                     pipette=p50,
-                     config=config)
+    # controls_to_dest(protocol=protocol,
+    #                  controls_plate=controls_plate,
+    #                  fdglu_plate=fdglu_plate,
+    #                  pipette=p50,
+    #                  config=config)

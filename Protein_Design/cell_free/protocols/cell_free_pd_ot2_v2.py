@@ -73,7 +73,7 @@ def run(protocol: protocol_api.ProtocolContext):
     temp_mod1.set_temperature(config['temperature']) #TODO: make seperate, or just set earlier, only 1 hour with plate
     temp_mod2.set_temperature(config['temperature']) #TODO: make seperate, or just set earlier, only 1 hour with plate
     
-    cfps_plate = temp_adapter1.load_labware(config['pcr_plate_type'])
+    cfps_plate = temp_adapter1.load_labware(config['cfps_plate_type'])
     cfps_plate.set_offset(x=0.4, y=0.4, z=0.0)
 
     diluted_plate = temp_adapter2.load_labware(config['diluted_plate_type'])

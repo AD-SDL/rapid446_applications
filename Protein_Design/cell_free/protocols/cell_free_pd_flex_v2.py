@@ -4,7 +4,7 @@ from opentrons.protocol_api import SINGLE
 
 
 metadata = {
-    'protocolName': 'Protein Design CFPS 81 reagent',
+    'protocolName': 'Protein Design CFPS 81 reagent Flex',
     'author': 'LDRD team ',
     'description': 'CFPS plate setup from PCR templates and standards followed by CFPS on the deck',
     'source': 'FlexAS/pd_cfps_81.py'
@@ -171,7 +171,7 @@ def run(protocol: protocol_api.ProtocolContext):
     rmf_plate = temp_adapter1.load_labware(config['rmf_plate_type'])
     rmf_plate.set_offset(x=0.7, y=0.30, z=0.6)
 
-    cfps_plate = protocol.load_labware(config['cfps_plate_type'], config['cfps_plate_position'])
+    cfps_plate = temp_adapter2.load_labware(config['cfps_plate_type'])
     cfps_plate.set_offset(x=0.4, y=0.4, z=0.0)
 
     tiprack_50_1 = protocol.load_labware(

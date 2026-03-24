@@ -161,7 +161,7 @@ class PDApp(ExperimentApplication):
         ) 
 
         # Protocol paths (for OT-2)
-        fdglu_flex_protocol = protocol_directory / "fdglu_madsci_v2.py"
+        fdglu_flex_protocol = protocol_directory / "pd_fdglu_flex_v2.py"
 
         A4_to_B1 = protocol_directory / "pcr_A4_to_B1.py"
 

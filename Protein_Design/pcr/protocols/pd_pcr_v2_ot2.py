@@ -18,7 +18,7 @@ config = {
     # Combinatorial mixing
     'transfer_volume': 1,  # µL from each gg well
     # 'number_of_gg_samples': 6,
-    'combinations': [[18,10,2],[11,19,3],[4,20,12],[21,13,5]],
+    'combinations': [[18,10],[11,19],[4,20],[21,13]],
 
     # Master mix and reagent settings
     'pcr_master_mix_well_volume': 100,
@@ -149,7 +149,6 @@ def run(protocol: protocol_api.ProtocolContext):
     temp_mod_2.set_temperature(config['temperature']) #TODO: make seperate, or just set earlier, only 1 hour with plate
 
 
-    chute = protocol.load_waste_chute()
 
     # Load destination plate
     # pcr_plate = protocol.load_labware(config['pcr_plate_type'], config['pcr_plate_position'])

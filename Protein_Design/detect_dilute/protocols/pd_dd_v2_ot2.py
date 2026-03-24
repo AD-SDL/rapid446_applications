@@ -18,7 +18,7 @@ config = {
     'number_of_pcr_samples': 6,
     'pcr_sample_volume': 2,
     'water_volume': 18,
-    'combinations': [[18,10,2],[11,19,3],[4,20,12],[21,13,5]],
+    'combinations': [[18,10],[11,19],[4,20],[21,13]],
     "num_controls": 5,
     'control_volume': 20,
 

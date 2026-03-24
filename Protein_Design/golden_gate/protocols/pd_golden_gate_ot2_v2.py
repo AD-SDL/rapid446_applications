@@ -19,39 +19,39 @@ config = {
     # Combinatorial mixing
     # 'combinations': [[18,10,2],[11,19,3],[4,20,12],[21,13,5]],
     # 'combinations': [[5,6,7,8], [25,26,27,28], [37,38,39,40]],
-    # 'combinations': [[1], [2,10,18], [3,11,19], [4,12,20]],
-    # 'use_combinations': True,
-    # 'non_combinatorial_sources': [
-    #     [1,2,3,4],
-    #     [9,2,3,12],
-    #     [9,10,3,4],
-    #     [9,10,3,12],
-    #     [9,10,11,12],
-    #     [9,18,3,4],
-    #     [17,18,19,4],
-    #     [17,18,19,20],
+    'combinations': [[1, 6], [2, 10], [3, 11], [4, 12]],
+    'use_combinations': True,
+    'non_combinatorial_sources': [
+        [1,2,3,4],
+        [9,2,3,12],
+        [9,10,3,4],
+        [9,10,3,12],
+        [9,10,11,12],
+        [9,18,3,4],
+        [17,18,19,4],
+        [17,18,19,20],
 
-    #     [1,2,3,4],
-    #     [9,2,3,12],
-    #     [9,10,3,4],
-    #     [9,10,3,12],
-    #     [9,10,11,12],
-    #     [9,18,3,4],
-    #     [17,18,19,4],
-    #     [17,18,19,20],
+        [1,2,3,4],
+        [9,2,3,12],
+        [9,10,3,4],
+        [9,10,3,12],
+        [9,10,11,12],
+        [9,18,3,4],
+        [17,18,19,4],
+        [17,18,19,20],
 
-    #     [1,2,3,4],
-    #     [9,2,3,12],
-    #     [9,10,3,4],
-    #     [9,10,3,12],
-    #     [9,10,11,12],
-    #     [9,18,3,4],
-    #     [17,18,19,4],
-    #     [17,18,19,20]
-    # ],
-    'combinations': "$combinations",
-    'use_combinations': bool("$use_combinations"),
-    'non_combinatorial_sources': "$non_combinatorial_sources",
+        [1,2,3,4],
+        [9,2,3,12],
+        [9,10,3,4],
+        [9,10,3,12],
+        [9,10,11,12],
+        [9,18,3,4],
+        [17,18,19,4],
+        [17,18,19,20]
+    ],
+    # 'combinations': "$combinations",
+    # 'use_combinations': bool("$use_combinations"),
+    # 'non_combinatorial_sources': "$non_combinatorial_sources",
 
     'transfer_volume': 2,  # µL from each source well
     'aspirate_transfer_volume': 2,
@@ -122,15 +122,15 @@ def transfer_combinatorial_liquids(protocol, source_plate, dest_plate, pipette, 
 
     # Calculate total combinations before generating them
 
-    # gbabnigg.changes.start
-
     combinations = None
     total_combinations = 0
     all_combinations = None
     if config['use_combinations'] is True:
-        combinations_string = config['combinations']
-        combinations = ast.literal_eval(combinations_string)
-        # combinations = combinations.split(',')
+        ##########
+        # combinations_string = config['combinations']
+        # combinations = ast.literal_eval(combinations_string)
+        combinations = config['combinations']
+        ##########
         total_combinations = calculate_total_combinations(combinations)
         # Generate all possible combinations
         all_combinations = generate_all_combinations(combinations)
@@ -213,6 +213,9 @@ def add_master_mix_to_combinations(protocol, source_plate, dest_plate, pipette, 
     # Calculate total combinations
     total_combinations = calculate_total_combinations(combinations)
 
+    num_samples = calculate_total_combinations(combinations)
+    columns_needed = (num_samples + 7) // 8
+
     # Calculate how many destination wells can be served by one master mix well
     dispenses_per_well = master_mix_well_volume // master_mix_volume
     protocol.comment(f"Each master mix well ({master_mix_well_volume}µL) can serve {dispenses_per_well} destination wells")
@@ -226,34 +229,44 @@ def add_master_mix_to_combinations(protocol, source_plate, dest_plate, pipette, 
     remaining_dispenses = dispenses_per_well
 
     protocol.comment(f"\nAdding {master_mix_volume}µL master mix to each destination well:")
-
-    for dest_well_number in range(1, total_combinations + 1):
-        # Check if we need to switch to next master mix well
-        if remaining_dispenses == 0:
-            current_master_mix_well += 1
-            remaining_dispenses = dispenses_per_well
-            protocol.comment(f"  Switching to master mix well {current_master_mix_well + 1} (0-indexed: {current_master_mix_well})")
-
-        # Get the destination well
-        dest_well = dest_plate.wells()[dest_well_number - 1]  # Convert to 0-based index
-
-        # Get the current master mix well
-        master_mix_well = source_plate.wells()[current_master_mix_well]
-
-        protocol.comment(f"  Dest well {dest_well_number}: Adding {master_mix_volume}µL from master mix well {current_master_mix_well + 1} (0-indexed: {current_master_mix_well})")
-
-        # Transfer master mix
-        #TODO: multi dispensing
+    master_mix_well = source_plate.wells()[current_master_mix_well]
+    for dest_well in range(columns_needed):
+        dest = dest_plate.columns()[dest_well]
         pipette.transfer(
             master_mix_volume,
             master_mix_well,
-            dest_well,
-            new_tip='always',
-            mix_after=(3, 15),  # Use fresh tip for each master mix transfer
+            dest,
+            new_tip = 'always',
+            mix_after=(3, 15),
         )
 
-        # Update remaining dispenses
-        remaining_dispenses -= 1
+    # for dest_well_number in range(1, total_combinations + 1):
+    #     # Check if we need to switch to next master mix well
+    #     if remaining_dispenses == 0:
+    #         current_master_mix_well += 1
+    #         remaining_dispenses = dispenses_per_well
+    #         protocol.comment(f"  Switching to master mix well {current_master_mix_well + 1} (0-indexed: {current_master_mix_well})")
+
+    #     # Get the destination well
+    #     dest_well = dest_plate.wells()[dest_well_number - 1]  # Convert to 0-based index
+
+    #     # Get the current master mix well
+    #     master_mix_well = source_plate.wells()[current_master_mix_well]
+
+    #     protocol.comment(f"  Dest well {dest_well_number}: Adding {master_mix_volume}µL from master mix well {current_master_mix_well + 1} (0-indexed: {current_master_mix_well})")
+
+    #     # Transfer master mix
+    #     #TODO: multi dispensing
+    #     pipette.transfer(
+    #         master_mix_volume,
+    #         master_mix_well,
+    #         dest_well,
+    #         new_tip='always',
+    #         mix_after=(3, 15),  # Use fresh tip for each master mix transfer
+    #     )
+
+    #     # Update remaining dispenses
+    #     remaining_dispenses -= 1
 
     protocol.comment(f"\nMaster mix addition complete. Used wells {master_mix_start_well + 1} to {current_master_mix_well + 1} (0-indexed: {master_mix_start_well} to {current_master_mix_well})")
 
@@ -303,7 +316,7 @@ def run(protocol: protocol_api.ProtocolContext):
     p50 = protocol.load_instrument(config['pipette_type_20_multi'], mount='right', tip_racks=[tiprack_50_1, tiprack_50_2])
     p50s = protocol.load_instrument(config['pipette_type_20'], mount='left', tip_racks=[tiprack_50_1, tiprack_50_2])
 
-    # p50.configure_nozzle_layout(style=SINGLE, start='A1', tip_racks=[tiprack_50_1, tiprack_50_2, tiprack_50_3, tiprack_50_4, tiprack_50_5])
+    p50.configure_nozzle_layout(style='COLUMN', start='A1', tip_racks=[tiprack_50_1, tiprack_50_2])
     # p50s.configure_nozzle_layout(style=SINGLE, start='A1', tip_racks=[tiprack_50_1, tiprack_50_2, tiprack_50_3, tiprack_50_4, tiprack_50_5])
 
 
