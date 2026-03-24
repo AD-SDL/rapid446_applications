@@ -13,7 +13,9 @@ requirements = {"robotType": "OT-2", "apiLevel": "2.20"}
 
 
 config = {
-    'combinations': [[18,10,2],[11,19,3],[4,20,12],[21,13,5]], # 1-indexed source well numbers (kept for total calculation)
+    # 'combinations': [[18,10,2],[11,19,3],[4,20,12],[21,13,5]], # 1-indexed source well numbers (kept for total calculation)
+    'combinations': [[1], [2], [3], [4]],
+
     'temperature' : 4,
 
     'heater_shaker_temp': 37,     # °C for heater/shaker
@@ -48,7 +50,11 @@ def generate_all_combinations(combinations):
 def diluted_pcr_to_cfps(protocol, diluted_pcr_plate, cfps_plate, pipette, config):
     # add 2ul of diluted dna to cfps plate
     # can probably just 8 channel all through, check with others
-    for i in range(12):
+    combinations = config['combinations']
+    num_samples = calculate_total_combinations(combinations)
+    columns_needed = (num_samples + 7) // 8
+    columns_needed = columns_needed
+    for i in range(columns_needed+1):
         source_well = diluted_pcr_plate.columns()[i]
         dest_well = cfps_plate.columns()[i]
         pipette.transfer(
@@ -72,14 +78,14 @@ def run(protocol: protocol_api.ProtocolContext):
     # Set temperature
     temp_mod1.set_temperature(config['temperature']) #TODO: make seperate, or just set earlier, only 1 hour with plate
     temp_mod2.set_temperature(config['temperature']) #TODO: make seperate, or just set earlier, only 1 hour with plate
-    
+
     cfps_plate = temp_adapter1.load_labware(config['cfps_plate_type'])
     cfps_plate.set_offset(x=0.4, y=0.4, z=0.0)
 
     diluted_plate = temp_adapter2.load_labware(config['diluted_plate_type'])
     diluted_plate.set_offset(x=0.7, y=0.30, z=0.2)
 
-    reagent_plate = protocol.load_labware(config['reagent_plate_type'], config['reagent_plate_position'])   
+    reagent_plate = protocol.load_labware(config['reagent_plate_type'], config['reagent_plate_position'])
 
     tiprack_20_1 = protocol.load_labware(
         load_name=config['tip_rack_type_20_01'], location=config['tip_rack_position_20_01']

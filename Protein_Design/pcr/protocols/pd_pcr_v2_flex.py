@@ -18,14 +18,15 @@ config = {
     # Combinatorial mixing
     'transfer_volume': 1,  # µL from each gg well
     # 'number_of_gg_samples': 6,
-    'combinations': [[18,10,2],[11,19,3],[4,20,12],[21,13,5]],
+    # 'combinations': [[18,10,2],[11,19,3],[4,20,12],[21,13,5]],
+    'combinations': [[1], [2], [3], [4]],
 
     # Master mix and reagent settings
     'pcr_master_mix_well_volume': 100,
     'water_volume': 20,
     'pcr_master_mix_volume': 24,
     'water_well': 1,
-    'master_mix_start_well': 48,
+    'master_mix_start_well': 72,
 
 
     # Temperature settings
@@ -86,7 +87,7 @@ def master_mix_to_pcr_plate(protocol, source_plate, pcr_plate, pipette, config):
     remaining_dispenses = dispenses_per_well
     protocol.comment(f"\nAdding {master_mix_volume}µL master mix to each destination well:")
 # #######################
-    for col_idx in range(columns_needed+1):
+    for col_idx in range(columns_needed):
         if remaining_dispenses == 0:
             current_master_mix_well += 8
             remaining_dispenses = dispenses_per_well

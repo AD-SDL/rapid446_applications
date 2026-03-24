@@ -19,7 +19,8 @@ config = {
     # Combinatorial mixing
     # 'combinations': [[18,10,2],[11,19,3],[4,20,12],[21,13,5]],
     # 'combinations': [[5,6,7,8], [25,26,27,28], [37,38,39,40]],
-    'combinations': [[1, 6], [2, 10], [3, 11], [4, 12]],
+    # 'combinations': [[1, 6], [2, 10], [3, 11], [4, 12]],
+    'combinations': [[1], [2], [3], [4]],
     'use_combinations': True,
     'non_combinatorial_sources': [
         [1,2,3,4],

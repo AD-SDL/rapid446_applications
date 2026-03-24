@@ -20,7 +20,8 @@ config = {
     'sybrgreen_volume': 194,
     'sybrgreen_well': 3,
     'water_volume': 97,
-    'combinations': [[18,10,2],[11,19,3],[4,20,12],[21,13,5]],
+    # 'combinations': [[18,10,2],[11,19,3],[4,20,12],[21,13,5]],
+    'combinations': [[1], [2], [3], [4]],
     "num_controls": 5,
 
     # Master mix and reagent settings
@@ -88,23 +89,26 @@ def water_to_pcr_products(protocol, reagent_plate, pcr_plate, pipette, config):
     pipette.pick_up_tip()
     pcr_plate_dest_cols = [5, 6, 7, 8]
 
-    for col_idx in pcr_plate_dest_cols:
-        dest_well = pcr_plate.columns()[col_idx-1]
+    for col_idx in range(columns_needed):
+        dest_well = pcr_plate.columns()[col_idx+4]
         pipette.transfer(
             water_volume,
             reagent_plate_well,
             dest_well,
             new_tip='never'
         )
-    
+
     pipette.drop_tip()
 
 
 def intermediate_dilution(protocol, pcr_plate, pipette, config):
     pcr_sample_volume = config['pcr_sample_volume']
     num_cols = 4
-    
-    for col_idx in range(num_cols):
+    combinations = config['combinations']
+    num_samples = calculate_total_combinations(combinations)
+    columns_needed = (num_samples + 7) // 8
+
+    for col_idx in range(columns_needed):
         source_well = pcr_plate.columns()[col_idx]
         dest_well = pcr_plate.columns()[col_idx+4]
         pipette.transfer(
@@ -122,7 +126,7 @@ def sybrgreen_to_dest(protocol, reagent_plate, sybrgreen_plate, pipette, config)
     combinations = config['combinations']
     num_samples = calculate_total_combinations(combinations)
     columns_needed = (num_samples + 7) // 8
-    columns_needed = columns_needed+1
+    columns_needed = columns_needed
     sybrgreen_well = reagent_plate.wells()[config['sybrgreen_well'] - 1]
     pipette.pick_up_tip()
 
@@ -151,9 +155,9 @@ def pcr_to_dest(protocol, pcr_plate, sybrgreen_plate, pipette, config):
     columns = [5, 6, 7, 8]
     num_cols = 4
 
-    for col_idx in columns:
-        source_well = pcr_plate.columns()[col_idx]
-        dest_well = sybrgreen_plate.columns()[col_idx-4]
+    for col_idx in range(columns_needed):
+        source_well = pcr_plate.columns()[col_idx+4]
+        dest_well = sybrgreen_plate.columns()[col_idx]
         protocol.comment(f"\nTransferring to destination well {dest_well}:")
         pipette.transfer(
             pcr_sample_volume,
@@ -165,8 +169,11 @@ def pcr_to_dest(protocol, pcr_plate, sybrgreen_plate, pipette, config):
 
 def controls_to_sybrgreen(protocol, controls_plate, sybrgreen_plate, pipette, config):
     controls_volume = config['controls_sample_volume']
+    combinations = config['combinations']
+    num_samples = calculate_total_combinations(combinations)
+    columns_needed = (num_samples + 7) // 8
     source_well = controls_plate.columns()[5]
-    dest_well = sybrgreen_plate.columns()[4]
+    dest_well = sybrgreen_plate.columns()[columns_needed]
     pipette.transfer(
         controls_volume,
         source_well,
@@ -187,7 +194,7 @@ def run(protocol: protocol_api.ProtocolContext):
 
     # Set temperature
     temp_mod1.set_temperature(config['temperature'])
-    temp_mod2.set_temperature(config['temperature']) 
+    temp_mod2.set_temperature(config['temperature'])
 
     chute = protocol.load_waste_chute()
 

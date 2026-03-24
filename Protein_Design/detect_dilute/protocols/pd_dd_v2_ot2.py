@@ -18,7 +18,8 @@ config = {
     'number_of_pcr_samples': 6,
     'pcr_sample_volume': 2,
     'water_volume': 18,
-    'combinations': [[18,10],[11,19],[4,20],[21,13]],
+    # 'combinations': [[18,10],[11,19],[4,20],[21,13]],
+    'combinations': [[1], [2], [3], [4]],
     "num_controls": 5,
     'control_volume': 20,
 
@@ -109,8 +110,11 @@ def pcr_to_water(protocol, pcr_plate, diluted_pcr, pipette, config):
 def controls_to_pcr(protocol, diluted_pcr, controls_plate, pipette, config):
     control_volume = config['control_volume']
     control_column = config['pcr_plate_control_column']
+    combinations = config['combinations']
+    num_samples = calculate_total_combinations(combinations)
+    columns_needed = (num_samples + 7) // 8
     source_well = controls_plate.columns()[0]
-    dest_well = diluted_pcr.columns()[control_column-1]
+    dest_well = diluted_pcr.columns()[columns_needed]
     pipette.transfer(
         control_volume,
         source_well,

@@ -13,7 +13,8 @@ metadata = {
 requirements = {"robotType": "Flex", "apiLevel": "2.20"}
 
 config = {
-    'combinations': [[18,10,2],[11,19,3],[4,20,12],[21,13,5]], # 1-indexed source well numbers (kept for total calculation)
+    # 'combinations': [[18,10,2],[11,19,3],[4,20,12],[21,13,5]], # 1-indexed source well numbers (kept for total calculation)
+    'combinations': [[1], [2], [3], [4]],
     'temperature' : 4,
 
     'heater_shaker_temp': 37,     # °C for heater/shaker
@@ -72,19 +73,18 @@ def mixA_to_rmf(protocol, rmf_plate, pipette, config):
     )
     pipette.drop_tip()
 
-    #108 from col 2 to col 5
-    source_well = rmf_plate.columns()[1]
-    dest_well = rmf_plate.columns()[4]
-    pipette.pick_up_tip()
+    # source_well = rmf_plate.columns()[1]
+    # dest_well = rmf_plate.columns()[4]
+    # pipette.pick_up_tip()
 
-    pipette.transfer(
-        120,
-        source_well,
-        dest_well,
-        new_tip='never',
-        mix_before = (5, 30)
-    )
-    pipette.drop_tip()
+    # pipette.transfer(
+    #     120,
+    #     source_well,
+    #     dest_well,
+    #     new_tip='never',
+    #     mix_before = (5, 30)
+    # )
+    # pipette.drop_tip()
 
     # 54ul from col 3 into 4 and 5, mix after
     source_well = rmf_plate.columns()[2]
@@ -100,18 +100,18 @@ def mixA_to_rmf(protocol, rmf_plate, pipette, config):
         mix_after = (10, 30)
     )
 
-    source_well = rmf_plate.columns()[2]
-    dest_well = rmf_plate.columns()[4]
-    # pipette.pick_up_tip()
+    # source_well = rmf_plate.columns()[2]
+    # dest_well = rmf_plate.columns()[4]
+    # # pipette.pick_up_tip()
 
-    pipette.transfer(
-        60,
-        source_well,
-        dest_well,
-        new_tip='always',  # Use fresh tip for each transfer
-        # mix_before = (5, 30),
-        mix_after = (10, 30)
-    )
+    # pipette.transfer(
+    #     60,
+    #     source_well,
+    #     dest_well,
+    #     new_tip='always',  # Use fresh tip for each transfer
+    #     # mix_before = (5, 30),
+    #     mix_after = (10, 30)
+    # )
 
 
 
@@ -119,9 +119,12 @@ def mixA_to_rmf(protocol, rmf_plate, pipette, config):
 def mixB_to_rmf(protocol, rmf_plate, cfps_plate, pipette, config):
     #mix at every step
     # 23ul from col 4 of starting plate to cols 1-6 of cfps plate
+    combinations = config['combinations']
+    num_samples = calculate_total_combinations(combinations)
+    columns_needed = (num_samples + 7) // 8
     source_well = rmf_plate.columns()[3]
     pipette.pick_up_tip()
-    for i in range(6):
+    for i in range(columns_needed+1):
         dest_well = cfps_plate.columns()[i]
         pipette.transfer(
             27.6,
@@ -132,19 +135,19 @@ def mixB_to_rmf(protocol, rmf_plate, cfps_plate, pipette, config):
         )
     pipette.drop_tip()
 
-    # 23ul from col 5 of starting plate to cols 7-12 of cfps plate
-    source_well = rmf_plate.columns()[4]
-    pipette.pick_up_tip()
-    for i in range(6, 12):
-        dest_well = cfps_plate.columns()[i]
-        pipette.transfer(
-            27.6,
-            source_well,
-            dest_well,
-            new_tip='never',
-            mix_before = (3, 15)
-        )
-    pipette.drop_tip()
+    # # 23ul from col 5 of starting plate to cols 7-12 of cfps plate
+    # source_well = rmf_plate.columns()[4]
+    # pipette.pick_up_tip()
+    # for i in range(6, 12):
+    #     dest_well = cfps_plate.columns()[i]
+    #     pipette.transfer(
+    #         27.6,
+    #         source_well,
+    #         dest_well,
+    #         new_tip='never',
+    #         mix_before = (3, 15)
+    #     )
+    # pipette.drop_tip()
 
 
 

@@ -18,7 +18,8 @@ config = {
     # Combinatorial mixing
     'transfer_volume': 1,  # µL from each gg well
     # 'number_of_gg_samples': 6,
-    'combinations': [[18,10],[11,19],[4,20],[21,13]],
+    # 'combinations': [[18,10],[11,19],[4,20],[21,13]],
+    'combinations': [[1], [2], [3], [4]],
 
     # Master mix and reagent settings
     'pcr_master_mix_well_volume': 100,
@@ -70,7 +71,7 @@ def transfer_water_to_gg(protocol, reagent_plate, gg_plate, pipette, config):
     gg_wells = calculate_total_combinations(combinations)
     columns_needed = (gg_wells + 7) // 8
 
-    for col_idx in range(columns_needed+1):
+    for col_idx in range(columns_needed):
         dest_well = gg_plate.columns()[col_idx]
         protocol.comment(f"\nTransferring to destination well {dest_well}:")
         pipette.transfer(
@@ -102,7 +103,7 @@ def gg_to_pcr_plate(protocol, gg_plate, pcr_plate, pipette, config):
     transfer_volume = config['transfer_volume']
     columns_needed = (gg_wells + 7) // 8
 
-    for col_idx in range(columns_needed+1):
+    for col_idx in range(columns_needed):
         dest_well = pcr_plate.columns()[col_idx]
         source_well = gg_plate.columns()[col_idx]
         pipette.transfer(
