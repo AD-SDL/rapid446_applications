@@ -14,7 +14,7 @@ requirements = {"robotType": "Flex", "apiLevel": "2.20"}
 
 config = {
     # 'combinations': [[18,10,2],[11,19,3],[4,20,12],[21,13,5]], # 1-indexed source well numbers (kept for total calculation)
-    'combinations': [[1], [2], [3], [4]],
+    'combinations': [[1], [2, 2], [3, 3], [4, 4]],
     'temperature' : 4,
 
     'heater_shaker_temp': 37,     # °C for heater/shaker
@@ -160,12 +160,12 @@ def run(protocol: protocol_api.ProtocolContext):
     temp_adapter2 = temp_mod2.load_adapter("opentrons_96_well_aluminum_block")
 
     # Set temperature
-    temp_mod1.set_temperature(config['temperature']) #TODO: make seperate, or just set earlier, only 1 hour with plate
-    temp_mod2.set_temperature(config['temperature']) #TODO: make seperate, or just set earlier, only 1 hour with plate
+    # temp_mod1.set_temperature(config['temperature']) #TODO: make seperate, or just set earlier, only 1 hour with plate
+    # temp_mod2.set_temperature(config['temperature']) #TODO: make seperate, or just set earlier, only 1 hour with plate
 
     shaker_mod = protocol.load_module(module_name="heaterShakerModuleV1", location=config['shaker_module_position'])
     shaker_adapter = shaker_mod.load_adapter(config['pcr_adapter_type'])
-    shaker_mod.set_target_temperature(config['heater_shaker_temp'])
+    # shaker_mod.set_target_temperature(config['heater_shaker_temp'])
 
     # shaker_mod.open_labware_latch()
 

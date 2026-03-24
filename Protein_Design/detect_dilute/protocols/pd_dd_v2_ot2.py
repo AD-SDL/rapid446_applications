@@ -19,7 +19,7 @@ config = {
     'pcr_sample_volume': 2,
     'water_volume': 18,
     # 'combinations': [[18,10],[11,19],[4,20],[21,13]],
-    'combinations': [[1], [2], [3], [4]],
+    'combinations': [[1], [2, 2], [3, 3], [4, 4]],
     "num_controls": 5,
     'control_volume': 20,
 
@@ -49,7 +49,7 @@ config = {
     'diluted_plate_position': 'C3',
     'reagent_plate_position': 'A1',
     'tip_rack_position_20_01': 'D3',
-    'controls_plate_position': 'D1',
+    'controls_plate_position': 'A2',
 }
 
 
@@ -149,8 +149,8 @@ def run(protocol: protocol_api.ProtocolContext):
     temp_adapter_2 = temp_mod_2.load_adapter("opentrons_96_well_aluminum_block")
 
     # Set temperature
-    temp_mod_1.set_temperature(config['temperature']) #TODO: make seperate, or just set earlier, only 1 hour with plate
-    temp_mod_2.set_temperature(config['temperature']) #TODO: make seperate, or just set earlier, only 1 hour with plate
+    # temp_mod_1.set_temperature(config['temperature']) #TODO: make seperate, or just set earlier, only 1 hour with plate
+    # temp_mod_2.set_temperature(config['temperature']) #TODO: make seperate, or just set earlier, only 1 hour with plate
 
 
     # chute = protocol.load_waste_chute()

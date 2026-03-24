@@ -19,7 +19,7 @@ config = {
     'transfer_volume': 1,  # µL from each gg well
     # 'number_of_gg_samples': 6,
     # 'combinations': [[18,10],[11,19],[4,20],[21,13]],
-    'combinations': [[1], [2], [3], [4]],
+    'combinations': [[1], [2, 2], [3, 3], [4, 4]],
 
     # Master mix and reagent settings
     'pcr_master_mix_well_volume': 100,
@@ -45,7 +45,7 @@ config = {
     'temp_module_02_position': 'C3',
     'pcr_plate_position': 'C1',
     'gg_plate_position': 'C3',
-    'reagent_plate_position': 'D1',
+    'reagent_plate_position': 'A1',
     'tip_rack_position_20_01': 'D3',
 }
 
@@ -146,8 +146,8 @@ def run(protocol: protocol_api.ProtocolContext):
     temp_adapter_2 = temp_mod_2.load_adapter("opentrons_96_well_aluminum_block")
 
     # Set temperature
-    temp_mod_1.set_temperature(config['temperature']) #TODO: make seperate, or just set earlier, only 1 hour with plate
-    temp_mod_2.set_temperature(config['temperature']) #TODO: make seperate, or just set earlier, only 1 hour with plate
+    # temp_mod_1.set_temperature(config['temperature']) #TODO: make seperate, or just set earlier, only 1 hour with plate
+    # temp_mod_2.set_temperature(config['temperature']) #TODO: make seperate, or just set earlier, only 1 hour with plate
 
 
 

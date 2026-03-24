@@ -21,7 +21,7 @@ config = {
     'sybrgreen_well': 3,
     'water_volume': 97,
     # 'combinations': [[18,10,2],[11,19,3],[4,20,12],[21,13,5]],
-    'combinations': [[1], [2], [3], [4]],
+    'combinations': [[1], [2, 2], [3, 3], [4, 4]],
     "num_controls": 5,
 
     # Master mix and reagent settings
@@ -193,8 +193,8 @@ def run(protocol: protocol_api.ProtocolContext):
     temp_adapter2 = temp_mod2.load_adapter("opentrons_96_well_aluminum_block")
 
     # Set temperature
-    temp_mod1.set_temperature(config['temperature'])
-    temp_mod2.set_temperature(config['temperature'])
+    # temp_mod1.set_temperature(config['temperature'])
+    # temp_mod2.set_temperature(config['temperature'])
 
     chute = protocol.load_waste_chute()
 

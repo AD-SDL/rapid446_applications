@@ -14,7 +14,7 @@ requirements = {"robotType": "OT-2", "apiLevel": "2.20"}
 
 config = {
     # 'combinations': [[18,10,2],[11,19,3],[4,20,12],[21,13,5]], # 1-indexed source well numbers (kept for total calculation)
-    'combinations': [[1], [2], [3], [4]],
+    'combinations': [[1], [2, 2], [3, 3], [4, 4]],
 
     'temperature' : 4,
 
@@ -76,8 +76,8 @@ def run(protocol: protocol_api.ProtocolContext):
     temp_adapter2 = temp_mod2.load_adapter("opentrons_96_well_aluminum_block")
 
     # Set temperature
-    temp_mod1.set_temperature(config['temperature']) #TODO: make seperate, or just set earlier, only 1 hour with plate
-    temp_mod2.set_temperature(config['temperature']) #TODO: make seperate, or just set earlier, only 1 hour with plate
+    # temp_mod1.set_temperature(config['temperature']) #TODO: make seperate, or just set earlier, only 1 hour with plate
+    # temp_mod2.set_temperature(config['temperature']) #TODO: make seperate, or just set earlier, only 1 hour with plate
 
     cfps_plate = temp_adapter1.load_labware(config['cfps_plate_type'])
     cfps_plate.set_offset(x=0.4, y=0.4, z=0.0)

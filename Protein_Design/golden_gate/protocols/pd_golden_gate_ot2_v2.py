@@ -20,7 +20,7 @@ config = {
     # 'combinations': [[18,10,2],[11,19,3],[4,20,12],[21,13,5]],
     # 'combinations': [[5,6,7,8], [25,26,27,28], [37,38,39,40]],
     # 'combinations': [[1, 6], [2, 10], [3, 11], [4, 12]],
-    'combinations': [[1], [2], [3], [4]],
+    'combinations': [[1], [2, 2], [3, 3], [4, 4]],
     'use_combinations': True,
     'non_combinatorial_sources': [
         [1,2,3,4],
@@ -285,8 +285,8 @@ def run(protocol: protocol_api.ProtocolContext):
     temp_adapter_2 = temp_mod_2.load_adapter("opentrons_96_well_aluminum_block")
 
     # Set temperature
-    temp_mod_1.set_temperature(config['temperature']) #TODO: make seperate, or just set earlier, only 1 hour with plate
-    temp_mod_2.set_temperature(config['temperature'])
+    # temp_mod_1.set_temperature(config['temperature']) #TODO: make seperate, or just set earlier, only 1 hour with plate
+    # temp_mod_2.set_temperature(config['temperature'])
 
     source_plate = temp_adapter_1.load_labware(config['fragments_plate_type'])
 
