@@ -212,7 +212,7 @@ def run(protocol):
 
     # Load source plate with diluted PCR products on B2
     # controls_plate = protocol.load_labware(config['controls_plate_type'], config['controls_plate_position'])
-    
+
 
     controls_plate = temp_adapter1.load_labware(config['controls_plate_type'])
     controls_plate.set_offset(x=0.7, y=0.30, z=0.2)
@@ -262,7 +262,7 @@ def run(protocol):
                    fdglu_plate=fdglu_plate,
                    pipette=p1000,
                    config=config)
-    
+
     p50.configure_nozzle_layout(style='COLUMN', start='A1', tip_racks=[tiprack_50_1, tiprack_50_2])
 
     cfps_to_dest(protocol=protocol,
@@ -270,7 +270,7 @@ def run(protocol):
                  fdglu_plate=fdglu_plate,
                  pipette=p50,
                  config=config)
-    
+
     # p50.configure_nozzle_layout(style='SINGLE', start='A1', tip_racks=[tiprack_50_1, tiprack_50_2])
 
     # controls_to_dest(protocol=protocol,

@@ -4,7 +4,7 @@ from opentrons.protocol_api import SINGLE
 
 
 metadata = {
-    'protocolName': 'Protein Design Fdglu rmf removal',
+    'protocolName': 'Protein Design Fdglu controls to assay',
     'author': 'LDRD team ',
     'description': 'PCR for Protein Design reagents',
     'source': 'FlexAS/pd_pcr_81.py'
@@ -49,7 +49,7 @@ def controls_to_dest(protocol, controls_plate, fdglu_plate, pipette, config):
         source_well,
         dest_well,
         new_tip='always',
-        mix_after = (3, 30)
+        mix_after = (3, 18)
         )
 
 
@@ -87,6 +87,6 @@ def run(protocol: protocol_api.ProtocolContext):
     controls_to_dest(protocol=protocol,
                      controls_plate=controls_plate,
                      fdglu_plate=fdglu_plate,
-                     pipette=p50,
+                     pipette=p50s,
                      config=config)
 
