@@ -16,7 +16,7 @@ requirements = {"robotType": "OT-2", "apiLevel": "2.20"}
 # Protocol Configuration
 config = {
     # Combinatorial mixing
-    'transfer_volume': 1,  # µL from each gg well
+    'transfer_volume': 2,  # µL from each gg well
     # 'number_of_gg_samples': 6,
     # 'combinations': [[18,10],[11,19],[4,20],[21,13]],
     'combinations': [[1], [2, 2], [3, 3], [4, 4]],

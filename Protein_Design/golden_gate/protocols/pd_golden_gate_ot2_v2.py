@@ -150,14 +150,17 @@ def transfer_combinatorial_liquids(protocol, source_plate, dest_plate, pipette, 
     # Perform transfers
     dest_well_number = 1
 
+
     for combination in all_combinations:
         # For each combination, transfer from all source wells to one destination well
         dest_well = dest_plate.wells()[dest_well_number - 1]  # Convert to 0-based index
+        curr_step = 0
 
         protocol.comment(f"\nTransferring to destination well {dest_well_number}:")
 
         for idx, source_well_number in enumerate(combination):
             source_well = source_plate.wells()[source_well_number - 1]  # Convert to 0-based index
+            curr_step+=1
 
             protocol.comment(f"  - Transferring {transfer_volume}µL from source well {source_well_number} to dest well {dest_well_number}")
 
@@ -172,6 +175,9 @@ def transfer_combinatorial_liquids(protocol, source_plate, dest_plate, pipette, 
             # Dispense to destination
             pipette.flow_rate.dispense = 29
             pipette.dispense(dispense_transfer_volume, dest_well)
+
+            if curr_step == 4:
+                pipette.mix(3, 15, dest_well)
 
             pipette.touch_tip(dest_well, v_offset=-5)
 
@@ -322,20 +328,22 @@ def run(protocol: protocol_api.ProtocolContext):
 
 
 
-    # Perform combinatorial transfers
-    total_dest_wells = transfer_combinatorial_liquids(
-        protocol=protocol,
-        source_plate=source_plate,
-        dest_plate=dest_plate,
-        pipette=p50s,
-        config=config
-    )
-
     # Add master mix to each destination well
     last_master_mix_well = add_master_mix_to_combinations(
         protocol=protocol,
         source_plate=source_plate,
         dest_plate=dest_plate,
         pipette=p50,
+        config=config
+    )
+
+
+
+    # Perform combinatorial transfers
+    total_dest_wells = transfer_combinatorial_liquids(
+        protocol=protocol,
+        source_plate=source_plate,
+        dest_plate=dest_plate,
+        pipette=p50s,
         config=config
     )
