@@ -28,6 +28,9 @@ steps:
       locations:
         source: ot2_location
         source_approach: ot2_safe_path
+    conditions:
+    - condition_type: no_resource_present
+      location_name: exchange_nest_low_narrow
 
   # 1. Replace lid on exchange
   - name: replace lid

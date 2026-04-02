@@ -1,6 +1,6 @@
 {
     "total_outer_loops": 2,
-    "total_inner_loops": 3,
+    "total_inner_loops": 5,
     "incubation_seconds_initial": 25,
     "incubation_seconds_between_readings": 120,
 

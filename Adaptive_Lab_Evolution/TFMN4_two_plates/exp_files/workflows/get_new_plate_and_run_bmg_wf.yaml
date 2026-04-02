@@ -26,6 +26,11 @@ steps:
     params:
       locations:
         source: sciclops_stack_new_plates
+    conditions:
+    - condition_type: no_resource_present
+      location_name: bmg_reader_nest
+    - condition_type: no_resource_present
+      location_name: exchange_nest_low_narrow
 
   # 1. Move SciClops to Safe
   - name: move safe
@@ -67,6 +72,9 @@ steps:
       target: bmg_reader_nest
       source_approach: safe_path_exchange
       target_approach: safe_path_bmg
+    conditions:
+    - condition_type: no_resource_present
+      location_name: bmg_reader_nest
 
   # 5. Close BMG tray
   - name: close bmg
@@ -89,6 +97,9 @@ steps:
   - name: open bmg
     node: bmg_billy
     action: open
+    conditions:
+    - condition_type: no_resource_present
+      location_name: exchange_nest_low_narrow
 
 
 

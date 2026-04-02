@@ -15,6 +15,9 @@ steps:
   - name: open BMG
     node: bmg_billy
     action: open
+    conditions:
+    - condition_type: no_resource_present
+      location_name: exchange_nest_low_narrow
 
   # 1. Transfer from BMG to exchange
   - name: transfer from BMG to exchange
@@ -28,6 +31,9 @@ steps:
       target: exchange_nest_low_narrow
       source_approach: safe_path_bmg
       target_approach: safe_path_exchange
+    conditions:
+    - condition_type: no_resource_present
+      location_name: exchange_nest_low_narrow
 
   # 2. Transfer into OT-2 nest
   - name: transfer from exchange to OT-2

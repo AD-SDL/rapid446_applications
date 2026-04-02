@@ -19,12 +19,22 @@ steps:
   - name: open BMG
     node: bmg_billy
     action: open
+    conditions:
+    - condition_type: no_resource_present
+      location_name: bmg_reader_nest
+    - condition_type: no_resource_present
+      location_name: exchange_nest_low_narrow
 
   # 1. Open incubator
   - name: open incubator
     action: open
     params:
       node: inheco_node
+    conditions:
+    - condition_type: no_resource_present
+      location_name: bmg_reader_nest
+    - condition_type: no_resource_present
+      location_name: exchange_nest_low_narrow
 
   # 2. Transfer from incubator to exchange
   - name: transfer to exchange
@@ -40,6 +50,11 @@ steps:
     params:
       locations:
         source: incubator_location
+    conditions:
+    - condition_type: no_resource_present
+      location_name: bmg_reader_nest
+    - condition_type: no_resource_present
+      location_name: exchange_nest_low_narrow
 
   # 3. Close incubator
   - name: close incubator
@@ -75,6 +90,9 @@ steps:
       target: bmg_reader_nest
       source_approach: safe_path_exchange
       target_approach: safe_path_bmg
+    conditions:
+    - condition_type: no_resource_present
+      location_name: bmg_reader_nest
 
   # 6. Close BMG tray
   - name: close BMG
@@ -103,3 +121,6 @@ steps:
   - name: open BMG
     node: bmg_billy
     action: open
+    conditions:
+    - condition_type: no_resource_present
+      location_name: exchange_nest_low_narrow

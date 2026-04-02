@@ -1,8 +1,8 @@
 {
-    "total_outer_loops": 1,
-    "total_inner_loops": 1,
-    "incubation_seconds_initial": 20,
-    "incubation_seconds_between_readings": 40,
+    "total_outer_loops": 2,
+    "total_inner_loops": 3,
+    "incubation_seconds_initial": 100,
+    "incubation_seconds_between_readings": 400,
 
     "experiment_label": "TFMN4_TEST",
     "experiment_number": "exp2",

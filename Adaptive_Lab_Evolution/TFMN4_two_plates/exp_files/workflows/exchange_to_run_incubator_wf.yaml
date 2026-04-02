@@ -14,8 +14,9 @@ parameters:
 steps:
   # 0. Open incubator
   - name: open incubator
-    node: inheco_iris_2.1
     action: open
+    params:
+      node: inheco_node
 
   # 1. Transfer from exchange to incubator
   - name: transfer from exchange to incubator

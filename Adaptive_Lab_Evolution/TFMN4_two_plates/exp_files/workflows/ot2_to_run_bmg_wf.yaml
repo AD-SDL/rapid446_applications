@@ -27,6 +27,11 @@ steps:
       locations:
         source: ot2_location
         source_approach: ot2_safe_path
+    conditions:
+    - condition_type: no_resource_present
+      location_name: bmg_reader_nest
+    - condition_type: no_resource_present
+      location_name: exchange_nest_low_narrow
 
   # 1. Open BMG tray
   - name: open BMG
@@ -45,6 +50,9 @@ steps:
       target: bmg_reader_nest
       source_approach: safe_path_exchange
       target_approach: safe_path_bmg
+    conditions:
+    - condition_type: no_resource_present
+      location_name: bmg_reader_nest
 
   # 3. Close BMG tray
   - name: close BMG
@@ -67,3 +75,6 @@ steps:
   - name: open BMG
     node: bmg_billy
     action: open
+    conditions:
+    - condition_type: no_resource_present
+      location_name: exchange_nest_low_narrow

@@ -28,17 +28,20 @@ steps:
       locations:
         source: ot2_location
         source_approach: ot2_safe_path
+    conditions:
+    - condition_type: no_resource_present
+      location_name: exchange_nest_low_narrow
 
   # 1. Replace the lid
   - name: replace lid on exchange
     node: pf400_piper
     action: replace_lid
     args:
-      source_plate_rotation: wide
-      target_plate_rotation: wide
+      source_plate_rotation: narrow
+      target_plate_rotation: narrow
       lid_height: 8
     locations:
-      target: exchange_nest_low_wide
+      target: exchange_nest_low_narrow
       target_approach: safe_path_exchange
     params:
       locations:
