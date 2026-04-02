@@ -1,3 +1,4 @@
+import argparse
 import json
 import os
 import sys
@@ -20,14 +21,10 @@ from madsci.experiment_application import (
 )
 from pydantic import AnyUrl
 
-
 # Add the root project folder (TFMN4 directory) to the path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
-from utils.load_settings import try_reload_config
 from utils import helper_functions, ot2_offsets
-
-
-
+from utils.load_settings import try_reload_config
 
 
 class ALEApp(ExperimentApplication):
@@ -52,18 +49,23 @@ class ALEApp(ExperimentApplication):
     experiment_label = None
 
     # Experiment settings file
-    experiment_settings_file = "/home/rpl/workspace/rapid446_applications/Adaptive_Lab_Evolution/TFMN4_two_plates/exp_files/exp2_settings.json"
+    experiment_settings_file = None
     exeriment_settings = {}
     try_reload_config.last_mtime = None
 
-
-    def __init__(self) -> None:
+    def __init__(self, experiment_settings_file: str) -> None:
         """Initializes the ALE Experiment App"""
-
         super().__init__()
+        self.experiment_settings_file = experiment_settings_file
+        self._validate_settings_path()
 
+    def _validate_settings_path(self):
+        if not os.path.isfile(self.experiment_settings_file):
+            raise FileNotFoundError(
+                f"Settings file not found: {self.experiment_settings_file}"
+            )
 
-    def push_new_assay_plate_resource(
+    def _push_new_assay_plate_resource(
             self,
             plate_num: int,
             location_name: str,
@@ -206,6 +208,10 @@ class ALEApp(ExperimentApplication):
             "bmg_assay_name": "NIDHI",
         }
 
+        # TESTING
+        print("PAYLOAD!")
+        print(payload)
+
         # --- EXPERIMENT ACTIONS -------------------------------------------------------
         """
         Experiment setup at start:
@@ -219,7 +225,7 @@ class ALEApp(ExperimentApplication):
         # --- 1. TRANSFER IMMEDIATELY FROM EXCHANGE TO INCUBATOR ---
         # ResourceHandler: Push starting plate into exchange.
         if run_resources:
-            new_plate, old_plate = self.push_new_assay_plate_resource(
+            new_plate, old_plate = self._push_new_assay_plate_resource(
                 plate_num=plate_num,
                 location_name="exchange_nest_low_wide",
                 experiment_id=experiment_id,
@@ -333,7 +339,7 @@ class ALEApp(ExperimentApplication):
 
             # ResourceHandler: Populate current stack with a new assay plate.
             if run_resources:
-                new_plate, old_plate = self.push_new_assay_plate_resource(
+                new_plate, old_plate = self._push_new_assay_plate_resource(
                     plate_num=plate_num,
                     location_name=payload["sciclops_stack_new_plates"],
                     experiment_id=experiment_id,
@@ -663,11 +669,19 @@ class ALEApp(ExperimentApplication):
 
 
 if __name__ == "__main__":
-    exp_app = ALEApp()
+    # Parse experiment settings argument.
+    parser = argparse.ArgumentParser(description="Run ALE experiment")
+    parser.add_argument(
+        "-s", "--settings",
+        type=str,
+        required=True,
+        help="Path to experiment settings file."
+    )
+    args = parser.parse_args()
 
+    # Start the experiment run.
+    exp_app = ALEApp(experiment_settings_file=args.settings)
     current_time = datetime.now()
-
-    # Start experiment run
     with exp_app.manage_experiment(
         run_name = f"ALE_{current_time.strftime('%Y%m%d_%H%M%S')}",
         run_description = "Adaptive Lab Evolution Experiment Run",
@@ -676,36 +690,3 @@ if __name__ == "__main__":
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# # --- Your experiment loop ---
-# while True:
-#     config = try_reload_config(CONFIG_FILE)  # check for updates right before use
-
-#     # use config values here...
-#     #run_experiment_step(config)
-
-#     print(config)
-#     time.sleep(5)
