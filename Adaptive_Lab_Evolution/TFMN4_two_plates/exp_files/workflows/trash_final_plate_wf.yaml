@@ -1,0 +1,25 @@
+
+name: Run OT-2 Protocol WF
+
+metadata:
+  author: Casey Stone
+  info: Workflow for running one OT-2 protocol from payload
+  version: '0.1'
+
+
+parameters:
+  json_inputs:
+    - key: sciclops_stack_old_plates
+
+steps:
+  # 2. Return old plate to stack
+  - name: transfer to stack
+    node: sciclops_plankton
+    action: transfer
+    args:
+      plate_type: flat_bottom_96well
+    locations:
+      source: exchange_nest_low_narrow
+    params:
+      locations:
+        target: sciclops_stack_old_plates

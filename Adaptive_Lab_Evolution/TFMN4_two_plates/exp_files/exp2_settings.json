@@ -1,0 +1,26 @@
+{
+    "total_outer_loops": 1,
+    "total_inner_loops": 1,
+    "incubation_seconds_initial": 20,
+    "incubation_seconds_between_readings": 40,
+
+    "experiment_label": "TFMN4_TEST",
+    "experiment_number": "exp2",
+
+    "old_lid_location": "rack_row2_nest2",
+    "new_lid_location": "rack_row2_nest1",
+    "old_safe_lid_location": "safe_path_rack_row2_nest2",
+    "new_safe_lid_location": "safe_path_rack_row2_nest1",
+    "ot2_node": "ot2_patrick",
+    "new_ot2_plate_location": "ot2_patrick_nest1_wide",
+    "old_ot2_plate_location": "ot2_patrick_nest3_wide",
+    "ot2_safe_path": "safe_path_ot2_patrick",
+    "inheco_node": "inheco_iris_2.1",
+    "incubator_node": "inheco_devID2_floor1",
+    "incubator_location": "inheco_devID2_floor1_nest",
+
+    "sciclops_stack_new_plates": "stack_2",
+    "sciclops_stack_old_plates": "stack_5"
+
+
+}

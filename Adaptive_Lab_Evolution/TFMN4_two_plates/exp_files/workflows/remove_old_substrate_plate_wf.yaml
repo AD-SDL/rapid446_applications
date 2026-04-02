@@ -1,0 +1,58 @@
+name: Remove old substrate plate to Stack WF
+
+metadata:
+  author: Casey Stone
+  info: Workflow for using PF400 to remove old substrate plate from OT-2 back to stack
+  version: '0.1'
+
+parameters:
+  json_inputs:
+    - key: ot2_location
+    - key: ot2_safe_path
+    - key: lid_location
+    - key: lid_safe_path
+    - key: sciclops_stack_old_plates
+
+steps:
+  # 0. Transfer from OT-2 to exchange
+  - name: transfer from ot2 to exchange
+    node: pf400_piper
+    action: transfer
+    args:
+      source_plate_rotation: wide
+      target_plate_rotation: wide
+    locations:
+      target: exchange_nest_high_wide
+      target_approach: safe_path_exchange
+    params:
+      locations:
+        source: ot2_location
+        source_approach: ot2_safe_path
+
+  # 1. Replace lid on exchange
+  - name: replace lid
+    node: pf400_piper
+    action: replace_lid
+    args:
+      source_plate_rotation: narrow
+      target_plate_rotation: narrow
+      lid_height: 8
+    locations:
+      target: exchange_nest_low_narrow
+      target_approach: safe_path_exchange
+    params:
+      locations:
+        source: lid_location
+        source_approach: lid_safe_path
+
+  # 2. Return old plate to stack
+  - name: transfer to stack
+    node: sciclops_plankton
+    action: transfer
+    args:
+      plate_type: flat_bottom_96well
+    locations:
+      source: exchange_nest_low_narrow
+    params:
+      locations:
+        target: sciclops_stack_old_plates

@@ -18,7 +18,6 @@ def try_reload_config(config_file):
         print(f"Invalid config, keeping previous: {e}")
     except Exception as e:
         print(f"Could not read config: {e}")
-    
+
     return _config
 
-    
