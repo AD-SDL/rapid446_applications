@@ -1,8 +1,9 @@
 {
-    "total_outer_loops": 2,
-    "total_inner_loops": 5,
+    "total_outer_loops": 1,
+    "total_inner_loops": 1,
     "incubation_seconds_initial": 25,
-    "incubation_seconds_between_readings": 120,
+    "incubation_seconds_between_readings": 60,
+    "inoculation_volume": 20,
 
     "experiment_label": "TFMN4_TEST",
     "experiment_number": "exp1",
@@ -15,9 +16,9 @@
     "new_ot2_plate_location": "ot2_spongebob_nest1_wide",
     "old_ot2_plate_location": "ot2_spongebob_nest3_wide",
     "ot2_safe_path": "safe_path_ot2_spongebob",
-    "inheco_node": "inheco_irene_2.0",
-    "incubator_node": "inheco_devID2_floor0",
-    "incubator_location": "inheco_devID2_floor0_nest",
+    "incubator_node": "inheco_irene_2.0",
+    "incubator_location": "inheco_irene_2.0_nest",
+    "incubator_safe_path": "safe_path_inheco_irene_2.0",
 
     "sciclops_stack_new_plates": "stack_1",
     "sciclops_stack_old_plates": "stack_4"

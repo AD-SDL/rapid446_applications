@@ -10,8 +10,9 @@ parameters:
     - key: lid_location
     - key: lid_safe_path
     - key: incubator_location
+    - key: incubator_safe_path
     - key: incubation_seconds
-    - key: inheco_node
+    - key: incubator_node
 
 steps:
   # 0. Open the BMG - might be redundant
@@ -58,7 +59,7 @@ steps:
   - name: open incubator
     action: open
     params:
-      node: inheco_node
+      node: incubator_node
 
   # 4. Transfer from exchange to incubator
   - name: transfer from exchange to incubator
@@ -70,16 +71,16 @@ steps:
     locations:
       source: exchange_nest_low_narrow
       source_approach: safe_path_exchange
-      target_approach: safe_path_inheco_dev2
     params:
       locations:
         target: incubator_location
+        target_approach: incubator_safe_path
 
   # 5. Close the incubator
   - name: close incubator
     action: close
     params:
-      node: inheco_node
+      node: incubator_node
 
   # 6. Close the BMG
   - name: close BMG
@@ -95,6 +96,6 @@ steps:
       wait_for_incubation_time: False
     params:
       incubation_time: incubation_seconds
-      node: inheco_node
+      node: incubator_node
 
 

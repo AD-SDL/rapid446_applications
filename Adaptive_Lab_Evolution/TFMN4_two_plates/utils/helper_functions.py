@@ -31,16 +31,45 @@ def collect_ot2_replacement_variables(payload: dict) -> dict:
     replacement_dict = {}
     if payload["ot2_node"] == "ot2_patrick":
         tip_box_location = payload["tip_box_location"]
+        # tips variables
         replacement_dict["tip_location"] = tip_box_location
-        replacement_dict["x"] = ot2_patrick[tip_box_location][0]
-        replacement_dict["y"] = ot2_patrick[tip_box_location][1]
-        replacement_dict["z"] = ot2_patrick[tip_box_location][2]
+        replacement_dict["x_tips"] = ot2_patrick[tip_box_location][0]
+        replacement_dict["y_tips"] = ot2_patrick[tip_box_location][1]
+        replacement_dict["z_tips"] = ot2_patrick[tip_box_location][2]
+
+        # new assay plate variables (deck pos 1)
+        replacement_dict["x_deck1"] = ot2_patrick[1][0]
+        replacement_dict["y_deck1"] = ot2_patrick[1][1]
+        replacement_dict["z_deck1"] = ot2_patrick[1][2]
+
+        # old assay plate variables (deck pos 3)
+        replacement_dict["x_deck3"] = ot2_patrick[3][0]
+        replacement_dict["y_deck3"] = ot2_patrick[3][1]
+        replacement_dict["z_deck3"] = ot2_patrick[3][2]
+
+        # inoculation volume
+        replacement_dict["inoculation_volume"] = payload["inoculation_volume"]
+
     elif payload["ot2_node"] == "ot2_spongebob":
+        # tips replacement variables
         tip_box_location = payload["tip_box_location"]
         replacement_dict["tip_location"] = tip_box_location
-        replacement_dict["x"] = ot2_spongebob[tip_box_location][0]
-        replacement_dict["y"] = ot2_spongebob[tip_box_location][1]
-        replacement_dict["z"] = ot2_spongebob[tip_box_location][2]
+        replacement_dict["x_tips"] = ot2_spongebob[tip_box_location][0]
+        replacement_dict["y_tips"] = ot2_spongebob[tip_box_location][1]
+        replacement_dict["z_tips"] = ot2_spongebob[tip_box_location][2]
+
+        # new assay plate variables (deck pos 1)
+        replacement_dict["x_deck1"] = ot2_spongebob[1][0]
+        replacement_dict["y_deck1"] = ot2_spongebob[1][1]
+        replacement_dict["z_deck1"] = ot2_spongebob[1][2]
+
+        # old assay plate variables (deck pos 3)
+        replacement_dict["x_deck3"] = ot2_spongebob[3][0]
+        replacement_dict["y_deck3"] = ot2_spongebob[3][1]
+        replacement_dict["z_deck3"] = ot2_spongebob[3][2]
+
+        # inoculation volume
+        replacement_dict["inoculation_volume"] = payload["inoculation_volume"]
     else:
         print("TESTING: unable to collect ot2 replacement variables")
     return replacement_dict

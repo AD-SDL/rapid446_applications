@@ -8,7 +8,8 @@ metadata:
 parameters:
   json_inputs:
     - key: incubator_location
-    - key: inheco_node
+    - key: incubator_safe_path
+    - key: incubator_node
     - key: lid_location
     - key: lid_safe_path
     - key: bmg_data_output_name
@@ -29,7 +30,7 @@ steps:
   - name: open incubator
     action: open
     params:
-      node: inheco_node
+      node: incubator_node
     conditions:
     - condition_type: no_resource_present
       location_name: bmg_reader_nest
@@ -45,11 +46,11 @@ steps:
       target_plate_rotation: narrow
     locations:
       target: exchange_nest_low_narrow
-      source_approach: safe_path_inheco_dev2
       target_approach: safe_path_exchange
     params:
       locations:
         source: incubator_location
+        source_approach: incubator_safe_path
     conditions:
     - condition_type: no_resource_present
       location_name: bmg_reader_nest
@@ -60,7 +61,7 @@ steps:
   - name: close incubator
     action: close
     params:
-      node: inheco_node
+      node: incubator_node
 
   # 4. Remove the lid to lid nest
   - name: remove lid from plate on exchange
@@ -103,7 +104,7 @@ steps:
   - name: close incubator
     action: close
     params:
-      node: inheco_node
+      node: incubator_node
 
   # 8. Run BMG assay
   - name: Run BMG absorbance assay

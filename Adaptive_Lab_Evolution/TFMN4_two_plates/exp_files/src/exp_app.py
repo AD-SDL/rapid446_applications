@@ -193,24 +193,23 @@ class ALEApp(ExperimentApplication):
             "ot2_node": self.experiment_settings["ot2_node"],
             "ot2_location": self.experiment_settings["old_ot2_plate_location"],
             "ot2_safe_path": self.experiment_settings["ot2_safe_path"],
+            "inoculation_volume": self.experiment_settings["inoculation_volume"],
             "tip_box_location": tip_box_location,
             "current_ot2_protocol": None,
             "use_existing_resources": False,
 
             "incubator_node": self.experiment_settings["incubator_node"],
             "incubator_location": self.experiment_settings["incubator_location"],
+            "incubator_safe_path": self.experiment_settings["incubator_safe_path"],
             "incubation_seconds": self.experiment_settings["incubation_seconds_initial"],
-            "inheco_node": self.experiment_settings["inheco_node"],
 
             "sciclops_stack_new_plates": self.experiment_settings["sciclops_stack_new_plates"],
             "sciclops_stack_old_plates": self.experiment_settings["sciclops_stack_old_plates"],
 
             "bmg_assay_name": "NIDHI",
         }
-
-        # TESTING
-        print("PAYLOAD!")
-        print(payload)
+        if test_prints:
+            print(f"{payload=}")
 
         # --- EXPERIMENT ACTIONS -------------------------------------------------------
         """
@@ -239,9 +238,10 @@ class ALEApp(ExperimentApplication):
             workflow = self.workcell_client.submit_workflow(
                 exchange_to_run_incubator_wf.resolve(),
                 json_inputs={
+                    "incubator_node": payload["incubator_node"],
                     "incubator_location": payload["incubator_location"],
+                    "incubator_safe_path": payload["incubator_safe_path"],
                     "incubation_seconds": payload["incubation_seconds"],
-                    "inheco_node": payload["inheco_node"],
                 },
             )
 
@@ -279,8 +279,9 @@ class ALEApp(ExperimentApplication):
                 incubator_to_run_bmg_wf.resolve(),
                 json_inputs={
                     "incubator_location": payload["incubator_location"],
+                    "incubator_safe_path": payload["incubator_safe_path"],
                     "incubation_seconds": payload["incubation_seconds"],
-                    "inheco_node": payload["inheco_node"],
+                    "incubator_node": payload["incubator_node"],
                     "lid_location": payload["lid_location"],
                     "lid_safe_path": payload["lid_safe_path"],
                     "bmg_data_output_name": payload["bmg_data_output_name"],
@@ -320,6 +321,9 @@ class ALEApp(ExperimentApplication):
         # ---<<< OUTER LOOP START >>>---
         # Reload the experiment settings (before loop).
         self.experiment_settings = try_reload_config(config_file=self.experiment_settings_file)
+
+        print("EXPERIMENT SETTINGS")
+        print(self.experiment_settings)
 
         # Start the outer loop.
         while current_outer_loop < self.experiment_settings["total_outer_loops"]:
@@ -403,12 +407,13 @@ class ALEApp(ExperimentApplication):
                     },
                 )
 
-            # --- 6. RUN INOCULATION OT-2 PROTOCOL --- TODO: TEST
+            # --- 6. RUN INOCULATION OT-2 PROTOCOL ---
             # Reload experiment settings and set variables.
             self.experiment_settings = try_reload_config(config_file=self.experiment_settings_file)
-            payload["ot2_node"] = self.exeriment_settings["ot2_node"]
+            payload["ot2_node"] = self.experiment_settings["ot2_node"]
             payload["ot2_location"] = self.experiment_settings["new_ot2_plate_location"]
-            payload["ot2_safe_path"] = self.exeriment_settings["ot2_safe_path"]
+            payload["ot2_safe_path"] = self.experiment_settings["ot2_safe_path"]
+            payload["inoculation_volume"] = self.experiment_settings["inoculation_volume"]
 
             # Generate OT-2 protocol.
             ot2_replacement_variables = helper_functions.collect_ot2_replacement_variables(payload)
@@ -417,14 +422,17 @@ class ALEApp(ExperimentApplication):
             if test_prints:
                 print(f"running ot2 inoculation with tip box @ deck {payload['tip_box_location']}")
 
-            # Run the workflow: run_ot2_wf.yaml
-            if run_robots:
-                workflow = self.workcell_client.submit_workflow(
-                    run_ot2_wf.resolve(),
-                    file_inputs={
-                        "ot2_protocol": payload["current_ot2_protocol"],
-                    },
-                )
+            # # Run the workflow: run_ot2_wf.yaml
+            # if run_robots:
+            #     workflow = self.workcell_client.submit_workflow(
+            #         run_ot2_wf.resolve(),
+            #         file_inputs={
+            #             "ot2_protocol": payload["current_ot2_protocol"],
+            #         },
+            #         json_inputs={
+            #             "ot2_node": payload["ot2_node"]
+            #         }
+            #     )
 
             # Modify variables.
             tip_box_location += 1
@@ -484,8 +492,9 @@ class ALEApp(ExperimentApplication):
                         "lid_location": payload["lid_location"],
                         "lid_safe_path": payload["lid_safe_path"],
                         "incubator_location": payload["incubator_location"],
+                        "incubator_safe_path": payload["incubator_safe_path"],
                         "incubation_seconds": payload["incubation_seconds"],
-                        "inheco_node": payload["inheco_node"]
+                        "incubator_node": payload["incubator_node"]
                     },
                 )
 
@@ -635,7 +644,7 @@ class ALEApp(ExperimentApplication):
             current_outer_loop += 1
         # ---<<< OUTER LOOP END >>>---
 
-        # NOTE: If there are no more outer loops, the final assay plate ends in old OT-2 location.
+        # # # NOTE: If there are no more outer loops, the final assay plate ends in old OT-2 location.
 
         # --- 13. MOVE PLATE FROM OLD OT-2 LOCATION TO EXCHANGE, REPLACE LID ---
         if test_prints:

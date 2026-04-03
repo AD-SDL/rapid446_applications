@@ -1,9 +1,9 @@
 
-name: Run OT-2 Protocol WF
+name: FINAL WORKFLOWS - Transfer from exchange to trash stack
 
 metadata:
   author: Casey Stone
-  info: Workflow for running one OT-2 protocol from payload
+  info: Transfer from exchange to trash stack
   version: '0.1'
 
 
