@@ -1,8 +1,8 @@
 {
-    "total_outer_loops": 1,
-    "total_inner_loops": 1,
-    "incubation_seconds_initial": 25,
-    "incubation_seconds_between_readings": 60,
+    "total_outer_loops": 5,
+    "total_inner_loops": 3,
+    "incubation_seconds_initial": 120,
+    "incubation_seconds_between_readings": 600,
     "inoculation_volume": 20,
 
     "experiment_label": "TFMN4_TEST",

@@ -59,3 +59,10 @@ steps:
     params:
       locations:
         target: sciclops_stack_old_plates
+
+  # 3. Move SciClops to Safe
+  - name: move safe
+    node: sciclops_plankton
+    action: move
+    locations:
+      location: safe_sciclops
