@@ -36,6 +36,7 @@ load_dotenv()
 redis_host = os.getenv("REDIS_HOST")
 redis_port = os.getenv("REDIS_PORT")
 redis_password = os.getenv("REDIS_PASSWORD")
+exchange_auto_unlock_seconds = 14400  # 14400 seconds = 4 hours
 
 redis = Redis(
     host=redis_host,
@@ -79,7 +80,7 @@ class ALEApp(ExperimentApplication):
         """Initializes the ALE Experiment App"""
         super().__init__()
         self.experiment_settings_file = experiment_settings_file
-        self.exchange_lock = Redlock(key='exchange_nest', masters={redis}, auto_release_time=120) # 2 hours auto release
+        self.exchange_lock = Redlock(key='exchange_nest', masters={redis}, auto_release_time=exchange_auto_unlock_seconds) # 2 hours auto release
         self._validate_settings_path()
 
     def _validate_settings_path(self):
@@ -244,22 +245,25 @@ class ALEApp(ExperimentApplication):
             OT-2 (ot2_spongebob or ot2_patrick depending on settings JSON) decks 4-11: 20uL tip racks
             ALL OTHER LOCATIONS: EMPTY
         """
-        # --- 1. TRANSFER IMMEDIATELY FROM EXCHANGE TO INCUBATOR ---
-        # ResourceHandler: Push starting plate into exchange.
-        if run_resources:
-            new_plate, old_plate = self._push_new_assay_plate_resource(
-                plate_num=plate_num,
-                location_name="exchange_nest_low_wide",
-                experiment_id=experiment_id,
-                experiment_label=payload["experiment_label"],
-                experiment_number=payload["experiment_number"]
-            )
-            assay_plate_list[plate_num] = new_plate.resource_id, new_plate.resource_name
+        self.exchange_lock = Redlock(key='exchange_nest', masters={redis}, auto_release_time=exchange_auto_unlock_seconds)
+        with self.exchange_lock:
+            # Exchange lock is LOCKED for step 1 workflow.
+            print(f"\nExchange is LOCKED by {self.experiment_settings['experiment_number']}")
 
-        # Run the workflow: exchange_to_run_incubator_wf.yaml
-        if run_robots:
-            with self.exchange_lock:
-                # Exchange lock is LOCKED for step 1 workflow.
+            # --- 1. TRANSFER IMMEDIATELY FROM EXCHANGE TO INCUBATOR ---
+            # ResourceHandler: Push starting plate into exchange.
+            if run_resources:
+                new_plate, old_plate = self._push_new_assay_plate_resource(
+                    plate_num=plate_num,
+                    location_name="exchange_nest_low_wide",
+                    experiment_id=experiment_id,
+                    experiment_label=payload["experiment_label"],
+                    experiment_number=payload["experiment_number"]
+                )
+                assay_plate_list[plate_num] = new_plate.resource_id, new_plate.resource_name
+
+            # Run the workflow: exchange_to_run_incubator_wf.yaml
+            if run_robots:
                 workflow = self.workcell_client.submit_workflow(
                     exchange_to_run_incubator_wf.resolve(),
                     json_inputs={
@@ -270,6 +274,7 @@ class ALEApp(ExperimentApplication):
                     },
                 )
                 # Exchange lock is UNLOCKED.
+                print(f"\nExchange is UNLOCKED by {self.experiment_settings['experiment_number']}")
 
         # Reload experiment settings and capture incubation start time.
         self.experiment_settings = try_reload_config(config_file=self.experiment_settings_file)
@@ -292,8 +297,9 @@ class ALEApp(ExperimentApplication):
 
 
         # LOCK exchange lock for steps 2 and 3.
+        self.exchange_lock = Redlock(key='exchange_nest', masters={redis}, auto_release_time=exchange_auto_unlock_seconds)
         with self.exchange_lock:
-            # Exchange lock is LOCKED.
+            print(f"\nExchange is LOCKED by {self.experiment_settings['experiment_number']}")
 
             # --- 2. TRANSFER PLATE0 INTO BMG AND TAKE READING ---
             # Note: This will be an endpoint reading for plate0
@@ -347,7 +353,8 @@ class ALEApp(ExperimentApplication):
                             "ot2_safe_path": payload["ot2_safe_path"],
                         },
                     )
-            # Exchange lock is UNLOCKED.
+
+            print(f"\nExchange is UNLOCKED by {self.experiment_settings['experiment_number']}")
 
         # ---<<< OUTER LOOP START >>>---
         # Reload the experiment settings (before loop).
@@ -385,8 +392,9 @@ class ALEApp(ExperimentApplication):
 
 
             # Lock exchange lock for steps 4 and 5.
+            self.exchange_lock = Redlock(key='exchange_nest', masters={redis}, auto_release_time=exchange_auto_unlock_seconds)
             with self.exchange_lock:
-                # Exchange lock is LOCKED.
+                print(f"\nExchange is LOCKED by {self.experiment_settings['experiment_number']}")
 
                 # --- 4. GET NEW ASSAY PLATE, TAKE CONTAM READING, MOVE TO NEW OT-2 LOCATION. ---
                 # Set variables.
@@ -439,7 +447,8 @@ class ALEApp(ExperimentApplication):
                             "ot2_safe_path": payload["ot2_safe_path"],
                         },
                     )
-                # Exchange lock is UNLOCKED.
+
+                print(f"\nExchange is UNLOCKED by {self.experiment_settings['experiment_number']}")
 
 
             # --- 6. RUN INOCULATION OT-2 PROTOCOL --- (no exchage lock needed)
@@ -476,8 +485,9 @@ class ALEApp(ExperimentApplication):
             payload["tip_box_location"] = tip_box_location
 
             # Lock exchange lock for steps 7 and 8.
+            self.exchange_lock = Redlock(key='exchange_nest', masters={redis}, auto_release_time=exchange_auto_unlock_seconds)
             with self.exchange_lock:
-                # Exchange lock is LOCKED.
+                print(f"\nExchange is LOCKED by {self.experiment_settings['experiment_number']}")
 
                 # --- 7. TRANSFER NEW PLATE INTO BMG AND TAKE T0 READING ---
                 # Set variables.
@@ -541,7 +551,7 @@ class ALEApp(ExperimentApplication):
                 # Capture incubation start time.
                 incubation_start_time = time.time()
 
-                # Exchange lock is UNLOCKED.
+                print(f"\nExchange is UNLOCKED by {self.experiment_settings['experiment_number']}")
 
 
             # --- 9. GET RID OF THE OLD SUBSTRATE PLATE ---
@@ -553,8 +563,10 @@ class ALEApp(ExperimentApplication):
 
             # Run the workflow: remove_old_substrate_plate_wf.yaml
             if run_robots:
+                self.exchange_lock = Redlock(key='exchange_nest', masters={redis}, auto_release_time=exchange_auto_unlock_seconds)
                 with self.exchange_lock:
                     # Exchange lock is LOCKED.
+                    print(f"\nExchange is LOCKED by {self.experiment_settings['experiment_number']}")
                     workflow = self.workcell_client.submit_workflow(
                         remove_old_substrate_plate_wf.resolve(),
                         json_inputs={
@@ -566,6 +578,7 @@ class ALEApp(ExperimentApplication):
                         },
                     )
                     # Exchange lock is UNLOCKED.
+                    print(f"\nExchange is UNLOCKED by {self.experiment_settings['experiment_number']}")
 
             # --- FINISH INCUBATION ---
             # Wait for incubation to finish.
@@ -592,8 +605,10 @@ class ALEApp(ExperimentApplication):
                     print(f"running incubator to bmg, taking T{current_inner_loop+1} reading")
 
                 # Lock exchange lock for steps 10 and 11 (or 12.)
+                self.exchange_lock = Redlock(key='exchange_nest', masters={redis}, auto_release_time=exchange_auto_unlock_seconds)
                 with self.exchange_lock:
                     # Exchange lock is LOCKED.
+                    print(f"\nExchange is LOCKED by {self.experiment_settings['experiment_number']}")
 
                     # --- 10. INCUBATOR TO RUN BMG ---
                     # Set variables.
@@ -691,7 +706,8 @@ class ALEApp(ExperimentApplication):
                                     "ot2_safe_path": payload["ot2_safe_path"],
                                 },
                             )
-                    # Exchange lock is UNLOCKED.
+
+                    print(f"\nExchange is UNLOCKED by {self.experiment_settings['experiment_number']}")
 
                 current_inner_loop += 1
             # ---<<< INNER LOOP END >>>---
@@ -702,8 +718,10 @@ class ALEApp(ExperimentApplication):
         # # # NOTE: If there are no more outer loops, the final assay plate ends in old OT-2 location.
 
         # Lock exchange lock for steps 13 and 14.
+        self.exchange_lock = Redlock(key='exchange_nest', masters={redis}, auto_release_time=exchange_auto_unlock_seconds)
         with self.exchange_lock:
             # Exchange lock is LOCKED.
+            print(f"\nExchange is LOCKED by {self.experiment_settings['experiment_number']}")
 
             if test_prints:
                 print("END OF EXPEREMENT APP: Returning old plate from ot2 to exchange then trash stack.")
@@ -731,6 +749,7 @@ class ALEApp(ExperimentApplication):
                     },
                 )
             # Exchange lock is UNLOCKED.
+            print(f"\nExchange is UNLOCKED by {self.experiment_settings['experiment_number']}")
 
         # END OF EXPERIMENT!
         print("YAY WE MADE IT!")
