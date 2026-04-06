@@ -14,6 +14,9 @@ from madsci.client import (
     WorkcellClient,
 )
 from madsci.common.types.experiment_types import ExperimentDesign
+from madsci.client.event_client import EventClient # TESTING
+from madsci.common.types.event_types import EmailAlertsConfig  # TESTING
+
 from madsci.common.types.resource_types import Collection, Resource, Slot
 from madsci.experiment_application import (
     ExperimentApplication,
@@ -36,7 +39,8 @@ load_dotenv()
 redis_host = os.getenv("REDIS_HOST")
 redis_port = os.getenv("REDIS_PORT")
 redis_password = os.getenv("REDIS_PASSWORD")
-exchange_auto_unlock_seconds = 14400  # 14400 seconds = 4 hours
+exchange_auto_unlock_seconds = 86400 # 86400 seconds = 24 hours
+exchange_lock_timeout = 7200 # 7200 seconds = 2 hours
 
 redis = Redis(
     host=redis_host,
@@ -80,7 +84,13 @@ class ALEApp(ExperimentApplication):
         """Initializes the ALE Experiment App"""
         super().__init__()
         self.experiment_settings_file = experiment_settings_file
-        self.exchange_lock = Redlock(key='exchange_nest', masters={redis}, auto_release_time=exchange_auto_unlock_seconds) # 2 hours auto release
+        self.exchange_lock = Redlock(
+            key='exchange_nest',
+            masters={redis},
+            auto_release_time=exchange_auto_unlock_seconds,
+            context_manager_blocking=True,
+            context_manager_timeout=exchange_lock_timeout,
+        )
         self._validate_settings_path()
 
     def _validate_settings_path(self):
@@ -306,7 +316,7 @@ class ALEApp(ExperimentApplication):
             # Set variables.
             timestamp_now = int(datetime.now().timestamp())
             payload["bmg_data_output_name"] = (
-                f"{payload['experiment_label']}_{timestamp_now}_{experiment_id}_{payload['experiment_number']}_{plate_num}_T{reading_in_plate_num}.txt"
+                f"{payload['experiment_label']}_{timestamp_now}_{experiment_id}_{payload['experiment_number']}_{plate_num}_{reading_in_plate_num}.txt"
             )
 
             # Run the workflow: incubator_to_run_bmg_wf.yaml
@@ -493,7 +503,7 @@ class ALEApp(ExperimentApplication):
                 # Set variables.
                 timestamp_now = int(datetime.now().timestamp())
                 payload["bmg_data_output_name"] = (
-                    f"{payload['experiment_label']}_{timestamp_now}_{experiment_id}_{payload['experiment_number']}_{plate_num}_T{reading_in_plate_num}.txt"
+                    f"{payload['experiment_label']}_{timestamp_now}_{experiment_id}_{payload['experiment_number']}_{plate_num}_{reading_in_plate_num}.txt"
                 )
 
                 # Run the workflow: ot2_to_run_bmg_wf.yaml
@@ -614,7 +624,7 @@ class ALEApp(ExperimentApplication):
                     # Set variables.
                     timestamp_now = int(datetime.now().timestamp())
                     payload["bmg_data_output_name"] = (
-                        f"{payload['experiment_label']}_{timestamp_now}_{experiment_id}_{payload['experiment_number']}_{plate_num}_T{reading_in_plate_num}.txt"
+                        f"{payload['experiment_label']}_{timestamp_now}_{experiment_id}_{payload['experiment_number']}_{plate_num}_{reading_in_plate_num}.txt"
                     )
 
                     # Run the workflow: incubator_to_run_bmg_wf.yaml
