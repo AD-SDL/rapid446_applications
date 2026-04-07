@@ -5,6 +5,7 @@ import sys
 import time
 from datetime import datetime
 from pathlib import Path
+import random
 
 from dotenv import load_dotenv
 from madsci.client import (
@@ -14,9 +15,6 @@ from madsci.client import (
     WorkcellClient,
 )
 from madsci.common.types.experiment_types import ExperimentDesign
-from madsci.client.event_client import EventClient # TESTING
-from madsci.common.types.event_types import EmailAlertsConfig  # TESTING
-
 from madsci.common.types.resource_types import Collection, Resource, Slot
 from madsci.experiment_application import (
     ExperimentApplication,
@@ -41,6 +39,7 @@ redis_port = os.getenv("REDIS_PORT")
 redis_password = os.getenv("REDIS_PASSWORD")
 exchange_auto_unlock_seconds = 86400 # 86400 seconds = 24 hours
 exchange_lock_timeout = 7200 # 7200 seconds = 2 hours
+exchange_waiters_key = "exchange_waiters"
 
 redis = Redis(
     host=redis_host,
@@ -91,6 +90,7 @@ class ALEApp(ExperimentApplication):
             context_manager_blocking=True,
             context_manager_timeout=exchange_lock_timeout,
         )
+        self.acquired = False
         self._validate_settings_path()
 
     def _validate_settings_path(self):
@@ -154,6 +154,19 @@ class ALEApp(ExperimentApplication):
             )
             self.logger.log_info(f"Pushed new plate resource into location {location_name}")
             return new_plate, old_plate
+
+    def jitter(self) -> None:
+        "Implements polite random jitter to assist in schedueling fairness between the running experiments."
+        waiters = int(redis.get(exchange_waiters_key) or 0)
+        print(f"Processes waiting for exchange lock = {waiters}")
+        if waiters > 0:
+            print("Using polite jitter.")
+            time.sleep(random.uniform(1.0, 3.0))   # be polite
+
+        else:
+            print("Using fast jitter.")
+            time.sleep(random.uniform(0.1, 0.5))   # go fast
+
 
 
     def run_experiment(self) -> None:
@@ -255,36 +268,60 @@ class ALEApp(ExperimentApplication):
             OT-2 (ot2_spongebob or ot2_patrick depending on settings JSON) decks 4-11: 20uL tip racks
             ALL OTHER LOCATIONS: EMPTY
         """
-        self.exchange_lock = Redlock(key='exchange_nest', masters={redis}, auto_release_time=exchange_auto_unlock_seconds)
-        with self.exchange_lock:
-            # Exchange lock is LOCKED for step 1 workflow.
-            print(f"\nExchange is LOCKED by {self.experiment_settings['experiment_number']}")
+        # self.exchange_lock = Redlock(key='exchange_nest', masters={redis}, auto_release_time=exchange_auto_unlock_seconds)
 
-            # --- 1. TRANSFER IMMEDIATELY FROM EXCHANGE TO INCUBATOR ---
-            # ResourceHandler: Push starting plate into exchange.
-            if run_resources:
-                new_plate, old_plate = self._push_new_assay_plate_resource(
-                    plate_num=plate_num,
-                    location_name="exchange_nest_low_wide",
-                    experiment_id=experiment_id,
-                    experiment_label=payload["experiment_label"],
-                    experiment_number=payload["experiment_number"]
-                )
-                assay_plate_list[plate_num] = new_plate.resource_id, new_plate.resource_name
+        # increase waiting processes count in redis before trying to acquired the lock
+        self.acquired = False
+        redis.incr(exchange_waiters_key)
 
-            # Run the workflow: exchange_to_run_incubator_wf.yaml
-            if run_robots:
-                workflow = self.workcell_client.submit_workflow(
-                    exchange_to_run_incubator_wf.resolve(),
-                    json_inputs={
-                        "incubator_node": payload["incubator_node"],
-                        "incubator_location": payload["incubator_location"],
-                        "incubator_safe_path": payload["incubator_safe_path"],
-                        "incubation_seconds": payload["incubation_seconds"],
-                    },
-                )
+        # TESTING:
+        print(f"{payload['experiment_number']} is waiting for the exchange lock.")
+        waiters = int(redis.get(exchange_waiters_key) or 0)
+        print(f"{waiters=}")
+
+        try:
+            with self.exchange_lock:
+                # Exchange lock is LOCKED for step 1 workflow.
+                print(f"\nExchange is LOCKED by {self.experiment_settings['experiment_number']}")
+
+                # Decrease waiting process count after lock is acquired.
+                self.acquired = True
+                redis.decr(exchange_waiters_key)
+
+                # --- 1. TRANSFER IMMEDIATELY FROM EXCHANGE TO INCUBATOR ---
+                # ResourceHandler: Push starting plate into exchange.
+                if run_resources:
+                    new_plate, old_plate = self._push_new_assay_plate_resource(
+                        plate_num=plate_num,
+                        location_name="exchange_nest_low_wide",
+                        experiment_id=experiment_id,
+                        experiment_label=payload["experiment_label"],
+                        experiment_number=payload["experiment_number"]
+                    )
+                    assay_plate_list[plate_num] = new_plate.resource_id, new_plate.resource_name
+
+
+                # Run the workflow: exchange_to_run_incubator_wf.yaml
+                if run_robots:
+                    workflow = self.workcell_client.submit_workflow(
+                        exchange_to_run_incubator_wf.resolve(),
+                        json_inputs={
+                            "incubator_node": payload["incubator_node"],
+                            "incubator_location": payload["incubator_location"],
+                            "incubator_safe_path": payload["incubator_safe_path"],
+                            "incubation_seconds": payload["incubation_seconds"],
+                        },
+                    )
                 # Exchange lock is UNLOCKED.
                 print(f"\nExchange is UNLOCKED by {self.experiment_settings['experiment_number']}")
+
+        finally:
+            # always clean up the waiting process count.
+            if not self.acquired:
+                redis.decr(exchange_waiters_key)
+
+        # # Polite jitter to aid scheduling fairness
+        self.jitter()
 
         # Reload experiment settings and capture incubation start time.
         self.experiment_settings = try_reload_config(config_file=self.experiment_settings_file)
@@ -306,65 +343,90 @@ class ALEApp(ExperimentApplication):
                     break
 
 
+
         # LOCK exchange lock for steps 2 and 3.
-        self.exchange_lock = Redlock(key='exchange_nest', masters={redis}, auto_release_time=exchange_auto_unlock_seconds)
-        with self.exchange_lock:
-            print(f"\nExchange is LOCKED by {self.experiment_settings['experiment_number']}")
+        # Increase waiting processes count in redis before trying to acquire the lock
+        self.acquired = False
+        redis.incr(exchange_waiters_key)
 
-            # --- 2. TRANSFER PLATE0 INTO BMG AND TAKE READING ---
-            # Note: This will be an endpoint reading for plate0
-            # Set variables.
-            timestamp_now = int(datetime.now().timestamp())
-            payload["bmg_data_output_name"] = (
-                f"{payload['experiment_label']}_{timestamp_now}_{experiment_id}_{payload['experiment_number']}_{plate_num}_{reading_in_plate_num}.txt"
-            )
+        # TESTING:
+        print(f"{payload['experiment_number']} is waiting for the exchange lock.")
+        waiters = int(redis.get(exchange_waiters_key) or 0)
+        print(f"{waiters=}")
 
-            # Run the workflow: incubator_to_run_bmg_wf.yaml
-            if run_robots:
-                workflow = self.workcell_client.submit_workflow(
-                    incubator_to_run_bmg_wf.resolve(),
-                    json_inputs={
-                        "incubator_location": payload["incubator_location"],
-                        "incubator_safe_path": payload["incubator_safe_path"],
-                        "incubation_seconds": payload["incubation_seconds"],
-                        "incubator_node": payload["incubator_node"],
-                        "lid_location": payload["lid_location"],
-                        "lid_safe_path": payload["lid_safe_path"],
-                        "bmg_data_output_name": payload["bmg_data_output_name"],
-                        "data_output_directory_path": bmg_data_output_directory,
-                    },
+        try:
+            #self.exchange_lock = Redlock(key='exchange_nest', masters={redis}, auto_release_time=exchange_auto_unlock_seconds)
+            with self.exchange_lock:
+                print(f"\nExchange is LOCKED by {self.experiment_settings['experiment_number']}")
+
+                # Decrease waiting process count after lock is acquired.
+                self.acquired = True
+                redis.decr(exchange_waiters_key)
+
+                # --- 2. TRANSFER PLATE0 INTO BMG AND TAKE READING ---
+                # Note: This will be an endpoint reading for plate0
+                # Set variables.
+                timestamp_now = int(datetime.now().timestamp())
+                payload["bmg_data_output_name"] = (
+                    f"{payload['experiment_label']}_{timestamp_now}_{experiment_id}_{payload['experiment_number']}_{plate_num}_{reading_in_plate_num}.txt"
                 )
 
-                # Collect associated resource id.
-                datapoint_id = workflow.get_datapoint_id(step_key="bmg_data", label="json_result")
-                resource_id = self.data_client.get_datapoint_value(datapoint_id=datapoint_id)
-
-                # Write UTC BMG timestamp to CSV data file.
-                helper_functions.write_timestamps_to_csv(
-                    csv_directory_path=csv_data_directory,
-                    experiment_id=experiment_id,
-                    bmg_filename=payload["bmg_data_output_name"],
-                    accurate_timestamp=workflow.steps[8].end_time,  # index 8 = bmg reading
-                    resource_id=resource_id,
-                )
-                if test_prints:
-                    print(f"\twriting data to csv: {payload['bmg_data_output_name']}, with timestamp {workflow.steps[8].end_time}, and respource id {resource_id}")
-            else:
-                if test_prints:
-                    print(f"\twriting data to csv: {payload['bmg_data_output_name']}")
-
-            # --- 3. TRANSFER OLD PLATE INTO THE OT-2 ---
-            # Run the workflow: bmg_to_ot2_wf.yaml
-            if run_robots:
+                # Run the workflow: incubator_to_run_bmg_wf.yaml
+                if run_robots:
                     workflow = self.workcell_client.submit_workflow(
-                        bmg_to_ot2_wf.resolve(),
+                        incubator_to_run_bmg_wf.resolve(),
                         json_inputs={
-                            "ot2_location": payload["ot2_location"],
-                            "ot2_safe_path": payload["ot2_safe_path"],
+                            "incubator_location": payload["incubator_location"],
+                            "incubator_safe_path": payload["incubator_safe_path"],
+                            "incubation_seconds": payload["incubation_seconds"],
+                            "incubator_node": payload["incubator_node"],
+                            "lid_location": payload["lid_location"],
+                            "lid_safe_path": payload["lid_safe_path"],
+                            "bmg_data_output_name": payload["bmg_data_output_name"],
+                            "data_output_directory_path": bmg_data_output_directory,
                         },
                     )
 
-            print(f"\nExchange is UNLOCKED by {self.experiment_settings['experiment_number']}")
+                    # Collect associated resource id.
+                    datapoint_id = workflow.get_datapoint_id(step_key="bmg_data", label="json_result")
+                    resource_id = self.data_client.get_datapoint_value(datapoint_id=datapoint_id)
+
+                    # Write UTC BMG timestamp to CSV data file.
+                    helper_functions.write_timestamps_to_csv(
+                        csv_directory_path=csv_data_directory,
+                        experiment_id=experiment_id,
+                        bmg_filename=payload["bmg_data_output_name"],
+                        accurate_timestamp=workflow.steps[8].end_time,  # index 8 = bmg reading
+                        resource_id=resource_id,
+                    )
+                    if test_prints:
+                        print(f"\twriting data to csv: {payload['bmg_data_output_name']}, with timestamp {workflow.steps[8].end_time}, and respource id {resource_id}")
+                else:
+                    if test_prints:
+                        print(f"\twriting data to csv: {payload['bmg_data_output_name']}")
+
+                # --- 3. TRANSFER OLD PLATE INTO THE OT-2 ---
+                # Run the workflow: bmg_to_ot2_wf.yaml
+                if run_robots:
+                        workflow = self.workcell_client.submit_workflow(
+                            bmg_to_ot2_wf.resolve(),
+                            json_inputs={
+                                "ot2_location": payload["ot2_location"],
+                                "ot2_safe_path": payload["ot2_safe_path"],
+                            },
+                        )
+
+                print(f"\nExchange is UNLOCKED by {self.experiment_settings['experiment_number']}")
+
+
+        finally:
+            # always clean up the waiting process count.
+            if not self.acquired:
+                redis.decr(exchange_waiters_key)
+
+        # Polite jitter to aid scheduling fairness
+        self.jitter()
+
 
         # ---<<< OUTER LOOP START >>>---
         # Reload the experiment settings (before loop).
@@ -402,63 +464,85 @@ class ALEApp(ExperimentApplication):
 
 
             # Lock exchange lock for steps 4 and 5.
-            self.exchange_lock = Redlock(key='exchange_nest', masters={redis}, auto_release_time=exchange_auto_unlock_seconds)
-            with self.exchange_lock:
-                print(f"\nExchange is LOCKED by {self.experiment_settings['experiment_number']}")
+            # Increase waiting processes count in redis before trying to acquire the lock
+            self.acquired = False
+            redis.incr(exchange_waiters_key)
 
-                # --- 4. GET NEW ASSAY PLATE, TAKE CONTAM READING, MOVE TO NEW OT-2 LOCATION. ---
-                # Set variables.
-                timestamp_now = int(datetime.now().timestamp())
-                payload["bmg_data_output_name"] = (
-                    f"{payload['experiment_label']}_{timestamp_now}_{experiment_id}_{payload['experiment_number']}_{plate_num}_contam.txt"
-                )
-                if test_prints:
-                    print(f"getting new plate from {payload['sciclops_stack_new_plates']}")
+            # TESTING:
+            print(f"{payload['experiment_number']} is waiting for the exchange lock.")
+            waiters = int(redis.get(exchange_waiters_key) or 0)
+            print(f"{waiters=}")
 
-                # Run the workflow: get_new_plate_and_run_bmg_wf.yaml
-                if run_robots:
-                    workflow = self.workcell_client.submit_workflow(
-                        get_new_plate_and_run_bmg_wf.resolve(),
-                        json_inputs={
-                            "bmg_data_file_name": payload["bmg_data_output_name"],
-                            "data_output_directory_path": bmg_data_output_directory,
-                            "lid_location": payload["lid_location"],
-                            "lid_safe_path": payload["lid_safe_path"],
-                            "sciclops_stack_new_plates": payload["sciclops_stack_new_plates"]
+            try:
+                #self.exchange_lock = Redlock(key='exchange_nest', masters={redis}, auto_release_time=exchange_auto_unlock_seconds)
+                with self.exchange_lock:
+                    print(f"\nExchange is LOCKED by {self.experiment_settings['experiment_number']}")
 
-                        },
-                    )
+                    # Decrease waiting process count after lock is acquired.
+                    self.acquired = True
+                    redis.decr(exchange_waiters_key)
 
-                    # Collect associated resource id.
-                    datapoint_id = workflow.get_datapoint_id(step_key="bmg_data", label="json_result")
-                    resource_id = self.data_client.get_datapoint_value(datapoint_id=datapoint_id)
-
-                    # Write UTC BMG timestamp to CSV data file
-                    helper_functions.write_timestamps_to_csv(
-                        csv_directory_path=csv_data_directory,
-                        experiment_id=experiment_id,
-                        bmg_filename=payload["bmg_data_output_name"],
-                        accurate_timestamp=workflow.steps[6].end_time, # index 6 = bmg reading
-                        resource_id=resource_id,
+                    # --- 4. GET NEW ASSAY PLATE, TAKE CONTAM READING, MOVE TO NEW OT-2 LOCATION. ---
+                    # Set variables.
+                    timestamp_now = int(datetime.now().timestamp())
+                    payload["bmg_data_output_name"] = (
+                        f"{payload['experiment_label']}_{timestamp_now}_{experiment_id}_{payload['experiment_number']}_{plate_num}_contam.txt"
                     )
                     if test_prints:
-                        print(f"\twriting data to csv: {payload['bmg_data_output_name']}, with timestamp {workflow.steps[5].end_time}")
-                else:
-                    if test_prints:
-                        print(f"\twriting data to csv: {payload['bmg_data_output_name']}")
+                        print(f"getting new plate from {payload['sciclops_stack_new_plates']}")
 
-                # --- 5. TRANSFER NEW PLATE FROM THE BMG TO NEW OT-2 LOCATION
-                # Run the workflow: bmg_to_ot2_wf.yaml
-                if run_robots:
-                    workflow = self.workcell_client.submit_workflow(
-                        bmg_to_ot2_wf.resolve(),
-                        json_inputs={
-                            "ot2_location": payload["ot2_location"],
-                            "ot2_safe_path": payload["ot2_safe_path"],
-                        },
-                    )
+                    # Run the workflow: get_new_plate_and_run_bmg_wf.yaml
+                    if run_robots:
+                        workflow = self.workcell_client.submit_workflow(
+                            get_new_plate_and_run_bmg_wf.resolve(),
+                            json_inputs={
+                                "bmg_data_file_name": payload["bmg_data_output_name"],
+                                "data_output_directory_path": bmg_data_output_directory,
+                                "lid_location": payload["lid_location"],
+                                "lid_safe_path": payload["lid_safe_path"],
+                                "sciclops_stack_new_plates": payload["sciclops_stack_new_plates"]
 
-                print(f"\nExchange is UNLOCKED by {self.experiment_settings['experiment_number']}")
+                            },
+                        )
+
+                        # Collect associated resource id.
+                        datapoint_id = workflow.get_datapoint_id(step_key="bmg_data", label="json_result")
+                        resource_id = self.data_client.get_datapoint_value(datapoint_id=datapoint_id)
+
+                        # Write UTC BMG timestamp to CSV data file
+                        helper_functions.write_timestamps_to_csv(
+                            csv_directory_path=csv_data_directory,
+                            experiment_id=experiment_id,
+                            bmg_filename=payload["bmg_data_output_name"],
+                            accurate_timestamp=workflow.steps[6].end_time, # index 6 = bmg reading
+                            resource_id=resource_id,
+                        )
+                        if test_prints:
+                            print(f"\twriting data to csv: {payload['bmg_data_output_name']}, with timestamp {workflow.steps[5].end_time}")
+                    else:
+                        if test_prints:
+                            print(f"\twriting data to csv: {payload['bmg_data_output_name']}")
+
+                    # --- 5. TRANSFER NEW PLATE FROM THE BMG TO NEW OT-2 LOCATION
+                    # Run the workflow: bmg_to_ot2_wf.yaml
+                    if run_robots:
+                        workflow = self.workcell_client.submit_workflow(
+                            bmg_to_ot2_wf.resolve(),
+                            json_inputs={
+                                "ot2_location": payload["ot2_location"],
+                                "ot2_safe_path": payload["ot2_safe_path"],
+                            },
+                        )
+
+                    print(f"\nExchange is UNLOCKED by {self.experiment_settings['experiment_number']}")
+
+            finally:
+                # always clean up the waiting process count.
+                if not self.acquired:
+                    redis.decr(exchange_waiters_key)
+
+            # Polite jitter to aid scheduling fairness
+            self.jitter()
 
 
             # --- 6. RUN INOCULATION OT-2 PROTOCOL --- (no exchage lock needed)
@@ -495,74 +579,96 @@ class ALEApp(ExperimentApplication):
             payload["tip_box_location"] = tip_box_location
 
             # Lock exchange lock for steps 7 and 8.
-            self.exchange_lock = Redlock(key='exchange_nest', masters={redis}, auto_release_time=exchange_auto_unlock_seconds)
-            with self.exchange_lock:
-                print(f"\nExchange is LOCKED by {self.experiment_settings['experiment_number']}")
+            #self.exchange_lock = Redlock(key='exchange_nest', masters={redis}, auto_release_time=exchange_auto_unlock_seconds)
 
-                # --- 7. TRANSFER NEW PLATE INTO BMG AND TAKE T0 READING ---
-                # Set variables.
-                timestamp_now = int(datetime.now().timestamp())
-                payload["bmg_data_output_name"] = (
-                    f"{payload['experiment_label']}_{timestamp_now}_{experiment_id}_{payload['experiment_number']}_{plate_num}_{reading_in_plate_num}.txt"
-                )
+            # Increase waiting processes count in redis before trying to acquire the lock
+            self.acquired = False
+            redis.incr(exchange_waiters_key)
 
-                # Run the workflow: ot2_to_run_bmg_wf.yaml
-                if run_robots:
-                    workflow = self.workcell_client.submit_workflow(
-                        ot2_to_run_bmg_wf.resolve(),
-                        json_inputs={
-                            "bmg_data_file_name": payload["bmg_data_output_name"],
-                            "data_output_directory_path": bmg_data_output_directory,
-                            "ot2_location": payload["ot2_location"],
-                            "ot2_safe_path": payload["ot2_safe_path"]
-                        },
+            # TESTING:
+            print(f"{payload['experiment_number']} is waiting for the exchange lock.")
+            waiters = int(redis.get(exchange_waiters_key) or 0)
+            print(f"{waiters=}")
+
+            try:
+                with self.exchange_lock:
+                    print(f"\nExchange is LOCKED by {self.experiment_settings['experiment_number']}")
+
+                    # Decrease waiting process count after lock is acquired.
+                    self.acquired = True
+                    redis.decr(exchange_waiters_key)
+
+                    # --- 7. TRANSFER NEW PLATE INTO BMG AND TAKE T0 READING ---
+                    # Set variables.
+                    timestamp_now = int(datetime.now().timestamp())
+                    payload["bmg_data_output_name"] = (
+                        f"{payload['experiment_label']}_{timestamp_now}_{experiment_id}_{payload['experiment_number']}_{plate_num}_{reading_in_plate_num}.txt"
                     )
 
-                    # Collect associated resource ID.
-                    datapoint_id = workflow.get_datapoint_id(step_key="bmg_data", label="json_result")
-                    resource_id = self.data_client.get_datapoint_value(datapoint_id=datapoint_id)
+                    # Run the workflow: ot2_to_run_bmg_wf.yaml
+                    if run_robots:
+                        workflow = self.workcell_client.submit_workflow(
+                            ot2_to_run_bmg_wf.resolve(),
+                            json_inputs={
+                                "bmg_data_file_name": payload["bmg_data_output_name"],
+                                "data_output_directory_path": bmg_data_output_directory,
+                                "ot2_location": payload["ot2_location"],
+                                "ot2_safe_path": payload["ot2_safe_path"]
+                            },
+                        )
 
-                    # Write UTC BMG timestamp to CSV data file.
-                    helper_functions.write_timestamps_to_csv(
-                        csv_directory_path=csv_data_directory,
-                        experiment_id=experiment_id,
-                        bmg_filename=payload["bmg_data_output_name"],
-                        accurate_timestamp=workflow.steps[4].end_time,  # index 4 = bmg reading
-                        resource_id=resource_id,
-                    )
-                    if test_prints:
-                        print(f"\twriting data to csv: {payload['bmg_data_output_name']}, with timestamp {workflow.steps[4].end_time}, and resource id {resource_id}")
-                else:
-                    if test_prints:
-                        print(f"\twriting data to csv: {payload['bmg_data_output_name']}")
+                        # Collect associated resource ID.
+                        datapoint_id = workflow.get_datapoint_id(step_key="bmg_data", label="json_result")
+                        resource_id = self.data_client.get_datapoint_value(datapoint_id=datapoint_id)
+
+                        # Write UTC BMG timestamp to CSV data file.
+                        helper_functions.write_timestamps_to_csv(
+                            csv_directory_path=csv_data_directory,
+                            experiment_id=experiment_id,
+                            bmg_filename=payload["bmg_data_output_name"],
+                            accurate_timestamp=workflow.steps[4].end_time,  # index 4 = bmg reading
+                            resource_id=resource_id,
+                        )
+                        if test_prints:
+                            print(f"\twriting data to csv: {payload['bmg_data_output_name']}, with timestamp {workflow.steps[4].end_time}, and resource id {resource_id}")
+                    else:
+                        if test_prints:
+                            print(f"\twriting data to csv: {payload['bmg_data_output_name']}")
 
 
 
-                # --- 8. TRANSFER FROM BMG TO INCUBATOR AND INCUBATE ---
-                # Reload experiment settings and modify variables.
-                self.experiment_settings = try_reload_config(config_file=self.experiment_settings_file)
-                payload["incubation_seconds"] = self.experiment_settings["incubation_seconds_between_readings"]
-                reading_in_plate_num += 1
+                    # --- 8. TRANSFER FROM BMG TO INCUBATOR AND INCUBATE ---
+                    # Reload experiment settings and modify variables.
+                    self.experiment_settings = try_reload_config(config_file=self.experiment_settings_file)
+                    payload["incubation_seconds"] = self.experiment_settings["incubation_seconds_between_readings"]
+                    reading_in_plate_num += 1
 
-                # Run the workflow: bmg_to_run_incubator_wf.yaml
-                if run_robots:
-                    workflow = self.workcell_client.submit_workflow(
-                        bmg_to_run_incubator_wf.resolve(),
-                        json_inputs={
-                            "lid_location": payload["lid_location"],
-                            "lid_safe_path": payload["lid_safe_path"],
-                            "incubator_location": payload["incubator_location"],
-                            "incubator_safe_path": payload["incubator_safe_path"],
-                            "incubation_seconds": payload["incubation_seconds"],
-                            "incubator_node": payload["incubator_node"]
-                        },
-                    )
+                    # Run the workflow: bmg_to_run_incubator_wf.yaml
+                    if run_robots:
+                        workflow = self.workcell_client.submit_workflow(
+                            bmg_to_run_incubator_wf.resolve(),
+                            json_inputs={
+                                "lid_location": payload["lid_location"],
+                                "lid_safe_path": payload["lid_safe_path"],
+                                "incubator_location": payload["incubator_location"],
+                                "incubator_safe_path": payload["incubator_safe_path"],
+                                "incubation_seconds": payload["incubation_seconds"],
+                                "incubator_node": payload["incubator_node"]
+                            },
+                        )
 
-                # Capture incubation start time.
-                incubation_start_time = time.time()
+                    # Capture incubation start time.
+                    incubation_start_time = time.time()
 
-                print(f"\nExchange is UNLOCKED by {self.experiment_settings['experiment_number']}")
+                    print(f"\nExchange is UNLOCKED by {self.experiment_settings['experiment_number']}")
 
+            finally:
+                # always clean up the waiting process count.
+                if not self.acquired:
+                    redis.decr(exchange_waiters_key)
+
+            # Polite jitter to aid scheduling fairness
+            self.jitter()
 
             # --- 9. GET RID OF THE OLD SUBSTRATE PLATE ---
             # Reload experiment settings and modify variables.
@@ -573,22 +679,46 @@ class ALEApp(ExperimentApplication):
 
             # Run the workflow: remove_old_substrate_plate_wf.yaml
             if run_robots:
-                self.exchange_lock = Redlock(key='exchange_nest', masters={redis}, auto_release_time=exchange_auto_unlock_seconds)
-                with self.exchange_lock:
-                    # Exchange lock is LOCKED.
-                    print(f"\nExchange is LOCKED by {self.experiment_settings['experiment_number']}")
-                    workflow = self.workcell_client.submit_workflow(
-                        remove_old_substrate_plate_wf.resolve(),
-                        json_inputs={
-                            "lid_location": payload["lid_location"],
-                            "lid_safe_path": payload["lid_safe_path"],
-                            "ot2_location": payload["ot2_location"],
-                            "ot2_safe_path": payload["ot2_safe_path"],
-                            "sciclops_stack_old_plates": payload["sciclops_stack_old_plates"]
-                        },
-                    )
-                    # Exchange lock is UNLOCKED.
-                    print(f"\nExchange is UNLOCKED by {self.experiment_settings['experiment_number']}")
+                #self.exchange_lock = Redlock(key='exchange_nest', masters={redis}, auto_release_time=exchange_auto_unlock_seconds)
+
+                # Increase waiting processes count in redis before trying to acquire the lock
+                self.acquired = False
+                redis.incr(exchange_waiters_key)
+
+                # TESTING:
+                print(f"{payload['experiment_number']} is waiting for the exchange lock.")
+                waiters = int(redis.get(exchange_waiters_key) or 0)
+                print(f"{waiters=}")
+
+                try:
+                    with self.exchange_lock:
+                        # Exchange lock is LOCKED.
+                        print(f"\nExchange is LOCKED by {self.experiment_settings['experiment_number']}")
+
+                        # Decrease waiting process count after lock is acquired.
+                        self.acquired = True
+                        redis.decr(exchange_waiters_key)
+
+                        workflow = self.workcell_client.submit_workflow(
+                            remove_old_substrate_plate_wf.resolve(),
+                            json_inputs={
+                                "lid_location": payload["lid_location"],
+                                "lid_safe_path": payload["lid_safe_path"],
+                                "ot2_location": payload["ot2_location"],
+                                "ot2_safe_path": payload["ot2_safe_path"],
+                                "sciclops_stack_old_plates": payload["sciclops_stack_old_plates"]
+                            },
+                        )
+                        # Exchange lock is UNLOCKED.
+                        print(f"\nExchange is UNLOCKED by {self.experiment_settings['experiment_number']}")
+
+                finally:
+                    # always clean up the waiting process count.
+                    if not self.acquired:
+                        redis.decr(exchange_waiters_key)
+
+                # Polite jitter to aid scheduling fairness
+                self.jitter()
 
             # --- FINISH INCUBATION ---
             # Wait for incubation to finish.
@@ -615,9 +745,23 @@ class ALEApp(ExperimentApplication):
                     print(f"running incubator to bmg, taking T{current_inner_loop+1} reading")
 
                 # Lock exchange lock for steps 10 and 11 (or 12.)
-                self.exchange_lock = Redlock(key='exchange_nest', masters={redis}, auto_release_time=exchange_auto_unlock_seconds)
-                with self.exchange_lock:
-                    # Exchange lock is LOCKED.
+                #self.exchange_lock = Redlock(key='exchange_nest', masters={redis}, auto_release_time=exchange_auto_unlock_seconds)
+
+                # Increase waiting processes count in redis before trying to acquire the lock
+                self.acquired = False
+                redis.incr(exchange_waiters_key)
+
+                # TESTING:
+                print(f"{payload['experiment_number']} is waiting for the exchange lock.")
+                waiters = int(redis.get(exchange_waiters_key) or 0)
+                print(f"{waiters=}")
+
+                try:
+                    # acquire the lock:
+                    # --> Cannot use with self.exchange_lock here since we need to release optionally for incubation.
+                    self.exchange_lock.acquire()
+                    self.acquired = True
+                    redis.decr(exchange_waiters_key)
                     print(f"\nExchange is LOCKED by {self.experiment_settings['experiment_number']}")
 
                     # --- 10. INCUBATOR TO RUN BMG ---
@@ -691,6 +835,19 @@ class ALEApp(ExperimentApplication):
                         # Capture incubation start time.
                         incubation_start_time = time.time()
 
+                        # Release the lock for incubation
+                        self.exchange_lock.release()
+                        self.acquired = False
+                        print(f"\nExchange UNLOCKED by {self.experiment_settings['experiment_number']} for incubation")
+
+
+                        # decrease process count waiting for exchange lock
+                        # allows other processes to quickly acquire exchange lock
+                        redis.decr(exchange_waiters_key)
+                        # TESTING
+                        waiters = int(redis.get(exchange_waiters_key) or 0)
+                        print(f"waiters count {waiters} --> should be 0.")
+
                         # Sleep for incubation.
                         if test_prints:
                             print("running 1 hour incubaton")
@@ -717,7 +874,26 @@ class ALEApp(ExperimentApplication):
                                 },
                             )
 
-                    print(f"\nExchange is UNLOCKED by {self.experiment_settings['experiment_number']}")
+                        self.exchange_lock.release()
+                        self.acquired = False
+                        print(f"\nExchange is UNLOCKED by {self.experiment_settings['experiment_number']}")
+                        redis.decr(exchange_waiters_key)  # decrease count of processes waiting for exchange lock.
+
+                        # TESTING
+                        waiters = int(redis.get(exchange_waiters_key) or 0)
+                        print(f"waiters count {waiters} --> should be 0.")
+
+                finally:
+                    # if the lock was not unlocked properly by the if or else statement...
+                    if self.acquired:
+                        self.exchange_lock.release()
+                        redis.decr(exchange_waiters_key)
+                        self.acquired = False
+
+
+
+                # Polite jitter to aid scheduling fairness
+                self.jitter()
 
                 current_inner_loop += 1
             # ---<<< INNER LOOP END >>>---
@@ -728,38 +904,62 @@ class ALEApp(ExperimentApplication):
         # # # NOTE: If there are no more outer loops, the final assay plate ends in old OT-2 location.
 
         # Lock exchange lock for steps 13 and 14.
-        self.exchange_lock = Redlock(key='exchange_nest', masters={redis}, auto_release_time=exchange_auto_unlock_seconds)
-        with self.exchange_lock:
-            # Exchange lock is LOCKED.
-            print(f"\nExchange is LOCKED by {self.experiment_settings['experiment_number']}")
+        # self.exchange_lock = Redlock(key='exchange_nest', masters={redis}, auto_release_time=exchange_auto_unlock_seconds)
 
-            if test_prints:
-                print("END OF EXPEREMENT APP: Returning old plate from ot2 to exchange then trash stack.")
+                        # Increase waiting processes count in redis before trying to acquire the lock
+        self.acquired = False
+        redis.incr(exchange_waiters_key)
 
-            # --- 13. MOVE PLATE FROM OLD OT-2 LOCATION TO EXCHANGE, REPLACE LID ---
-            # Run the workflow: at_end_ot2_to_exchange_wf.yaml
-            if run_robots:
-                workflow = self.workcell_client.submit_workflow(
-                    at_end_ot2_to_exchange_wf.resolve(),
-                    json_inputs={
-                        "ot2_location": payload["ot2_location"],
-                        "ot2_safe_path": payload["ot2_safe_path"],
-                        "lid_location": payload["lid_location"],
-                        "lid_safe_path": payload["lid_safe_path"]
-                    },
-                )
+        # TESTING:
+        print(f"{payload['experiment_number']} is waiting for the exchange lock.")
+        waiters = int(redis.get(exchange_waiters_key) or 0)
+        print(f"{waiters=}")
 
-            # --- 14. TRANSFER FINAL ASSAY PLATE TO TRASH STACK ---
-            # Run the workflow: trash_final_plate_wf.yaml
-            if run_robots:
-                workflow = self.workcell_client.submit_workflow(
-                    trash_final_plate_wf.resolve(),
-                    json_inputs={
-                        "sciclops_stack_old_plates": payload["sciclops_stack_old_plates"]
-                    },
-                )
-            # Exchange lock is UNLOCKED.
-            print(f"\nExchange is UNLOCKED by {self.experiment_settings['experiment_number']}")
+        try:
+            with self.exchange_lock:
+
+                # Exchange lock is LOCKED.
+                print(f"\nExchange is LOCKED by {self.experiment_settings['experiment_number']}")
+
+                # Decrease waiting process count after lock is acquired.
+                self.acquired = True
+                redis.decr(exchange_waiters_key)
+
+                if test_prints:
+                    print("END OF EXPEREMENT APP: Returning old plate from ot2 to exchange then trash stack.")
+
+                # --- 13. MOVE PLATE FROM OLD OT-2 LOCATION TO EXCHANGE, REPLACE LID ---
+                # Run the workflow: at_end_ot2_to_exchange_wf.yaml
+                if run_robots:
+                    workflow = self.workcell_client.submit_workflow(
+                        at_end_ot2_to_exchange_wf.resolve(),
+                        json_inputs={
+                            "ot2_location": payload["ot2_location"],
+                            "ot2_safe_path": payload["ot2_safe_path"],
+                            "lid_location": payload["lid_location"],
+                            "lid_safe_path": payload["lid_safe_path"]
+                        },
+                    )
+
+                # --- 14. TRANSFER FINAL ASSAY PLATE TO TRASH STACK ---
+                # Run the workflow: trash_final_plate_wf.yaml
+                if run_robots:
+                    workflow = self.workcell_client.submit_workflow(
+                        trash_final_plate_wf.resolve(),
+                        json_inputs={
+                            "sciclops_stack_old_plates": payload["sciclops_stack_old_plates"]
+                        },
+                    )
+                # Exchange lock is UNLOCKED.
+                print(f"\nExchange is UNLOCKED by {self.experiment_settings['experiment_number']}")
+
+        finally:
+            # always clean up the waiting process count.
+            if not self.acquired:
+                redis.decr(exchange_waiters_key)
+
+        # Polite jitter to aid scheduling fairness
+        self.jitter()
 
         # END OF EXPERIMENT!
         print("YAY WE MADE IT!")
