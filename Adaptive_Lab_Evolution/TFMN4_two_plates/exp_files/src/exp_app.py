@@ -155,6 +155,7 @@ class ALEApp(ExperimentApplication):
             self.logger.log_info(f"Pushed new plate resource into location {location_name}")
             return new_plate, old_plate
 
+
     def jitter(self) -> None:
         "Implements polite random jitter to assist in schedueling fairness between the running experiments."
         waiters = int(redis.get(exchange_waiters_key) or 0)
@@ -167,14 +168,13 @@ class ALEApp(ExperimentApplication):
             time.sleep(random.uniform(0.1, 0.5))   # go fast
 
 
-
     def run_experiment(self) -> None:
         """main experiment function"""
 
         # --- DEFINE PATHS AND STARTING VARIABLES ---
-        run_robots = True  # if False, no robots will run
+        run_robots = True
         run_resources = True
-        test_prints = True  # if True, will print out extra info for testing purposes
+        test_prints = True
 
         # Directory paths.
         app_directory = Path(__file__).parent.parent   # experiment app
@@ -267,9 +267,7 @@ class ALEApp(ExperimentApplication):
             OT-2 (ot2_spongebob or ot2_patrick depending on settings JSON) decks 4-11: 20uL tip racks
             ALL OTHER LOCATIONS: EMPTY
         """
-        # self.exchange_lock = Redlock(key='exchange_nest', masters={redis}, auto_release_time=exchange_auto_unlock_seconds)
-
-        # increase waiting processes count in redis before trying to acquired the lock
+        # Increase waiting processes count in redis before trying to acquired the lock
         self.acquired = False
         redis.incr(exchange_waiters_key)
 
@@ -315,11 +313,11 @@ class ALEApp(ExperimentApplication):
                 print(f"\nExchange is UNLOCKED by {self.experiment_settings['experiment_number']}", flush=True)
 
         finally:
-            # always clean up the waiting process count.
+            # Always clean up the waiting process count.
             if not self.acquired:
                 redis.decr(exchange_waiters_key)
 
-        # # Polite jitter to aid scheduling fairness
+        # Polite jitter to aid scheduling fairness
         self.jitter()
 
         # Reload experiment settings and capture incubation start time.
@@ -355,7 +353,6 @@ class ALEApp(ExperimentApplication):
         print(f"{waiters=}", flush=True)
 
         try:
-            #self.exchange_lock = Redlock(key='exchange_nest', masters={redis}, auto_release_time=exchange_auto_unlock_seconds)
             with self.exchange_lock:
                 print(f"\nExchange is LOCKED by {self.experiment_settings['experiment_number']}", flush=True)
 
@@ -365,6 +362,7 @@ class ALEApp(ExperimentApplication):
 
                 # --- 2. TRANSFER PLATE0 INTO BMG AND TAKE READING ---
                 # Note: This will be an endpoint reading for plate0
+
                 # Set variables.
                 timestamp_now = int(datetime.now().timestamp())
                 payload["bmg_data_output_name"] = (
@@ -420,7 +418,7 @@ class ALEApp(ExperimentApplication):
 
 
         finally:
-            # always clean up the waiting process count.
+            # Always clean up the waiting process count.
             if not self.acquired:
                 redis.decr(exchange_waiters_key)
 
@@ -434,6 +432,9 @@ class ALEApp(ExperimentApplication):
 
         # Start the outer loop.
         while current_outer_loop < self.experiment_settings["total_outer_loops"]:
+
+            # Reset the inner loop counter.
+            current_inner_loop = 0
 
             # Reload experiment settings (inside loop) and reset variables.
             self.experiment_settings = try_reload_config(config_file=self.experiment_settings_file)
@@ -474,7 +475,6 @@ class ALEApp(ExperimentApplication):
             print(f"{waiters=}", flush=True)
 
             try:
-                #self.exchange_lock = Redlock(key='exchange_nest', masters={redis}, auto_release_time=exchange_auto_unlock_seconds)
                 with self.exchange_lock:
                     print(f"\nExchange is LOCKED by {self.experiment_settings['experiment_number']}", flush=True)
 
@@ -537,7 +537,7 @@ class ALEApp(ExperimentApplication):
                     print(f"\nExchange is UNLOCKED by {self.experiment_settings['experiment_number']}", flush=True)
 
             finally:
-                # always clean up the waiting process count.
+                # Always clean up the waiting process count.
                 if not self.acquired:
                     redis.decr(exchange_waiters_key)
 
@@ -661,7 +661,7 @@ class ALEApp(ExperimentApplication):
                     print(f"\nExchange is UNLOCKED by {self.experiment_settings['experiment_number']}", flush=True)
 
             finally:
-                # always clean up the waiting process count.
+                # Always clean up the waiting process count.
                 if not self.acquired:
                     redis.decr(exchange_waiters_key)
 
@@ -677,7 +677,6 @@ class ALEApp(ExperimentApplication):
 
             # Run the workflow: remove_old_substrate_plate_wf.yaml
             if run_robots:
-                #self.exchange_lock = Redlock(key='exchange_nest', masters={redis}, auto_release_time=exchange_auto_unlock_seconds)
 
                 # Increase waiting processes count in redis before trying to acquire the lock
                 self.acquired = False
@@ -711,7 +710,7 @@ class ALEApp(ExperimentApplication):
                         print(f"\nExchange is UNLOCKED by {self.experiment_settings['experiment_number']}", flush=True)
 
                 finally:
-                    # always clean up the waiting process count.
+                    # Always clean up the waiting process count.
                     if not self.acquired:
                         redis.decr(exchange_waiters_key)
 
@@ -735,6 +734,9 @@ class ALEApp(ExperimentApplication):
             # Start inner loop.
             while current_inner_loop < self.experiment_settings["total_inner_loops"]:
 
+                # Reset variables
+                self.waiter_counted = False
+
                 # Reload experiment settings (inside loop)
                 self.experiment_settings = try_reload_config(config_file=self.experiment_settings_file)
                 payload["incubation_seconds"] = self.experiment_settings["incubation_seconds_between_readings"]
@@ -743,11 +745,10 @@ class ALEApp(ExperimentApplication):
                     print(f"running incubator to bmg, taking T{current_inner_loop+1} reading", flush=True)
 
                 # Lock exchange lock for steps 10 and 11 (or 12.)
-                #self.exchange_lock = Redlock(key='exchange_nest', masters={redis}, auto_release_time=exchange_auto_unlock_seconds)
-
                 # Increase waiting processes count in redis before trying to acquire the lock
                 self.acquired = False
                 redis.incr(exchange_waiters_key)
+                self.waiter_counted = True
 
                 # TESTING:
                 print(f"{payload['experiment_number']} is waiting for the exchange lock.", flush=True)
@@ -755,11 +756,17 @@ class ALEApp(ExperimentApplication):
                 print(f"{waiters=}", flush=True)
 
                 try:
-                    # acquire the lock:
-                    # --> Cannot use with self.exchange_lock here since we need to release optionally for incubation.
-                    self.exchange_lock.acquire()
+                    # Acquire the exchange lock.
+                    got_lock = self.exchange_lock.acquire()
+
+                    # Catch aquire lock timeout case and cleanup variables.
+                    if not got_lock:
+                        redis.decr(exchange_waiters_key)
+                        self.waiter_counted = False
+                        raise RuntimeError("Failed to aquire the exchange lock most likely due to a timeout.")
+                        # Note: The finally block will still execute.
+
                     self.acquired = True
-                    redis.decr(exchange_waiters_key)
                     print(f"\nExchange is LOCKED by {self.experiment_settings['experiment_number']}", flush=True)
 
                     # --- 10. INCUBATOR TO RUN BMG ---
@@ -806,7 +813,7 @@ class ALEApp(ExperimentApplication):
                     # Modify variables.
                     reading_in_plate_num += 1
 
-                    # If NOT the last loop...
+                    # If it is NOT the last inner loop...
                     if current_inner_loop < (self.experiment_settings["total_inner_loops"]-1):
 
                         # --- 11. TRANSFER FROM BMG TO INCUBATOR, INCUBATE ---
@@ -833,15 +840,16 @@ class ALEApp(ExperimentApplication):
                         # Capture incubation start time.
                         incubation_start_time = time.time()
 
-                        # Release the lock for incubation
+                        # Release the lock for incubation.
                         self.exchange_lock.release()
                         self.acquired = False
                         print(f"\nExchange UNLOCKED by {self.experiment_settings['experiment_number']} for incubation", flush=True)
 
+                        # Decrement waiters because no process is holding the lock anymore.
+                        if self.waiter_counted:
+                            redis.decr(exchange_waiters_key)
+                            self.waiter_counted = False
 
-                        # decrease process count waiting for exchange lock
-                        # allows other processes to quickly acquire exchange lock
-                        redis.decr(exchange_waiters_key)
                         # TESTING
                         waiters = int(redis.get(exchange_waiters_key) or 0)
                         print(f"waiters count {waiters} --> should be 0.", flush=True)
@@ -854,9 +862,8 @@ class ALEApp(ExperimentApplication):
                                 print(f"will continue in... {int(payload['incubation_seconds']-(time.time() - incubation_start_time))} seconds", flush=True)
                                 time.sleep(5) # 5 seconds
 
-                    # If last loop...
+                    # If it IS the last inner loop:
                     else:
-
                         # --- 12. TRANSFER FROM BMG TO OT2 OLD LOCATION ---
                         # Note: The plate will start in the open BMG nest.
                         if test_prints:
@@ -872,23 +879,30 @@ class ALEApp(ExperimentApplication):
                                 },
                             )
 
+                        # Release the exchange lock once workflow is completed.
                         self.exchange_lock.release()
                         self.acquired = False
                         print(f"\nExchange is UNLOCKED by {self.experiment_settings['experiment_number']}", flush=True)
-                        redis.decr(exchange_waiters_key)  # decrease count of processes waiting for exchange lock.
+
+                        # Decrement waiters because no process is holding the lock anymore
+                        if self.waiter_counted:
+                            redis.decr(exchange_waiters_key)
+                            self.waiter_counted = False
 
                         # TESTING
                         waiters = int(redis.get(exchange_waiters_key) or 0)
                         print(f"waiters count {waiters} --> should be 0.", flush=True)
 
                 finally:
-                    # if the lock was not unlocked properly by the if or else statement...
+                    # If lock was aquired but never released...
                     if self.acquired:
                         self.exchange_lock.release()
-                        redis.decr(exchange_waiters_key)
                         self.acquired = False
 
-
+                    # If the waiter was counted but never decreased....
+                    if self.waiter_counted:
+                        redis.decr(exchange_waiters_key)
+                        self.waiter_counted = False
 
                 # Polite jitter to aid scheduling fairness
                 self.jitter()
@@ -902,9 +916,7 @@ class ALEApp(ExperimentApplication):
         # # # NOTE: If there are no more outer loops, the final assay plate ends in old OT-2 location.
 
         # Lock exchange lock for steps 13 and 14.
-        # self.exchange_lock = Redlock(key='exchange_nest', masters={redis}, auto_release_time=exchange_auto_unlock_seconds)
-
-                        # Increase waiting processes count in redis before trying to acquire the lock
+        # Increase waiting processes count in redis before trying to acquire the lock
         self.acquired = False
         redis.incr(exchange_waiters_key)
 
@@ -952,7 +964,7 @@ class ALEApp(ExperimentApplication):
                 print(f"\nExchange is UNLOCKED by {self.experiment_settings['experiment_number']}", flush=True)
 
         finally:
-            # always clean up the waiting process count.
+            # Always clean up the waiting process count.
             if not self.acquired:
                 redis.decr(exchange_waiters_key)
 
