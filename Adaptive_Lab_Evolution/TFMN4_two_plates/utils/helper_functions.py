@@ -110,4 +110,3 @@ def write_timestamps_to_csv(
 
 
 
-

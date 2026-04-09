@@ -12,7 +12,7 @@ parameters:
     - key: sciclops_stack_old_plates
 
 steps:
-  # 2. Return old plate to stack
+  # 0. Return old plate to stack
   - name: transfer to stack
     node: sciclops_plankton
     action: transfer
@@ -23,3 +23,10 @@ steps:
     params:
       locations:
         target: sciclops_stack_old_plates
+
+  # 1. Move SciClops to Safe
+  - name: move safe
+    node: sciclops_plankton
+    action: move
+    locations:
+      location: safe_sciclops

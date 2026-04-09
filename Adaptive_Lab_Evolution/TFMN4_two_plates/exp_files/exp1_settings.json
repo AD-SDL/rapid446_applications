@@ -1,11 +1,11 @@
 {
-    "total_outer_loops": 5,
+    "total_outer_loops": 28,
     "total_inner_loops": 10,
-    "incubation_seconds_initial": 120,
+    "incubation_seconds_initial": 10,
     "incubation_seconds_between_readings": 3600,
     "inoculation_volume": 15,
 
-    "experiment_label": "TFMN4_TEST",
+    "experiment_label": "TFMN4",
     "experiment_number": "exp1",
 
     "old_lid_location": "rack_row1_nest2",
