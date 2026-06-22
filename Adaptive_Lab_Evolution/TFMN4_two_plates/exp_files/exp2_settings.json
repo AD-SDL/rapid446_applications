@@ -1,5 +1,5 @@
 {
-    "total_outer_loops": 14,
+    "total_outer_loops": 24,
     "total_inner_loops": 12,
     "incubation_seconds_initial": 10,
     "incubation_seconds_between_readings": 7200,
@@ -22,6 +22,4 @@
 
     "sciclops_stack_new_plates": "stack_2",
     "sciclops_stack_old_plates": "stack_5"
-
-
 }
