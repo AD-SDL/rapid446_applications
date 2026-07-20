@@ -1,0 +1,109 @@
+name: Transfer to from incubator to BMG and take reading WF
+
+metadata:
+  author: Casey Stone
+  info: Workflow for transferring from incubator to BMG then taking an absorbance reading
+  version: 0.1
+
+parameters:
+  json_inputs:
+    - key: incubator_location
+    - key: incubator_node
+    - key: lid_location
+    - key: bmg_data_output_name
+    - key: data_output_directory_path
+
+steps:
+  # 0. Open BMG
+  - name: open BMG
+    node: bmg_billy
+    action: open
+    conditions:
+    - condition_type: no_resource_present
+      location_name: bmg_billy.bmg_carriage
+    - condition_type: no_resource_present
+      location_name: exchange_narrow
+
+  # 1. Open incubator
+  - name: open incubator
+    action: open
+    params:
+      node: incubator_node
+    conditions:
+    - condition_type: no_resource_present
+      location_name: bmg_billy.bmg_carriage
+    - condition_type: no_resource_present
+      location_name: exchange_narrow
+
+  # 2. Transfer from incubator to exchange
+  - name: transfer to exchange
+    node: pf400_piper
+    action: transfer
+    locations:
+      target: exchange_narrow
+    params:
+      locations:
+        source: incubator_location
+    conditions:
+    - condition_type: no_resource_present
+      location_name: bmg_billy.bmg_carriage
+    - condition_type: no_resource_present
+      location_name: exchange_narrow
+
+  # 3. Close incubator
+  - name: close incubator
+    action: close
+    params:
+      node: incubator_node
+
+  # 4. Remove the lid to lid nest
+  - name: remove lid from plate on exchange
+    node: pf400_piper
+    action: remove_lid
+    locations:
+      source: exchange_narrow
+    params:
+      locations:
+        target: lid_location
+
+  # 5. Transfer from exchange to BMG
+  - name: transfer plate without lid to BMG nest
+    node: pf400_piper
+    action: transfer
+    locations:
+      source: exchange_narrow
+      target: bmg_billy.bmg_carriage
+    conditions:
+    - condition_type: no_resource_present
+      location_name: bmg_billy.bmg_carriage
+
+  # 6. Close BMG tray
+  - name: close BMG
+    node: bmg_billy
+    action: close
+
+  # 7. Close incubator
+  - name: close incubator
+    action: close
+    params:
+      node: incubator_node
+
+  # 8. Run BMG assay
+  - name: Run BMG absorbance assay
+    node: bmg_billy
+    action: run_assay
+    key: bmg_data
+    args:
+      assay_name: NIDHI
+    params:
+      args:
+        data_output_file_name: bmg_data_output_name
+        data_output_directory_path: data_output_directory_path
+
+  # 9. Open BMG tray
+  - name: open BMG
+    node: bmg_billy
+    action: open
+    conditions:
+    - condition_type: no_resource_present
+      location_name: exchange_narrow

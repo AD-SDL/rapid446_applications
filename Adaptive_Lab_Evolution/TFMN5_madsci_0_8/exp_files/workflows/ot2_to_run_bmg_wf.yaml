@@ -1,0 +1,69 @@
+name: Transfer from OT-2 to BMG and read absorbance WF
+
+metadata:
+  author: Casey Stone
+  info: Workflow for transferring from OT-2 to BMG and reading
+  version: 0.1
+
+parameters:
+  json_inputs:
+    - key: bmg_data_file_name
+    - key: data_output_directory_path
+    - key: ot2_location
+
+steps:
+  # 0. Transfer from OT-2 to exchange
+  - name: transfer from ot2 to exchange
+    node: pf400_piper
+    action: transfer
+    locations:
+      target: exchange_wide
+    params:
+      locations:
+        source: ot2_location
+    conditions:
+    - condition_type: no_resource_present
+      location_name: bmg_billy.bmg_carriage
+    - condition_type: no_resource_present
+      location_name: exchange_wide
+
+  # 1. Open BMG tray
+  - name: open BMG
+    node: bmg_billy
+    action: open
+
+  # 2. Transfer from exchange to bmg
+  - name: Transfer plate without lid to BMG nest
+    node: pf400_piper
+    action: transfer
+    locations:
+      source: exchange_narrow
+      target: bmg_billy.bmg_carriage
+    conditions:
+    - condition_type: no_resource_present
+      location_name: bmg_billy.bmg_carriage
+
+  # 3. Close BMG tray
+  - name: close BMG
+    node: bmg_billy
+    action: close
+
+  # 4. Run BMG assay
+  - name: Run BMG absorbance assay
+    node: bmg_billy
+    key: bmg_data
+    action: run_assay
+    args:
+      assay_name: NIDHI
+    params:
+      args:
+        data_output_file_name: bmg_data_file_name
+        data_output_directory_path: data_output_directory_path
+
+  # 5. Open BMG tray
+  - name: open BMG
+    node: bmg_billy
+    action: open
+    conditions:
+    - condition_type: no_resource_present
+      location_name: exchange_narrow
