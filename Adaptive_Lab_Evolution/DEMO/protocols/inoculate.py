@@ -39,8 +39,8 @@ def run(protocol: protocol_api.ProtocolContext):
     # variables
     inoculation_volume = 20
 
-    left_pipette_20uL_multi = protocol.load_instrument(
-        "p20_multi_gen2", mount="left", tip_racks=[
+    right_pipette_20uL_multi = protocol.load_instrument(
+        "p20_multi_gen2", mount="right", tip_racks=[
             tip_rack,
         ]
     )
@@ -53,27 +53,27 @@ def run(protocol: protocol_api.ProtocolContext):
     destination_columns = substrate_assay_plate_new.columns()[0:12]  # means all columns 1-12
 
     # trash the tips from the first transfer
-    left_pipette_20uL_multi.pick_up_tip()
-    left_pipette_20uL_multi.transfer(
+    right_pipette_20uL_multi.pick_up_tip()
+    right_pipette_20uL_multi.transfer(
         inoculation_volume,
         source_columns[0],
         destination_columns[0],
         new_tip="never",
         disposal_volume = 0,
     )
-    left_pipette_20uL_multi.drop_tip()
+    right_pipette_20uL_multi.drop_tip()
 
-    # return the tips from the rest of the transfers to conserve trash space
-    for i in range(1, len(source_columns)):  # (1,12) means columns 2-12
-        left_pipette_20uL_multi.pick_up_tip()
-        left_pipette_20uL_multi.transfer(
-            inoculation_volume,
-            source_columns[i],
-            destination_columns[i],
-            new_tip = "never",
-            disposal_volume = 0
-        )
-        left_pipette_20uL_multi.return_tip()
+    # # return the tips from the rest of the transfers to conserve trash space
+    # for i in range(1, len(source_columns)):  # (1,12) means columns 2-12
+    #     right_pipette_20uL_multi.pick_up_tip()
+    #     right_pipette_20uL_multi.transfer(
+    #         inoculation_volume,
+    #         source_columns[i],
+    #         destination_columns[i],
+    #         new_tip = "never",
+    #         disposal_volume = 0
+    #     )
+    #     right_pipette_20uL_multi.return_tip()
 
 
 
