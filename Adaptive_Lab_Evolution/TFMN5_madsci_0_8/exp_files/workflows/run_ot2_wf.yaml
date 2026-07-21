@@ -12,7 +12,7 @@ parameters:
     - key: ot2_node
 
 steps:
-  # Run OT-2 protocol
+  # 0. Run OT-2 protocol
   - name: Run OT-2 Protocol
     action: run_protocol
     files:

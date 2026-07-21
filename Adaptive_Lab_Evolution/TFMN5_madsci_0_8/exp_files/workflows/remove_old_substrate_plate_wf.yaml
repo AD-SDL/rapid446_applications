@@ -8,9 +8,7 @@ metadata:
 parameters:
   json_inputs:
     - key: ot2_location
-    - key: ot2_safe_path
     - key: lid_location
-    - key: lid_safe_path
     - key: sciclops_stack_old_plates
 
 steps:
@@ -18,51 +16,46 @@ steps:
   - name: transfer from ot2 to exchange
     node: pf400_piper
     action: transfer
-    args:
-      source_plate_rotation: wide
-      target_plate_rotation: wide
     locations:
-      target: exchange_nest_high_wide
-      target_approach: safe_path_exchange
+      target: exchange_wide
     params:
       locations:
         source: ot2_location
-        source_approach: ot2_safe_path
     conditions:
     - condition_type: no_resource_present
-      location_name: exchange_nest_low_narrow
+      location_name: exchange_wide
 
   # 1. Replace lid on exchange
   - name: replace lid
     node: pf400_piper
     action: replace_lid
-    args:
-      source_plate_rotation: narrow
-      target_plate_rotation: narrow
-      lid_height: 8
     locations:
-      target: exchange_nest_low_narrow
-      target_approach: safe_path_exchange
+      target: exchange_narrow
     params:
       locations:
         source: lid_location
-        source_approach: lid_safe_path
 
-  # 2. Return old plate to stack
+  # 2. Transfer from exchange to SciClops exchange
+  - name: transfer to sciclops exchange
+    node: pf400_piper
+    action: transfer
+    locations:
+      source: exchange_wide
+      target: sciclops_plankton.exchange
+
+  # 3. Return old plate to stack
   - name: transfer to stack
     node: sciclops_plankton
     action: transfer
-    args:
-      plate_type: flat_bottom_96well
     locations:
-      source: exchange_nest_low_narrow
+      source: sciclops_plankton.exchange
     params:
       locations:
         target: sciclops_stack_old_plates
 
-  # 3. Move SciClops to Safe
+  # 4. Move SciClops to Safe
   - name: move safe
     node: sciclops_plankton
     action: move
     locations:
-      location: safe_sciclops
+      location: sciclops_plankton.safe
