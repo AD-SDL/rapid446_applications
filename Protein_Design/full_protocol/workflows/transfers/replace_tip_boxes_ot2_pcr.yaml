@@ -10,90 +10,50 @@ steps:
   #transfer empty box 1 to exchange
   - name: Transfer empty tip box 1 to exchange
     node: pf400_piper
-    action: transfer
-    args:
-      source_plate_rotation: wide
-      target_plate_rotation: wide
-      # source_approach_height_offset: 10
-      grab_offset: 15
     locations:
       source: ot2_patrick_nest1_wide
       target: exchange_nest_high_wide
-      source_approach: safe_path_ot2_patrick_nest4_high
-      target_approach: safe_path_exchange
 
 
   #transfer empty box 1 from exchange to rack
   - name: Transfer box to rack
     node: pf400_piper
     action: transfer
-    args:
-      source_plate_rotation: narrow
-      target_plate_rotation: narrow
-      grab_offset: 15
     locations:
       source: exchange_nest_high_narrow
       target: rack1_row1_nest1
-      source_approach: safe_path_exchange
-      target_approach: safe_path_rack1_row1_nest1
 
   #transfer empty box 2 to exchange
   - name: Transfer empty tip box 2 to exchange
     node: pf400_piper
     action: transfer
-    args:
-      source_plate_rotation: wide
-      target_plate_rotation: wide
-      grab_offset: 15
-      # source_approach_height_offset: 10
     locations:
       source: ot2_patrick_nest3_wide
       target: exchange_nest_high_wide
-      source_approach: safe_path_ot2_patrick_nest6_high
-      target_approach: safe_path_exchange
 
 
   #transfer empty box 2 from exchange to rack
   - name: Transfer box to rack
     node: pf400_piper
     action: transfer
-    args:
-      source_plate_rotation: narrow
-      target_plate_rotation: narrow
-      grab_offset: 15
     locations:
       source: exchange_nest_high_narrow
       target: rack1_row1_nest2
-      source_approach: safe_path_exchange
-      target_approach: safe_path_rack1_row1_nest2
 
   #transfer fresh tip box to position 3
   - name: Transfer fresh box from rack to exchange
     node: pf400_piper
     action: transfer
-    args:
-      source_plate_rotation: narrow
-      target_plate_rotation: narrow
-      grab_offset: 15
     locations:
       source: rack1_row1_nest3
       target: exchange_nest_high_narrow
-      source_approach: safe_path_rack1_row1_nest3
-      target_approach: safe_path_exchange
 
   - name: Transfer fresh tip box from exchange to ot2 3
     node: pf400_piper
     action: transfer
-    args:
-      source_plate_rotation: wide
-      target_plate_rotation: wide
-      grab_offset: 15
-      # source_approach_height_offset: 10
     locations:
       source: exchange_nest_high_wide
       target: ot2_patrick_nest3_wide
-      source_approach: safe_path_exchange_tip_box_wide
-      target_approach: safe_path_ot2_patrick_nest6_high
 
 
 

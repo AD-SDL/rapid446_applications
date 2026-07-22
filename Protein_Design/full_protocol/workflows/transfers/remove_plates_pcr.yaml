@@ -9,12 +9,7 @@ steps:
   - name: exchnage to rack
     node: pf400_piper
     action: transfer
-    args:
-      source_plate_rotation: narrow
-      target_plate_rotation: narrow
     locations:
-      source_approach: safe_path_exchange
-      target_approach: safe_path_rack1_row2_nest2
       source: exchange_nest_low_narrow
       target: rack1_row2_nest2
 
@@ -22,24 +17,13 @@ steps:
   - name: ot2 temp block nest 6 to exchange
     node: pf400_piper
     action: transfer
-    args:
-      source_approach_height_offset: 10
-      source_plate_rotation: wide
-      target_plate_rotation: wide
     locations:
       source: ot2_patrick_nest6_temp_block_wide
-      source_approach: safe_path_ot2_patrick_nest6_high
       target: exchange_nest_high_wide
-      target_approach: safe_path_exchange
 
   - name: exchnage to rack
     node: pf400_piper
     action: transfer
-    args:
-      source_plate_rotation: narrow
-      target_plate_rotation: narrow
     locations:
-      source_approach: safe_path_exchange
-      target_approach: safe_path_rack1_row2_nest3
       source: exchange_nest_low_narrow
       target: rack1_row2_nest3

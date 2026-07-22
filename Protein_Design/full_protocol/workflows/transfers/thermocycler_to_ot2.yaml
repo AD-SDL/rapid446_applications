@@ -18,64 +18,41 @@ steps:
   - name: transfer
     node: pf400_piper
     action: transfer
-    args:
-      source_plate_rotation: wide
-      target_plate_rotation: wide
     locations:
       source: bio_biometra3_nest
       target: exchange_nest_high_wide
-      source_approach: safe_path_biometra3
-      target_approach: safe_path_exchange
 
 
 
   - name: transfer
     node: pf400_piper
     action: transfer
-    args:
-      source_plate_rotation: narrow
-      target_plate_rotation: narrow
     locations:
       source: exchange_nest_low_narrow
       target: peeler_nest
-      source_approach: safe_path_exchange
-      target_approach: safe_path_peeler
     comment: transfer to peeler
 
 
-  # # # - name: peel
-  # # #   node: bio_peeler
-  # # #   action: peel
-  # # #   args:
-  # # #     foo: bar
-  # # #   comment: peel the pcr plate
+  - name: peel
+    node: bio_peeler
+    action: peel
+    comment: peel the pcr plate
 
 
   #peeler to exchange
   - name: transfer
     node: pf400_piper
     action: transfer
-    args:
-      source_plate_rotation: narrow
-      target_plate_rotation: narrow
     locations:
       source: peeler_nest
       target: exchange_nest_high_narrow
-      source_approach: safe_path_peeler
-      target_approach: safe_path_exchange
     comment: moves plate from exchange to biometra 96 thermocycler
 
   #exchange to ot2
   - name: transfer
     node: pf400_piper
     action: transfer
-    args:
-      target_approach_height_offset: 10
-      source_plate_rotation: wide
-      target_plate_rotation: wide
     locations:
-      source_approach: safe_path_exchange
-      target_approach: safe_path_ot2_patrick_nest6_high
       source: exchange_nest_high_wide
       target: ot2_patrick_nest6_temp_block_wide
     comment: place plate on flex

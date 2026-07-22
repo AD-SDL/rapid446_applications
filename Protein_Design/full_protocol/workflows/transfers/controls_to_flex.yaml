@@ -25,13 +25,8 @@ steps:
   - name: transfer
     node: pf400_piper
     action: transfer
-    args:
-      source_plate_rotation: narrow
-      target_plate_rotation: narrow
     locations:
       source: exchange_nest_low_narrow
       target: otflex_sandy_nestA
-      source_approach: safe_path_exchange
-      target_approach: safe_path_otflex_sandy_nestA
     comment: moves plate from exchange to flex A
 
