@@ -1,29 +1,60 @@
-#!/usr/bin/env python3
-"""Experiment application for the Protein Design experiment"""
-
+import argparse
+import json
+import os
+import sys
 import time
 from datetime import datetime
 from pathlib import Path
+import random
+from typing import Any, ClassVar, Optional, Union
+from dotenv import load_dotenv
 
 from madsci.common.types.experiment_types import ExperimentDesign
-from madsci.client import ExperimentClient, WorkcellClient, LocationClient, ResourceClient
-from madsci.common.types.node_types import NodeDefinition
-from madsci.common.types.resource_types import Resource
-from madsci.experiment_application import (
-    ExperimentApplication,
-    ExperimentApplicationConfig,
-)
+from madsci.common.types.resource_types import Collection, Resource, Slot
+
+from madsci.experiment_application.experiment_script import ExperimentScript
+from pottery import Redlock
+
+from redis import Redis
 from pydantic import AnyUrl
 
 from REST_connection.REST_connect import RESTHandlerPD
 import helper_functions
 
 
+load_dotenv()
+
+# Set up redis for exchange location lock
+redis_host = os.getenv("REDIS_HOST")
+redis_port = os.getenv("REDIS_PORT")
+redis_password = os.getenv("REDIS_PASSWORD")
+exchange_auto_unlock_seconds = 86400 # 86400 seconds = 24 hours
+exchange_lock_timeout = 7200 # 7200 seconds = 2 hours
+exchange_waiters_key = "exchange_waiters"
+
+redis = Redis(
+    host=redis_host,
+    port=redis_port,
+    # password=redis_password,  
+)
+
+
+# TEST PING TO REDIS
+try:
+    redis.ping()
+    print("Sent ping")
+except Exception as e:
+    print("Redis connection error.", flush=True)
+    raise e
 
 
 
 
-class PDApp(ExperimentApplication): # TODO
+
+
+
+
+class PDApp(ExperimentScript,): # TODO
     """PD Experiment Application
 
     # TODO:
@@ -33,14 +64,19 @@ class PDApp(ExperimentApplication): # TODO
     experiment_design = ExperimentDesign(
         experiment_name="PD_App",
     )
-    config = ExperimentApplicationConfig(node_url=AnyUrl("http://localhost:6000"))
-    experiment_client = ExperimentClient()
-    workcell_client = WorkcellClient()
-    location_client = LocationClient()
-    resource_client = ResourceClient()
+    # config = ExperimentApplicationConfig(node_url=AnyUrl("http://localhost:6000"))
+    # experiment_client = ExperimentClient()
+    # workcell_client = WorkcellClient()
+    # location_client = LocationClient()
+    # resource_client = ResourceClient()
     experiment_id = None
     experiment_label = None
 
+    # def _validate_settings_path(self):
+    #     if not os.path.isfile(self.experiment_settings_file):
+    #         raise FileNotFoundError(
+    #             f"Settings file not found: {self.experiment_settings_file}"
+    #         )
 
     def __init__(self) -> None:
         """Initializes the PD Experiment App"""
@@ -107,7 +143,7 @@ class PDApp(ExperimentApplication): # TODO
 
             # check if the resource object currently has child resources (a plate already at that location)
             old_plate = None
-            if resource_object.child:
+            if len(resource_object.children) > 0:
                     # there is already a plate at this location
                     self.logger.log_info(f"A plate with ID {resource_object.child.resource_id} already exists at location: {location_name}")
 
@@ -115,6 +151,53 @@ class PDApp(ExperimentApplication): # TODO
                     popped_plate, updated_parent = self.resource_client.pop(resource=associated_resource_id)
                     self.logger.log_info(f"Popped plate with ID {resource_object.child.resource_id} from location: {location_name}")
                     old_plate = popped_plate
+            
+            # # Create a new assay plate resource and push it into the resource object associated with the given location.
+            # lid_resource = Resource(
+            #     resource_name = f"lid_for_plate_{plate_num}_expID_{experiment_id}",
+            #     attributes={
+            #         "lid": True
+            #     }
+            # )
+
+            # new_plate = Collection(
+            #     resource_name=f"assay_plate_{experiment_label}_{experiment_number}_{experiment_id}_plate{plate_num}",
+            #     resource_class="Microplate",
+            #     capacity=2, # lid slot and seal slot
+            #     attributes={
+            #         # Common attributes
+            #         "plate_height": 14, 
+            #         "lid_height": 10,
+            #         "plate_height_with_lid": 16,
+            #         "description": "96-well microplate with or without lid",
+
+            #         # PF400 specific attributes
+            #         "pf400_grip_height": 3,
+            #         "pf400_lid_only_grip_height":4,
+            #         "pf400_lid_removal_grip_height": 10,
+
+            #         # SciClops specific attributes
+            #         "sciclops_grip_height": 1, 
+            #         "sciclops_lid_grip_height": 4, 
+            #         "sciclops_lid_removal_grip_height": 12,
+            #     },
+            #     children={
+            #         "lid_slot": Slot(
+            #             resource_name = "lid slot resource",
+            #             children=[lid_resource]
+            #         )
+            #     }
+            # )
+
+            # self.resource_client.add_resource(new_plate)
+            # self.logger.log_info(f"Created new plate resource {new_plate.resource_name}, {new_plate.resource_id}")
+
+            # self.resource_client.push(
+            #     resource = associated_resource_id,
+            #     child = new_plate.resource_id,
+            # )
+            # self.logger.log_info(f"Pushed new plate resource into location {location_name}")
+            # return new_plate, old_plate
 
 
             # create a new assay plate resource and push it into the resource object associated with the given location
@@ -133,6 +216,17 @@ class PDApp(ExperimentApplication): # TODO
             )
             self.logger.log_info(f"Pushed new plate resource into location {location_name}")
             return new_plate, old_plate
+    
+    def jitter(self) -> None:
+        "Implements polite random jitter to assist in schedueling fairness between the running experiments."
+        waiters = int(redis.get(exchange_waiters_key) or 0)
+        print(f"Processes waiting for exchange lock = {waiters}", flush=True)
+        if waiters > 0:
+            print("Using polite jitter.", flush=True)
+            time.sleep(random.uniform(1.0, 3.0))   # be polite
+        else:
+            print("Using fast jitter.",flush=True)
+            time.sleep(random.uniform(0.1, 0.5))   # go fast
 
     def run_experiment(self) -> None:
         """main experiment function"""
@@ -933,16 +1027,20 @@ class PDApp(ExperimentApplication): # TODO
 
 
 if __name__ == "__main__":
-    exp_app = PDApp()
+    # exp_app = PDApp()
 
-    current_time = datetime.now()
+    # current_time = datetime.now()
 
-    # Start experiment run
-    with exp_app.manage_experiment(
-        run_name = f"PD_Experiment{current_time.strftime('%Y%m%d_%H%M%S')}",
-        run_description = "PD experiment",
-    ):
-        exp_app.start_app()
+    # # Start experiment run
+    # with exp_app.manage_experiment(
+    #     run_name = f"PD_Experiment{current_time.strftime('%Y%m%d_%H%M%S')}",
+    #     run_description = "PD experiment",
+    # ):
+    #     exp_app.start_app()
 
 
-    #TODO
+    # Start the experiment run.
+    PDApp.main(
+        lab_server_url="http://146.137.240.20:8000/",
+        settings_file=args.settings
+    )
