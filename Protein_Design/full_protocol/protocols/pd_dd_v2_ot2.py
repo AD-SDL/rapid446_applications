@@ -19,7 +19,10 @@ config = {
     'pcr_sample_volume': 2,
     'water_volume': 18,
     # 'combinations': [[18,10],[11,19],[4,20],[21,13]],
-    'combinations': [[1], [2, 2], [3, 3], [4, 4]],
+    # 'combinations': [[1], [2, 2], [3, 3], [4, 4]],
+    'combinations': "$combinations",
+    'use_combinations': bool("$use_combinations"),
+    'non_combinatorial_sources': "$non_combinatorial_sources",
     "num_controls": 5,
     'control_volume': 20,
 
@@ -49,8 +52,7 @@ config = {
     'diluted_plate_position': 'C3',
     'reagent_plate_position': 'A1',
     'tip_rack_position_20_01': 'D3',
-    # 'controls_plate_position': 'A2',
-    'controls_plate_position': 'D1',
+    'controls_plate_position': 'A2',
 }
 
 

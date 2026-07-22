@@ -1,0 +1,21 @@
+name: pcr from flex to exchange
+
+metadata:
+  author: Abe Stroka
+  info: Workflow for transfering pcr plate from flex to cool block on ot2 nest 4
+  version: '0.1'
+
+
+steps:
+  - name: transfer
+    node: pf400_piper
+    action: transfer
+    args:
+      source_plate_rotation: narrow
+      target_plate_rotation: narrow
+    locations:
+      source: otflex_sandy_nestA
+      target: exchange_nest_low_narrow
+      source_approach: safe_path_otflex_sandy_nestA
+      target_approach: safe_path_exchange
+

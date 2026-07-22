@@ -37,7 +37,6 @@ class PDApp(ExperimentApplication):
     workcell_client = WorkcellClient()
     location_client = LocationClient()
     resource_client = ResourceClient()
-    rest_handler = RESTHandlerPD()
     experiment_id = None
     experiment_label = None
 
@@ -176,15 +175,12 @@ class PDApp(ExperimentApplication):
 
         payload = {}
 
-        combination_data = self.rest_handler.collect_combinations(oracle_id=1008)
-        # print("combination_data", combination_data)
-        # print(combination_data["combinations"])
-        # print(combination_data["use_combinations"])
-        # print(combination_data["non_combinatorial_sources"])
+        # combination_data = self.rest_handler.collect_combinations(oracle_id=1008)
 
-        payload["combinations"] = combination_data["combinations"]
-        payload["use_combinations"] = combination_data["use_combinations"]
-        payload["non_combinatorial_sources"] = combination_data["non_combinatorial_sources"]
+
+        # payload["combinations"] = combination_data["combinations"]
+        # payload["use_combinations"] = combination_data["use_combinations"]
+        # payload["non_combinatorial_sources"] = combination_data["non_combinatorial_sources"]
 
 
 

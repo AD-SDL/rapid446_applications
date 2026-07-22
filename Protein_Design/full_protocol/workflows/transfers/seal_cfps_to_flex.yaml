@@ -1,0 +1,66 @@
+name: seal_and_thermocycle_pcr
+
+metadata:
+  author: Abe Stroka
+  info: Workflow for transfering pcr plate from ot2 to thermocycler
+  version: '0.1'
+
+
+steps:
+  - name: transfer from ot2 to exchange
+    node: pf400_piper
+    action: transfer
+    args:
+      source_plate_rotation: wide
+      target_plate_rotation: wide
+    locations:
+      target: exchange_nest_high_wide
+      target_approach: safe_path_exchange
+      source: ot2_patrick_nest4_temp_block_wide
+      source_approach: safe_path_ot2_patrick_nest4_high
+
+  - name: exchange to sealer
+    node: pf400_piper
+    action: transfer
+    args:
+      source_plate_rotation: narrow
+      target_plate_rotation: narrow
+    locations:
+      source: exchange_nest_high_narrow
+      target: sealer_nest
+      source_approach: safe_path_exchange
+      target_approach: safe_path_sealer
+
+
+  - name: seal
+    node: sealer_sassy
+    action: seal
+    args:
+      foo: bar
+    comment: seal the pcr plate
+
+
+  - name: sealer_to_exchange
+    node: pf400_piper
+    action: transfer
+    args:
+      source_plate_rotation: narrow
+      target_plate_rotation: narrow
+    locations:
+      source: sealer_nest
+      target: exchange_nest_high_narrow
+      source_approach: safe_path_sealer
+      target_approach: safe_path_exchange
+
+  - name: transfer
+    node: pf400_piper
+    action: transfer
+    args:
+      source_plate_rotation: narrow
+      target_plate_rotation: narrow
+    locations:
+      source: exchange_nest_low_narrow
+      target: otflex_sandy_nestA
+      source_approach: safe_path_exchange
+      target_approach: safe_path_otflex_sandy_nestA
+    comment: moves plate from exchange to flex A
