@@ -1,0 +1,107 @@
+name: Get new plate from Stack, take contam BMG reading WF
+
+metadata:
+  author: Casey Stone
+  info: Workflow for getting a new substrate plate from the rack and taking initial contamination reading
+  version: '0.1'
+
+parameters:
+  json_inputs:
+    - key: bmg_data_file_name
+    - key: data_output_directory_path
+    - key: lid_location
+    - key: sciclops_stack_new_plates
+
+
+steps:
+  # 0. Get new plate from current rack nest
+  - name: transfer from stack to exchange
+    node: sciclops_plankton
+    action: transfer
+    locations:
+      target: sciclops_plankton.exchange
+    params:
+      locations:
+        source: sciclops_stack_new_plates
+    conditions:
+    - condition_type: no_resource_present
+      location_name: bmg_billy.bmg_carriage
+    - condition_type: no_resource_present
+      location_name: exchange_narrow
+
+  # 1. Move SciClops to Safe
+  - name: move safe
+    node: sciclops_plankton
+    action: move
+    locations:
+      location: sciclops_plankton.safe
+
+  # 2. Transfer new plate to exchange
+  - name: transfer from sciclops exchange to exchange
+    node: pf400_piper
+    action: transfer
+    locations:
+      source: sciclops_plankton.exchange
+      target: exchange_wide
+    conditions:
+    - condition_type: no_resource_present
+      location_name: bmg_billy.bmg_carriage
+    - condition_type: no_resource_present
+      location_name: exchange_wide
+
+  # 3. Remove lid
+  - name: remove lid
+    node: pf400_piper
+    action: remove_lid
+    locations:
+      source: exchange_narrow
+    params:
+      locations:
+        target: lid_location
+
+  # 4. Open BMG tray
+  - name: open bmg
+    node: bmg_billy
+    action: open
+
+  # 5. Transfer from exchange to BMG
+  - name: transfer plate without lid to bmg nest
+    node: pf400_piper
+    action: transfer
+    locations:
+      source: exchange_narrow
+      target: bmg_billy.bmg_carriage
+    conditions:
+    - condition_type: no_resource_present
+      location_name: bmg_billy.bmg_carriage
+
+  # 6. Close BMG tray
+  - name: close bmg
+    node: bmg_billy
+    action: close
+
+  # 7. Run BMG assay
+  - name: run BMG absorbance assay
+    node: bmg_billy
+    key: bmg_data
+    action: run_assay
+    args:
+      assay_name: NIDHI
+    params:
+      args:
+        data_output_file_name: bmg_data_file_name
+        data_output_directory_path: data_output_directory_path
+
+  # 8. Open BMG tray
+  - name: open bmg
+    node: bmg_billy
+    action: open
+    conditions:
+    - condition_type: no_resource_present
+      location_name: exchange_narrow
+
+
+
+
+
+

@@ -8,11 +8,12 @@ authors = [
     {name = "Ryan D. Lewis", email="ryan.lewis@anl.gov"},
 ]
 dependencies = [
-    "madsci.client~=0.6.0",
-    "madsci.common~=0.6.0",
-    "madsci.experiment_application~=0.6.0",
+    "madsci.client~=0.8.0",
+    "madsci.common~=0.8.0",
+    "madsci.experiment_application~=0.8.0",
+    "pottery"
 ]
-requires-python = ">=3.9.1"
+requires-python = ">=3.10.0"
 readme = "README.md"
 license = {text = "MIT"}
 
@@ -118,6 +119,10 @@ filterwarnings = [
 markers = [
     "hardware: marks test as requiring hardware (deselect with '-m \"not hardware\"')",
 ]
+
+# Prevents PDM from trying to build/install rapid446_applications as a package
+[tool.pdm]
+distribution = false
 
 [tool.mypy]
 # https://mypy.readthedocs.io/en/stable/config_file.html#using-a-pyproject-toml

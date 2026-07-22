@@ -15,7 +15,13 @@ from pydantic import AnyUrl
 
 
 class DEMOApp(ExperimentApplication):
-    """Demo Experiment Application"""
+    """Demo Experiment Application
+
+    Starting deck layout:
+        - 96 well flat-bottom with lid on exchange
+        - 96 well flat-bottom plate WITHOUT LID on OT2 spongebob deck 3
+        - 300uL tip box in position 4
+    """
 
     experiment_design = ExperimentDesign(
         experiment_name="DEMO_App",

@@ -1,0 +1,23 @@
+{
+    "total_outer_loops": 1,  
+    "total_inner_loops": 1,
+    "incubation_seconds_initial": 10,
+    "incubation_seconds_between_readings": 36,
+    "inoculation_volume": 15,
+
+    "experiment_label": "TFMN5",
+    "experiment_number": "exp1",
+
+    "old_lid_location": "rack1_row1_nest2",
+    "new_lid_location": "rack1_row1_nest1",
+    "ot2_node": "ot2_spongebob",
+    "new_ot2_plate_location": "ot2_spongebob.deck_nest_1",
+    "old_ot2_plate_location": "ot2_spongebob.deck_nest_3",
+    "incubator_node": "inheco_irene_2.0",
+    "incubator_location": "inheco_irene_2.0.inheco_carriage",
+
+    "sciclops_stack_new_plates": "sciclops_plankton.stack_1",
+    "sciclops_stack_old_plates": "sciclops_plankton.stack_4"
+
+
+}

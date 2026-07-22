@@ -1,0 +1,21 @@
+name: Run OT-2 Protocol WF
+
+metadata:
+  author: Casey Stone
+  info: Workflow for running one OT-2 protocol from payload
+  version: '0.1'
+
+parameters:
+  file_inputs:
+    - key: ot2_protocol
+  json_inputs:
+    - key: ot2_node
+
+steps:
+  # Run OT-2 protocol
+  - name: Run OT-2 Protocol
+    action: run_protocol
+    files:
+      protocol: ot2_protocol
+    params:
+      node: ot2_node

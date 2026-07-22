@@ -1,0 +1,56 @@
+name: Transfer from BMG to OT-2 WF
+
+metadata:
+  author: Casey Stone
+  info: Workflow for transferring from BMG to OT-2
+  version: '0.1'
+
+parameters:
+  json_inputs:
+    - key: ot2_location
+    - key: ot2_safe_path
+
+steps:
+  # 0. Open the BMG - might be redundant
+  - name: open BMG
+    node: bmg_billy
+    action: open
+    conditions:
+    - condition_type: no_resource_present
+      location_name: exchange_nest_low_narrow
+
+  # 1. Transfer from BMG to exchange
+  - name: transfer from BMG to exchange
+    node: pf400_piper
+    action: transfer
+    args:
+      source_plate_rotation: narrow
+      target_plate_rotation: narrow
+    locations:
+      source: bmg_reader_nest
+      target: exchange_nest_low_narrow
+      source_approach: safe_path_bmg
+      target_approach: safe_path_exchange
+    conditions:
+    - condition_type: no_resource_present
+      location_name: exchange_nest_low_narrow
+
+  # 2. Transfer into OT-2 nest
+  - name: transfer from exchange to OT-2
+    node: pf400_piper
+    action: transfer
+    args:
+      source_plate_rotation: wide
+      target_plate_rotation: wide
+    locations:
+      source: exchange_nest_high_wide
+      source_approach: safe_path_exchange
+    params:
+      locations:
+        target: ot2_location
+        target_approach: ot2_safe_path
+
+  # 3. Close the BMG
+  - name: close BMG
+    node: bmg_billy
+    action: close
