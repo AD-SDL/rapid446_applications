@@ -10,9 +10,10 @@ steps:
   #transfer empty box 1 to exchange
   - name: Transfer empty tip box 1 to exchange
     node: pf400_piper
+    action: transfer
     locations:
-      source: ot2_patrick_nest1_wide
-      target: exchange_nest_high_wide
+      source: ot2_patrick.deck_nest_1
+      target: exchange_wide
 
 
   #transfer empty box 1 from exchange to rack
@@ -20,7 +21,7 @@ steps:
     node: pf400_piper
     action: transfer
     locations:
-      source: exchange_nest_high_narrow
+      source: exchange_narrow
       target: rack1_row1_nest1
 
   #transfer empty box 2 to exchange
@@ -28,8 +29,8 @@ steps:
     node: pf400_piper
     action: transfer
     locations:
-      source: ot2_patrick_nest3_wide
-      target: exchange_nest_high_wide
+      source: ot2_patrick.deck_nest_3
+      target: exchange_wide
 
 
   #transfer empty box 2 from exchange to rack
@@ -37,7 +38,7 @@ steps:
     node: pf400_piper
     action: transfer
     locations:
-      source: exchange_nest_high_narrow
+      source: exchange_narrow
       target: rack1_row1_nest2
 
   #transfer fresh tip box to position 3
@@ -46,14 +47,14 @@ steps:
     action: transfer
     locations:
       source: rack1_row1_nest3
-      target: exchange_nest_high_narrow
+      target: exchange_narrow
 
   - name: Transfer fresh tip box from exchange to ot2 3
     node: pf400_piper
     action: transfer
     locations:
-      source: exchange_nest_high_wide
-      target: ot2_patrick_nest3_wide
+      source: exchange_wide
+      target: ot2_patrick.deck_nest_3
 
 
 

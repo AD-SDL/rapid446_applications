@@ -13,6 +13,7 @@ from madsci.common.types.experiment_types import ExperimentDesign
 from madsci.common.types.resource_types import Collection, Resource, Slot
 
 from madsci.experiment_application.experiment_script import ExperimentScript
+from madsci.client.resource_client import ResourceClient
 from pottery import Redlock
 
 from redis import Redis
@@ -78,58 +79,56 @@ class PDApp(ExperimentScript,): # TODO
     #             f"Settings file not found: {self.experiment_settings_file}"
     #         )
 
-    def __init__(self) -> None:
-        """Initializes the PD Experiment App"""
+    # def __init__(self) -> None:
+    #     """Initializes the PD Experiment App"""
 
-        super().__init__()
-        self.init_assay_plate_resource_template()
+    #     super().__init__()
+    #     self.init_assay_plate_resource_template()
 
-    def init_assay_plate_resource_template(self):
-        """Initializes assay plate resource template"""
+    # def init_assay_plate_resource_template(self):
+    #     """Initializes assay plate resource template"""
 
-        self.resource_client.create_template(
-            resource=Resource(
-                resource_description="NEST PCR plate 200ul",
-            ),
-            template_name="opentrons_96_wellplate_200ul_pcr_full_skirt",
-            description="Template for 200ul PCR plate",
-            tags=["Plate", "ANSI/SLAS", "96 Well", "PCR", "Labware"],
-        )
+    #     self.resource_client.create_template(
+    #         resource=Resource(
+    #             resource_description="NEST PCR plate 200ul",
+    #         ),
+    #         template_name="opentrons_96_wellplate_200ul_pcr_full_skirt",
+    #         description="Template for 200ul PCR plate",
+    #         tags=["Plate", "ANSI/SLAS", "96 Well", "PCR", "Labware"],
+    #     )
 
-        self.resource_client.create_template(
-            resource=Resource(
-                resource_description="ot2 20ul tiprack",
-            ),
-            template_name="opentrons_96_filtertiprack_20ul",
-            description="Template for ot2 20ul tiprack",
-            tags=["Tiprack", "ANSI/SLAS", "96 Well", "Labware"],
-        )
+    #     self.resource_client.create_template(
+    #         resource=Resource(
+    #             resource_description="ot2 20ul tiprack",
+    #         ),
+    #         template_name="opentrons_96_filtertiprack_20ul",
+    #         description="Template for ot2 20ul tiprack",
+    #         tags=["Tiprack", "ANSI/SLAS", "96 Well", "Labware"],
+    #     )
 
-        self.resource_client.create_template(
-            resource=Resource(
-                resource_description="otflex 50ul tiprack",
-            ),
-            template_name="opentrons_flex_96_filtertiprack_50ul",
-            description="Template for OT-Flex 50ul tiprack",
-            tags=["Tiprack", "ANSI/SLAS", "96 Well", "Labware"],
-        )
+    #     self.resource_client.create_template(
+    #         resource=Resource(
+    #             resource_description="otflex 50ul tiprack",
+    #         ),
+    #         template_name="opentrons_flex_96_filtertiprack_50ul",
+    #         description="Template for OT-Flex 50ul tiprack",
+    #         tags=["Tiprack", "ANSI/SLAS", "96 Well", "Labware"],
+    #     )
 
-        self.resource_client.create_template(
-            resource=Resource(
-                resource_description="otflex 200ul tiprack",
-            ),
-            template_name="opentrons_flex_96_filtertiprack_200ul",
-            description="Template for 200ul OT-Flex tiprack",
-            tags=["Tiprack", "ANSI/SLAS", "96 Well", "Labware"],
-        )
+    #     self.resource_client.create_template(
+    #         resource=Resource(
+    #             resource_description="otflex 200ul tiprack",
+    #         ),
+    #         template_name="opentrons_flex_96_filtertiprack_200ul",
+    #         description="Template for 200ul OT-Flex tiprack",
+    #         tags=["Tiprack", "ANSI/SLAS", "96 Well", "Labware"],
+    #     )
 
 
     def push_new_assay_plate_resource(
             self,
-            plate_num: int,
             location_name: str,
-            experiment_id: int,
-            name: str,
+            labware_type: str,
         ) -> None | Resource:
             """
             Pushes a new assay plate resource into the specified location, popping an existing plate in that location if necessary.
@@ -159,55 +158,62 @@ class PDApp(ExperimentScript,): # TODO
             #         "lid": True
             #     }
             # )
+            if labware_type == "pcr":
+                new_plate = Collection(
+                    # resource_id="01KT9Q9MJF3WPYQT6TBZ9QPQ5J",
+                    resource_name="Z_PCR_CORRECT_ATTRIBUTES_PLATE_2",
+                    resource_class="Microplate",
+                    attributes={
+                        # Common attributes
+                        "plate_height": 14, 
+                        "description": "TEST 96-well PLATE",
+                        "catalog_number": "SP-2396",
 
-            # new_plate = Collection(
-            #     resource_name=f"assay_plate_{experiment_label}_{experiment_number}_{experiment_id}_plate{plate_num}",
-            #     resource_class="Microplate",
-            #     capacity=2, # lid slot and seal slot
-            #     attributes={
-            #         # Common attributes
-            #         "plate_height": 14, 
-            #         "lid_height": 10,
-            #         "plate_height_with_lid": 16,
-            #         "description": "96-well microplate with or without lid",
+                        # PF400 specific attributes
+                        "pf400_grip_height": 6,
 
-            #         # PF400 specific attributes
-            #         "pf400_grip_height": 3,
-            #         "pf400_lid_only_grip_height":4,
-            #         "pf400_lid_removal_grip_height": 10,
+                        # SciClops specific attributes
+                        "sciclops_grip_height": 1,
+                    },
+                )
+            
+            elif labware_type == "ot2_tiprack":
+                 new_plate = Collection(
+                    # resource_id="01KT9Q9MJF3WPYQT6TBZ9QPQ5J",
+                    resource_name="Z_PCR_CORRECT_ATTRIBUTES_PLATE_2",
+                    resource_class="Microplate",
+                    attributes={
+                        # Common attributes
+                        "plate_height": 64, 
+                        "description": "Opentrons OT-2 Tiprack",
 
-            #         # SciClops specific attributes
-            #         "sciclops_grip_height": 1, 
-            #         "sciclops_lid_grip_height": 4, 
-            #         "sciclops_lid_removal_grip_height": 12,
-            #     },
-            #     children={
-            #         "lid_slot": Slot(
-            #             resource_name = "lid slot resource",
-            #             children=[lid_resource]
-            #         )
-            #     }
-            # )
+                        # PF400 specific attributes
+                        "pf400_grip_height": 23,
 
-            # self.resource_client.add_resource(new_plate)
-            # self.logger.log_info(f"Created new plate resource {new_plate.resource_name}, {new_plate.resource_id}")
+                        # SciClops specific attributes
+                        "sciclops_grip_height": 23,
+                    },
+                )
+            
+            elif labware_type == "otflex_tiprack":
+                 new_plate = Collection(
+                    # resource_id="01KT9Q9MJF3WPYQT6TBZ9QPQ5J",
+                    resource_name="Z_PCR_CORRECT_ATTRIBUTES_PLATE_2",
+                    resource_class="Microplate",
+                    attributes={
+                        # Common attributes
+                        "plate_height": 100, 
+                        "description": "Opentrons FLEX Tiprack",
 
-            # self.resource_client.push(
-            #     resource = associated_resource_id,
-            #     child = new_plate.resource_id,
-            # )
-            # self.logger.log_info(f"Pushed new plate resource into location {location_name}")
-            # return new_plate, old_plate
+                        # PF400 specific attributes
+                        "pf400_grip_height": 55,
 
+                        # SciClops specific attributes
+                        "sciclops_grip_height": 55,
+                    },
+                )
 
-            # create a new assay plate resource and push it into the resource object associated with the given location
-            # if name == "opentrons_96_wellplate_200ul_pcr_full_skirt":
-
-            new_plate = self.resource_client.create_resource_from_template(
-                template_name = name,
-                resource_name = f"res_{experiment_id}_plate{plate_num}",
-            )
-
+            self.resource_client.add_resource(new_plate)
             self.logger.log_info(f"Created new plate resource {new_plate.resource_name}, {new_plate.resource_id}")
 
             self.resource_client.push(
@@ -216,6 +222,24 @@ class PDApp(ExperimentScript,): # TODO
             )
             self.logger.log_info(f"Pushed new plate resource into location {location_name}")
             return new_plate, old_plate
+
+
+            # create a new assay plate resource and push it into the resource object associated with the given location
+            # if name == "opentrons_96_wellplate_200ul_pcr_full_skirt":
+
+            # new_plate = self.resource_client.create_resource_from_template(
+            #     template_name = name,
+            #     resource_name = f"res_{experiment_id}_plate{plate_num}",
+            # )
+
+            # self.logger.log_info(f"Created new plate resource {new_plate.resource_name}, {new_plate.resource_id}")
+
+            # self.resource_client.push(
+            #     resource = associated_resource_id,
+            #     child = new_plate.resource_id,
+            # )
+            # self.logger.log_info(f"Pushed new plate resource into location {location_name}")
+            # return new_plate, old_plate
     
     def jitter(self) -> None:
         "Implements polite random jitter to assist in schedueling fairness between the running experiments."
@@ -231,10 +255,28 @@ class PDApp(ExperimentScript,): # TODO
     def run_experiment(self) -> None:
         """main experiment function"""
 
-        #TODO: plate starting on ot2 patrick deck 6 on temp block
-        # new_plate, old_plate = self.push_new_assay_plate_resource(
-        #         location_name="ot2_patrick_nest6_temp_block_wide",
-        #     )
+        #intitialize resources #TODO make into seperate function
+        new_plate, old_plate = self.push_new_assay_plate_resource(
+            location_name="ot2_patrick.deck_nest_6_temp_block",
+            labware_type="pcr"
+        )
+
+        new_plate, old_plate = self.push_new_assay_plate_resource(
+            location_name="ot2_patrick.deck_nest_1",
+            labware_type="ot2_tiprack"
+        )
+
+        new_plate, old_plate = self.push_new_assay_plate_resource(
+            location_name="ot2_patrick.deck_nest_3",
+            labware_type="ot2_tiprack"
+        )
+
+        new_plate, old_plate = self.push_new_assay_plate_resource(
+            location_name="rack1_row1_nest3",
+            labware_type="ot2_tiprack"
+        )
+
+
 
         # DEFINE PATHS AND VARIABLES ========
         run_robots = False  # if False, no robots will run
@@ -243,6 +285,9 @@ class PDApp(ExperimentScript,): # TODO
 
         # Experiment ID and name
         experiment_id = self.experiment.experiment_id
+            # resource_server_url = None  # "http://ip of the resource server"
+
+            # resource_client = ResourceClient(resource_server_url = resource_server_url)
         experiment_label = "1"
 
         # Directory paths
@@ -284,8 +329,8 @@ class PDApp(ExperimentScript,): # TODO
              transfers_directory / "pcr_plate_to_ot2_block_2.yaml"
         )
 
-        seal_and_thermocycle = (
-             transfers_directory / "seal_and_thermocycle_pcr.yaml"
+        seal_and_thermocycle_gg = (
+             transfers_directory / "seal_and_thermocycle_gg.yaml"
         )
 
         fragments_flex_to_exchange = (
@@ -352,6 +397,10 @@ class PDApp(ExperimentScript,): # TODO
              transfers_directory / "fdglu_to_hidex.yaml"
         )
 
+        seal_and_thermocycle_pcr = (
+             transfers_directory / "seal_and_thermocycle_pcr.yaml"
+        )
+
 
 
 
@@ -370,9 +419,7 @@ class PDApp(ExperimentScript,): # TODO
         # Protocol paths (for OT-2)
         golden_gate_protocol = protocol_directory / "pd_golden_gate_ot2_v2.py"
 
-        seal_and_thermocycle = (
-             transfers_directory / "seal_and_thermocycle_pcr.yaml"
-        )
+        
 
         pcr_flex_protocol = protocol_directory / "pd_pcr_v2_flex.py"
         pcr_ot2_protocol = protocol_directory / "pd_pcr_v2_ot2.py"
@@ -407,41 +454,25 @@ class PDApp(ExperimentScript,): # TODO
         ### GOLDEN GATE
         ##############
 
-        gg_current_20_tip_boxes = 2
-        gg_current_20_tips = gg_current_20_tip_boxes * 96
 
-        #Tips used:
-        #add master mix:
-        gg_20_tips_used = combination_num
 
-        #transfer combinatorials:
-        gg_20_tips_used += (combination_num * 4)
+        # # run ot2 protocol step 1
+        # ot2_replacement_variables = helper_functions.collect_ot2_replacement_variables(payload)
+        # temp_ot2_file_str = helper_functions.generate_ot2_protocol(golden_gate_protocol, ot2_replacement_variables)
+        # payload["current_ot2_protocol"] = temp_ot2_file_str
+        # workflow = self.workcell_client.submit_workflow(
+        #     run_ot2_wf.resolve(),
+        #     file_inputs={
+        #         "ot2_protocol": payload["current_ot2_protocol"],
+        #     },
+        # )
 
-        # run ot2 protocol step 1
-        ot2_replacement_variables = helper_functions.collect_ot2_replacement_variables(payload)
-        temp_ot2_file_str = helper_functions.generate_ot2_protocol(golden_gate_protocol, ot2_replacement_variables)
-        payload["current_ot2_protocol"] = temp_ot2_file_str
-        workflow = self.workcell_client.submit_workflow(
-            run_ot2_wf.resolve(),
-            file_inputs={
-                "ot2_protocol": payload["current_ot2_protocol"],
-            },
-        )
 
-###### depending on combinatorial length, will need additional tips
-        #swap tip boxes
-
-        #run ot2 protocol step 2
-
-        #swap tip boxes
-
-        #run ot2 protocol step 3 with master mix multi dispense
-
-        #########################
 
         # transfer destination plate to thermocycler and run
+        #WORKING 7-22
         # workflow = self.workcell_client.submit_workflow(
-        #     seal_and_thermocycle.resolve(),
+        #     seal_and_thermocycle_gg.resolve(),
         # )
 
         # #run thermocycler
@@ -458,10 +489,12 @@ class PDApp(ExperimentScript,): # TODO
         # set temp blocks on both flex and ot2 to 4 deg
 
         # # swap out one new p20 tip box on ot2, remove from D1 and D3
-        #WORKING
-        workflow = self.workcell_client.submit_workflow(
-            replace_tip_boxes_ot2_pcr.resolve(),
-        )
+        #WORKING 722
+        # workflow = self.workcell_client.submit_workflow(
+        #     replace_tip_boxes_ot2_pcr.resolve(),
+        # )
+
+        #TODO: increase height of safe path narrow exchange colliding with tip boxes
 
         # move gg plate from thermocycler to temp block in ot2 deck 6
         #WORKING
@@ -576,7 +609,7 @@ class PDApp(ExperimentScript,): # TODO
         #seal and thermocycle pcr product plate
         #WORKING
         workflow = self.workcell_client.submit_workflow(
-            seal_and_thermocycle.resolve(),
+            seal_and_thermocycle_pcr.resolve(),
         )
 
         # #run thermocycler
@@ -1042,5 +1075,4 @@ if __name__ == "__main__":
     # Start the experiment run.
     PDApp.main(
         lab_server_url="http://146.137.240.20:8000/",
-        settings_file=args.settings
     )

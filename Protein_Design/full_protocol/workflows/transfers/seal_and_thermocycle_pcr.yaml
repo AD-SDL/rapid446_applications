@@ -17,20 +17,23 @@ steps:
     node: pf400_piper
     action: transfer
     locations:
-      target: exchange_wide
-      source: ot2_patrick.deck_nest_6_temp_block
+      target: exchange_nest_high_wide
+      source: ot2_patrick_nest4_temp_block_wide
 
   - name: exchange to sealer
     node: pf400_piper
     action: transfer
     locations:
-      source: exchange_narrow
-      target: sealer_sassy.sealer_carriage
+      source: exchange_nest_high_narrow
+      target: sealer_nest
+
 
 
   - name: seal
     node: sealer_sassy
     action: seal
+    args:
+      foo: bar
     comment: seal the pcr plate
 
 
@@ -38,17 +41,16 @@ steps:
     node: pf400_piper
     action: transfer
     locations:
-      source: sealer_sassy.sealer_carriage
-      target: exchange_narrow
+      source: sealer_nest
+      target: exchange_nest_high_narrow
 
 
   - name: exchange to thermocycler
     node: pf400_piper
     action: transfer
     locations:
-      source: exchange_wide
-      target: biometra_beuford.biometra_nest
-
+      source: exchange_nest_high_wide
+      target: bio_biometra3_nest
 
   - name: close biometra
     node: biometra_beuford_96
