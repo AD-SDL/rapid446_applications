@@ -390,7 +390,8 @@ class ALEApp(ExperimentScript,):
                     )
 
                     # Collect associated resource id.
-                    datapoint_id = workflow.get_datapoint_id(step_key="bmg_data", label="json_result")
+                    # datapoint_id = workflow.get_datapoint_id(step_key="bmg_data", label="json_result")
+                    datapoint_id = workflow.get_datapoint(step_key="bmg_data", label="file")
                     resource_id = self.data_client.get_datapoint_value(datapoint_id=datapoint_id)
 
                     # Write UTC BMG timestamp to CSV data file.
@@ -506,7 +507,8 @@ class ALEApp(ExperimentScript,):
                         )
 
                         # Collect associated resource id.
-                        datapoint_id = workflow.get_datapoint_id(step_key="bmg_data", label="json_result")
+                        # datapoint_id = workflow.get_datapoint_id(step_key="bmg_data", label="json_result")
+                        datapoint_id = workflow.get_datapoint(step_key="bmg_data", label="file")
                         resource_id = self.data_client.get_datapoint_value(datapoint_id=datapoint_id)
 
                         # Write UTC BMG timestamp to CSV data file
@@ -612,7 +614,8 @@ class ALEApp(ExperimentScript,):
                         )
 
                         # Collect associated resource ID.
-                        datapoint_id = workflow.get_datapoint_id(step_key="bmg_data", label="json_result")
+                        # datapoint_id = workflow.get_datapoint_id(step_key="bmg_data", label="json_result")
+                        datapoint_id = workflow.get_datapoint(step_key="bmg_data", label="file")
                         resource_id = self.data_client.get_datapoint_value(datapoint_id=datapoint_id)
 
                         # Write UTC BMG timestamp to CSV data file.
