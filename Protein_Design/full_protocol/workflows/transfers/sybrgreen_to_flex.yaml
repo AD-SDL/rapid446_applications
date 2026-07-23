@@ -11,8 +11,8 @@ steps:
     node: pf400_piper
     action: transfer
     locations:
-      source: rack_row3_nest2
-      target: exchange_nest_low_narrow
+      source: rack1_row3_nest2
+      target: exchange_narrow
     comment: place plate on exchange
 
 
@@ -20,7 +20,7 @@ steps:
     node: pf400_piper
     action: transfer
     locations:
-      source: exchange_nest_low_narrow
-      target: otflex_sandy_nestA
+      source: exchange_narrow
+      target: otflex_sandy.deck_nest_A4
     comment: moves plate from exchange to flex A
 

@@ -19,8 +19,8 @@ steps:
     node: pf400_piper
     action: transfer
     locations:
-      source: bio_biometra3_nest
-      target: exchange_nest_high_wide
+      source: biometra_beuford.biometra_nest
+      target: exchange_wide
 
 
 
@@ -28,13 +28,13 @@ steps:
     node: pf400_piper
     action: transfer
     locations:
-      source: exchange_nest_low_narrow
-      target: peeler_nest
+      source: exchange_narrow
+      target: peeler_penelope.peeler_carriage
     comment: transfer to peeler
 
 
   - name: peel
-    node: bio_peeler
+    node: peeler_penelope
     action: peel
     comment: peel the pcr plate
 
@@ -44,8 +44,8 @@ steps:
     node: pf400_piper
     action: transfer
     locations:
-      source: peeler_nest
-      target: exchange_nest_high_narrow
+      source: peeler_penelope.peeler_carriage
+      target: exchange_narrow
     comment: moves plate from exchange to biometra 96 thermocycler
 
   #exchange to ot2
@@ -53,6 +53,6 @@ steps:
     node: pf400_piper
     action: transfer
     locations:
-      source: exchange_nest_high_wide
-      target: ot2_patrick_nest6_temp_block_wide
+      source: exchange_wide
+      target: ot2_patrick.deck_nest_6_temp_block
     comment: place plate on flex

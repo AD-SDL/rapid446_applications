@@ -2,7 +2,7 @@ name: biometra_96 to ot2
 
 metadata:
   author: Abe Stroka
-  info: Workflow for removing golden gate plate from thermocycler to flex nest C1 temp block
+  info: Workflow for removing pcr plate from thermocycler to flex nest C1 temp block
   version: '0.1'
 
 
@@ -19,8 +19,8 @@ steps:
     node: pf400_piper
     action: transfer
     locations:
-      source: bio_biometra3_nest
-      target: exchange_nest_high_wide
+      source: biometra_beuford.biometra_nest
+      target: exchange_wide
 
 
 
@@ -28,15 +28,15 @@ steps:
     node: pf400_piper
     action: transfer
     locations:
-      source: exchange_nest_low_narrow
-      target: peeler_nest
+      source: exchange_narrow
+      target: peeler_penelope.peeler_carriage
     comment: transfer to peeler
 
 
-  - name: peel
-    node: bio_peeler
-    action: peel
-    comment: peel the pcr plate
+  # - name: peel
+  #   node: peeler_penelope
+  #   action: peel
+  #   comment: peel the pcr plate
 
 
   #peeler to exchange
@@ -44,14 +44,14 @@ steps:
     node: pf400_piper
     action: transfer
     locations:
-      source: peeler_nest
-      target: exchange_nest_high_narrow
+      source: peeler_penelope.peeler_carriage
+      target: exchange_narrow
     comment: moves plate from exchange to biometra 96 thermocycler
 
   - name: transfer
     node: pf400_piper
     action: transfer
     locations:
-      source: exchange_nest_low_narrow
-      target: otflex_sandy_nestA
+      source: exchange_narrow
+      target: otflex_sandy.deck_nest_A4
     comment: moves plate from exchange to flex A

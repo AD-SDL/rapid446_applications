@@ -11,15 +11,15 @@ steps:
     node: pf400_piper
     action: transfer
     locations:
-      target: exchange_nest_high_wide
-      source: ot2_patrick_nest4_temp_block_wide
+      target: exchange_wide
+      source: ot2_patrick.deck_nest_4_temp_block
 
   - name: exchange to sealer
     node: pf400_piper
     action: transfer
     locations:
-      source: exchange_nest_high_narrow
-      target: sealer_nest
+      source: exchange_narrow
+      target: sealer_sassy.sealer_carriage
 
 
   - name: seal
@@ -32,14 +32,14 @@ steps:
     node: pf400_piper
     action: transfer
     locations:
-      source: sealer_nest
-      target: exchange_nest_high_narrow
+      source: sealer_sassy.sealer_carriage
+      target: exchange_narrow
 
   - name: transfer
     node: pf400_piper
     action: transfer
     locations:
-      source: exchange_nest_low_narrow
-      target: otflex_sandy_nestA
+      source: exchange_narrow
+      target: otflex_sandy.deck_nest_A4
     comment: moves plate from exchange to flex A
 

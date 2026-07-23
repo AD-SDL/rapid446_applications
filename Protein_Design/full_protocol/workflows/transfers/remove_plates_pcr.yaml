@@ -10,7 +10,7 @@ steps:
     node: pf400_piper
     action: transfer
     locations:
-      source: exchange_nest_low_narrow
+      source: exchange_narrow
       target: rack1_row2_nest2
 
 
@@ -18,12 +18,12 @@ steps:
     node: pf400_piper
     action: transfer
     locations:
-      source: ot2_patrick_nest6_temp_block_wide
-      target: exchange_nest_high_wide
+      source: ot2_patrick.deck_nest_6_temp_block
+      target: exchange_wide
 
   - name: exchnage to rack
     node: pf400_piper
     action: transfer
     locations:
-      source: exchange_nest_low_narrow
+      source: exchange_narrow
       target: rack1_row2_nest3

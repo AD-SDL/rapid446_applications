@@ -6,7 +6,7 @@ version: '0.1'
 
 flowdef:
   - name: Run thermocycler protocol
-    module: bio_biometra3_96
+    module: biometra_beuford_96
     action: run_protocol
     files:
       protocol: 4  # TODO: What is the number of the PCR thermocycler protocol
