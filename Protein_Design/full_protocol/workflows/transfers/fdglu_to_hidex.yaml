@@ -1,3 +1,4 @@
+name: fdglu to hidex
 
 metadata:
   author: Abe Stroka
@@ -15,8 +16,8 @@ steps:
     node: pf400_piper
     action: transfer
     locations:
-      source: exchange_nest_high_narrow
-      target: hidex_nest
+      source: exchange_narrow
+      target: hidex_geraldine.hidex_carriage
 
   - name: close hidex
     node: hidex_geraldine

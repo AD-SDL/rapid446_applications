@@ -11,6 +11,6 @@ steps:
     node: pf400_piper
     action: transfer
     locations:
-      source: exchange_nest_high_wide
-      target: ot2_patrick_nest4_temp_block_wide
+      source: exchange_wide
+      target: ot2_patrick.deck_nest_4_temp_block
     comment: place plate on ot2 cool block C1
