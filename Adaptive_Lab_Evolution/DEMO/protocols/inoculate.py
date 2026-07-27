@@ -61,7 +61,7 @@ def run(protocol: protocol_api.ProtocolContext):
         new_tip="never",
         disposal_volume = 0,
     )
-    right_pipette_20uL_multi.drop_tip()
+    right_pipette_20uL_multi.return_tip()
 
     # # return the tips from the rest of the transfers to conserve trash space
     # for i in range(1, len(source_columns)):  # (1,12) means columns 2-12

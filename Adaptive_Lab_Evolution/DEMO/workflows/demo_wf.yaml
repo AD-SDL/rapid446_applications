@@ -11,7 +11,7 @@ parameters:
 
 
 steps:
-  # # Start with plate with lid on exchange
+  # Start with plate with lid on exchange
 
   # Remove the lid to lid nest 3
   - name: remove lid from plate on exchange
@@ -21,13 +21,13 @@ steps:
       source: exchange_narrow
       target: rack1_row1_nest1
 
-  # Transfer into OT-2 nest 1
+  # Transfer into OT-2 nest 3
   - name: Transfer to OT-2
     node: pf400_piper
     action: transfer
     locations:
       source: exchange_wide
-      target: ot2_spongebob.deck_nest_1
+      target: ot2_spongebob.deck_nest_3
 
   # Run OT-2 protocol
   - name: Run OT-2 spongebob
@@ -46,7 +46,7 @@ steps:
     node: pf400_piper
     action: transfer
     locations:
-      source: ot2_spongebob.deck_nest_1
+      source: ot2_spongebob.deck_nest_3
       target: exchange_wide
 
   # Transfer plate without lid to bmg nest
@@ -85,7 +85,7 @@ steps:
 
   # Open incubator
   - name: open incubator
-    node: inheco_irene_2.0
+    node: inheco_iris_2.1
     action: open
 
   # Transfer from exchange to incubator # WORKS BUT RECALIBRATE! WAS VERY OFF!
@@ -94,11 +94,11 @@ steps:
     action: transfer
     locations:
       source: exchange_narrow
-      target: inheco_irene_2.0.inheco_carriage
+      target: inheco_iris_2.1.inheco_carriage
 
   # Close incubator
   - name: close incubator
-    node: inheco_irene_2.0
+    node: inheco_iris_2.1
     action: close
 
   # Close BMG tray
@@ -108,7 +108,7 @@ steps:
 
   # Incubate for specified time
   - name: run incubation
-    node: inheco_irene_2.0
+    node: inheco_iris_2.1
     action: incubate
     args:
       temperature: 30.0
@@ -118,20 +118,20 @@ steps:
 
   # Open incubator  # WORKS!
   - name: open incubator
-    node: inheco_irene_2.0
+    node: inheco_iris_2.1
     action: open
 
-  # Transfer to exchange # RECALIBRATE THE INHECO LOCATION!
+  # Transfer to exchange
   - name: transfer to exchange
     node: pf400_piper
     action: transfer
     locations:
-      source: inheco_irene_2.0.inheco_carriage
+      source: inheco_iris_2.1.inheco_carriage
       target: exchange_narrow
 
   # Close incubator
   - name: close incubator
-    node: inheco_irene_2.0
+    node: inheco_iris_2.1
     action: close
 
 

@@ -49,6 +49,9 @@ class ExampleExperiment(ExperimentScript):
 
         payload = {
             "current_ot2_protocol": None,
+            "ot2_node": "ot2_spongebob",
+            "tip_box_location": 4,
+
         }
 
         # edit the ot-2 protocol
