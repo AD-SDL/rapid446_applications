@@ -83,13 +83,12 @@ def run(protocol: protocol_api.ProtocolContext):
     shaker_mod = protocol.load_module(module_name="heaterShakerModuleV1", location=config['shaker_module_position'])
     shaker_adapter = shaker_mod.load_adapter(config['pcr_adapter_type'])
     shaker_mod.set_target_temperature(config['heater_shaker_temp'])
-    shaker_mod.open_labware_latch()
 
 
 
     chute = protocol.load_waste_chute()
 
-    pcr_plate = protocol.load_labware('nest_96_wellplate_100ul_pcr_full_skirt', "A4")
+    pcr_plate = shaker_adapter.load_labware('nest_96_wellplate_100ul_pcr_full_skirt')
 
 
 
@@ -126,11 +125,12 @@ def run(protocol: protocol_api.ProtocolContext):
 
 
 
-    protocol.move_labware(labware=pcr_plate, new_location=shaker_adapter, use_gripper=True)
+    # protocol.move_labware(labware=pcr_plate, new_location=shaker_adapter, use_gripper=True)
     shaker_mod.close_labware_latch()
-    shaker_mod.set_and_wait_for_shake_speed(200)
-    protocol.delay(minutes = 1)
-    # shaker_mod.deactivate_shaker()
-    # shaker_mod.open_labware_latch()
+    # shaker_mod.set_and_wait_for_shake_speed(200)
+    # protocol.delay(minutes = 1)
+    shaker_mod.deactivate_shaker()
+    shaker_mod.open_labware_latch()
+    protocol.move_labware(labware=pcr_plate, new_location='A4', use_gripper=True)
 
 

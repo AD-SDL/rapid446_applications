@@ -14,26 +14,26 @@ steps:
       target: exchange_wide
       source: ot2_patrick.deck_nest_4_temp_block
 
-  - name: exchange to sealer
-    node: pf400_piper
-    action: transfer
-    locations:
-      source: exchange_narrow
-      target: sealer_sassy.sealer_carriage
+  # - name: exchange to sealer
+  #   node: pf400_piper
+  #   action: transfer
+  #   locations:
+  #     source: exchange_narrow
+  #     target: sealer_sassy.sealer_carriage
 
 
-  - name: seal
-    node: sealer_sassy
-    action: seal
-    comment: seal the pcr plate
+  # - name: seal
+  #   node: sealer_sassy
+  #   action: seal
+  #   comment: seal the pcr plate
 
 
-  - name: sealer_to_exchange
-    node: pf400_piper
-    action: transfer
-    locations:
-      source: sealer_sassy.sealer_carriage
-      target: exchange_narrow
+  # - name: sealer_to_exchange
+  #   node: pf400_piper
+  #   action: transfer
+  #   locations:
+  #     source: sealer_sassy.sealer_carriage
+  #     target: exchange_narrow
 
   - name: transfer
     node: pf400_piper
