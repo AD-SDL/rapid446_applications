@@ -146,7 +146,7 @@ class PDApp(ExperimentScript,): # TODO
             """
             # get the resource id of the resource associated with the given location
             associated_resource_id = self.location_client.get_location_by_name(location_name).resource_id
-            print("Location name: ", location_name)
+            print("Location name: ", location_name)Z_PCR_CORRECT_ATTRIBUTES_PLATE_2
             print("ASSC Resource id: ", associated_resource_id)
             # get the resource object from the resource id
             resource_object = self.resource_client.get_resource(associated_resource_id)
@@ -595,6 +595,11 @@ class PDApp(ExperimentScript,): # TODO
 
 
         # # run ot2 protocol step 1
+
+        #TIPS USED: 1 COLUMN PER 8 COMBOS MASTER MIX
+        # 4 COLUMNS PER 8 COMBOS FRAGMENTS
+        # 8 COMBO RUN: 5 COLS OF 20ul tips
+
         # ot2_replacement_variables = helper_functions.collect_ot2_replacement_variables(payload)
         # temp_ot2_file_str = helper_functions.generate_ot2_protocol(golden_gate_protocol, ot2_replacement_variables)
         # payload["current_ot2_protocol"] = temp_ot2_file_str
@@ -680,7 +685,10 @@ class PDApp(ExperimentScript,): # TODO
             },
         )
         self.pop_assay_plate_resource("otflex_sandy.deck_nest_A4")
-        
+
+        # TIPS USED: 1  COLUMN 200UL PER 8 COMBOS
+        # 8 COMBO RUN: 1 COLUMN OF 200UL
+
         # ot2_replacement_variables = helper_functions.collect_ot2_replacement_variables(payload)
         # temp_ot2_file_str = helper_functions.generate_ot2_protocol(pcr_flex_protocol, ot2_replacement_variables)
         # payload["current_flex_protocol"] = temp_ot2_file_str
@@ -719,6 +727,10 @@ class PDApp(ExperimentScript,): # TODO
         workflow = self.workcell_client.submit_workflow(
             pcr_plate_to_ot2_block_2.resolve(),
         )
+
+        # TIPS USED: 2 COLUMN 20UL PER 8 COMBOS
+        # 1 COLUMN FOR WATER 1 COLUMN FOR GG SAMPLES
+        # 8 COMBO RUN: 2 COLUMNS OF 20UL
 
         # ot2_replacement_variables = helper_functions.collect_ot2_replacement_variables(payload)
         # temp_ot2_file_str = helper_functions.generate_ot2_protocol(pcr_ot2_protocol, ot2_replacement_variables)
@@ -845,6 +857,15 @@ class PDApp(ExperimentScript,): # TODO
             empty_pcr_to_ot2.resolve(),
         )
 
+
+        # TIPS USED: 
+        # WATER TO PCR: 1 COL ALWAYS, 200UL
+        # DILUTION: 1 COL PER 8 COMBOS: 50UL
+        # SYBRGREEN TO DEST: 1 COL ALWAYS: 200UL
+        # PCR TO DEST: 1 COL PER 8 COMBOS: 50UL
+        # CONTROLS TO SYBRGREEN: 1 COL PER 8 COMBOS: 50UL
+        # 8 COMBO RUN: 2 COLS OF 200UL AND 3 COLS OF 50UL
+
         # # #multichannel flex protocol
         # ot2_replacement_variables = helper_functions.collect_ot2_replacement_variables(payload)
         # temp_ot2_file_str = helper_functions.generate_ot2_protocol(dd_flex_protocol, ot2_replacement_variables)
@@ -910,6 +931,12 @@ class PDApp(ExperimentScript,): # TODO
             dd_controls_flex_to_ot2.resolve(),
         )
 
+
+        #TIPS USED
+        # WATER TO PCR DILUTION: 1 COL ALWAYS: 50UL
+        # PCR TO WATER: 1 COL PER 8 COMBOS: 50UL
+        # CONTROLS TO PCR: 1 COL PER 8 COMBOS: 50UL
+        #8 COMBO RUN: 3 COLUMNS 50ul
 
         # #ot2 dilution protocol
         # ot2_replacement_variables = helper_functions.collect_ot2_replacement_variables(payload)
