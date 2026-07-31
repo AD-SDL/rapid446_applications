@@ -320,10 +320,10 @@ class PDApp(ExperimentScript,): # TODO
         )
 
         #tip box 1
-        new_plate, old_plate = self.push_new_assay_plate_resource(
-            location_name="ot2_patrick.deck_nest_1",
-            labware_type="ot2_tiprack"
-        )
+        # new_plate, old_plate = self.push_new_assay_plate_resource(
+        #     location_name="ot2_patrick.deck_nest_1",
+        #     labware_type="ot2_tiprack"
+        # )
 
         #tip box 3
         new_plate, old_plate = self.push_new_assay_plate_resource(
@@ -332,10 +332,10 @@ class PDApp(ExperimentScript,): # TODO
         )
 
         # tip box
-        new_plate, old_plate = self.push_new_assay_plate_resource(
-            location_name="rack1_row1_nest3",
-            labware_type="ot2_tiprack"
-        )
+        # new_plate, old_plate = self.push_new_assay_plate_resource(
+        #     location_name="rack1_row1_nest3",
+        #     labware_type="ot2_tiprack"
+        # )
 
 
         new_plate, old_plate = self.push_new_assay_plate_resource(
