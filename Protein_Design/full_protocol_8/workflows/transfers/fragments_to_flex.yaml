@@ -1,0 +1,45 @@
+name: fragments_and_empty_to_flex
+
+metadata:
+  author: Abe Stroka
+  info: Workflow for transfering fragments plate from ot2 to flex, and empty pcr plate to flex cooling block
+  version: '0.1'
+
+steps:
+
+  - name: transfer from ot2 to exchange
+    node: pf400_piper
+    action: transfer
+    locations:
+      target: exchange_wide
+      source: ot2_patrick.deck_nest_4_temp_block
+
+  # - name: exchange to sealer
+  #   node: pf400_piper
+  #   action: transfer
+  #   locations:
+  #     source: exchange_narrow
+  #     target: sealer_sassy.sealer_carriage
+
+
+  # - name: seal
+  #   node: sealer_sassy
+  #   action: seal
+  #   comment: seal the pcr plate
+
+
+  # - name: sealer_to_exchange
+  #   node: pf400_piper
+  #   action: transfer
+  #   locations:
+  #     source: sealer_sassy.sealer_carriage
+  #     target: exchange_narrow
+
+  - name: transfer
+    node: pf400_piper
+    action: transfer
+    locations:
+      source: exchange_narrow
+      target: otflex_sandy.deck_nest_A4
+    comment: moves plate from exchange to flex A
+

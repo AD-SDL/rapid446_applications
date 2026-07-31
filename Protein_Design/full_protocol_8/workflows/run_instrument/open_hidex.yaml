@@ -1,0 +1,12 @@
+name: open_hidex
+
+metadata:
+  author: Abe Stroka
+  info: Workflow for transfering sybrgreen plate from flex to hidex
+  version: '0.1'
+
+
+steps:
+  - name: open hidex
+    node: hidex_geraldine
+    action: open

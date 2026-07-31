@@ -1,0 +1,26 @@
+name: empty dilution plate to ot2
+
+metadata:
+  author: Abe Stroka
+  info: Workflow for transfering fragments plate from ot2 to flex, and empty pcr plate to flex cooling block
+  version: '0.1'
+
+steps:
+  #fragments plate from nest 4 ot2 to flex cooling block
+  - name: transfer
+    node: pf400_piper
+    action: transfer
+    locations:
+      source: rack1_row3_nest3
+      target: exchange_narrow
+    comment: place plate on exchange
+
+
+  - name: transfer
+    node: pf400_piper
+    action: transfer
+    locations:
+      source: exchange_wide
+      target: ot2_patrick.deck_nest_6_temp_block
+    comment: place plate on ot2 cool block C3
+

@@ -1,0 +1,29 @@
+name: remove plates
+
+metadata:
+  author: Abe Stroka
+  info: Workflow for placing fragments plate (exchnage) and golden gate plate (ot2 nest 6) onto rack or trash
+  version: '0.1'
+
+steps:
+  - name: exchnage to rack
+    node: pf400_piper
+    action: transfer
+    locations:
+      source: exchange_narrow
+      target: rack1_row2_nest2
+
+
+  - name: ot2 temp block nest 6 to exchange
+    node: pf400_piper
+    action: transfer
+    locations:
+      source: ot2_patrick.deck_nest_6_temp_block
+      target: exchange_wide
+
+  - name: exchnage to rack
+    node: pf400_piper
+    action: transfer
+    locations:
+      source: exchange_narrow
+      target: rack1_row2_nest3

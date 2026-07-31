@@ -1,0 +1,44 @@
+name: fragments and gg to ot2
+
+metadata:
+  author: Abe Stroka
+  info: Workflow for transfering fragments plate and golden gate plate from rack to ot2
+  version: '0.1'
+
+steps:
+  #fragments plate from 1_1_1 to deck 4
+  - name: transfer
+    node: pf400_piper
+    action: transfer
+    locations:
+      source: rack1_row1_nest1
+      target: exchange_narrow
+    comment: place plate on exchange
+
+
+  - name: transfer
+    node: pf400_piper
+    action: transfer
+    locations:
+      source: exchange_wide
+      target: ot2_patrick.deck_nest_4_temp_block
+    comment: place plate on ot2 cool block
+
+  #gg plate from 1_1_2 to deck 6
+  - name: transfer
+    node: pf400_piper
+    action: transfer
+    locations:
+      source: rack1_row1_nest2
+      target: exchange_narrow
+    comment: place plate on exchange
+
+
+  - name: transfer
+    node: pf400_piper
+    action: transfer
+    locations:
+      source: exchange_wide
+      target: ot2_patrick.deck_nest_6_temp_block
+    comment: place plate on ot2 cool block
+

@@ -1,0 +1,13 @@
+name: open biometra_96
+
+metadata:
+  author: Abe Stroka
+  info: Workflow for removing golden gate plate from thermocycler to ot2 deck 6 temp block
+  version: '0.1'
+
+steps:
+  - name: open biometra
+    node: biometra_beuford_96
+    action: open_lid
+    args:
+      plate_type: 96

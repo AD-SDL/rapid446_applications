@@ -1,0 +1,23 @@
+name: fdglu to hidex
+
+metadata:
+  author: Abe Stroka
+  info: Workflow for transfering plate to hidex
+  version: '0.1'
+
+
+steps:
+  - name: open hidex
+    node: hidex_geraldine
+    action: open
+
+  - name: exchange to hidex
+    node: pf400_piper
+    action: transfer
+    locations:
+      source: exchange_narrow
+      target: hidex_geraldine.hidex_carriage
+
+  - name: close hidex
+    node: hidex_geraldine
+    action: close

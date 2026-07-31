@@ -1,0 +1,15 @@
+name: controls from exchange to ot2 deck 3
+
+metadata:
+  author: Abe Stroka
+  info: Workflow for transfering control plate from flex to ot2 nest 3
+  version: '0.1'
+
+
+steps:
+  - name: transfer
+    node: pf400_piper
+    action: transfer
+    locations:
+      source: exchange_wide
+      target: ot2_patrick.deck_nest_1

@@ -1,0 +1,59 @@
+name: seal_and_thermocycle_pcr
+
+metadata:
+  author: Abe Stroka
+  info: Workflow for transfering pcr plate from ot2 to thermocycler
+  version: '0.1'
+
+
+steps:
+  - name: open biometra
+    node: biometra_beuford_96
+    action: open_lid
+    args:
+      plate_type: 96
+
+  - name: transfer from ot2 to exchange
+    node: pf400_piper
+    action: transfer
+    locations:
+      target: exchange_wide
+      source: ot2_patrick.deck_nest_6_temp_block
+
+  - name: exchange to sealer
+    node: pf400_piper
+    action: transfer
+    locations:
+      source: exchange_narrow
+      target: sealer_sassy.sealer_carriage
+
+
+  - name: seal
+    node: sealer_sassy
+    action: seal
+    comment: seal the pcr plate
+
+
+  - name: sealer_to_exchange
+    node: pf400_piper
+    action: transfer
+    locations:
+      source: sealer_sassy.sealer_carriage
+      target: exchange_narrow
+
+
+  - name: exchange to thermocycler
+    node: pf400_piper
+    action: transfer
+    locations:
+      source: exchange_wide
+      target: biometra_beuford.biometra_nest
+
+
+  - name: close biometra
+    node: biometra_beuford_96
+    action: close_lid
+    args:
+      plate_type: 96
+
+

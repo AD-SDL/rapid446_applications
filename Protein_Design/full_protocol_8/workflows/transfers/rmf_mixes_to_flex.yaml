@@ -1,0 +1,26 @@
+name: rmf mixes to flex
+
+metadata:
+  author: Abe Stroka
+  info: Workflow for transfering rmf plate from ot2 to flex
+  version: '0.1'
+
+steps:
+  #fragments plate from nest 4 ot2 to flex cooling block
+  - name: transfer
+    node: pf400_piper
+    action: transfer
+    locations:
+      source: rack1_row4_nest1
+      target: exchange_narrow
+    comment: place plate on exchange
+
+
+  - name: transfer
+    node: pf400_piper
+    action: transfer
+    locations:
+      source: exchange_narrow
+      target: otflex_sandy.deck_nest_A4
+    comment: moves plate from exchange to flex A
+

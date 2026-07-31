@@ -1,0 +1,57 @@
+name: biometra_96 to ot2
+
+metadata:
+  author: Abe Stroka
+  info: Workflow for removing pcr plate from thermocycler to flex nest C1 temp block
+  version: '0.1'
+
+
+steps:
+  - name: open biometra
+    node: biometra_beuford_96
+    action: open_lid
+    args:
+      plate_type: 96
+
+  #peel plate
+
+  - name: transfer
+    node: pf400_piper
+    action: transfer
+    locations:
+      source: biometra_beuford.biometra_nest
+      target: exchange_wide
+
+
+
+  - name: transfer
+    node: pf400_piper
+    action: transfer
+    locations:
+      source: exchange_narrow
+      target: peeler_penelope.peeler_carriage
+    comment: transfer to peeler
+
+
+  # - name: peel
+  #   node: peeler_penelope
+  #   action: peel
+  #   comment: peel the pcr plate
+
+
+  #peeler to exchange
+  - name: transfer
+    node: pf400_piper
+    action: transfer
+    locations:
+      source: peeler_penelope.peeler_carriage
+      target: exchange_narrow
+    comment: moves plate from exchange to biometra 96 thermocycler
+
+  - name: transfer
+    node: pf400_piper
+    action: transfer
+    locations:
+      source: exchange_narrow
+      target: otflex_sandy.deck_nest_A4
+    comment: moves plate from exchange to flex A

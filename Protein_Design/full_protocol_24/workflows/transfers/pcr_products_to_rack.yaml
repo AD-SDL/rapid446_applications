@@ -1,0 +1,25 @@
+name: dispose_diluted_and_rmf
+
+metadata:
+  author: Abe Stroka
+  info: Workflow for putting the diluted pcr plate and rmf plate back on the rack
+  version: '0.1'
+
+
+steps:
+  - name: ot2 6 to sealer
+    node: pf400_piper
+    action: transfer
+    locations:
+      source: ot2_patrick.deck_nest_4_temp_block
+      target: exchange_wide
+
+
+  - name: sealer_to_exchange
+    node: pf400_piper
+    action: transfer
+    locations:
+      source: exchange_narrow
+      target: rack1_row1_nest3
+
+

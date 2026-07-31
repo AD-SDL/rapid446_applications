@@ -1,0 +1,16 @@
+name: pcr from exchange to ot2
+
+metadata:
+  author: Abe Stroka
+  info: Workflow for transfering pcr plate from flex to cool block on ot2 nest 4
+  version: '0.1'
+
+
+steps:
+  - name: transfer
+    node: pf400_piper
+    action: transfer
+    locations:
+      source: exchange_wide
+      target: ot2_patrick.deck_nest_4_temp_block
+    comment: place plate on ot2 cool block C1
