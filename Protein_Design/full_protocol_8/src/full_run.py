@@ -603,7 +603,10 @@ class PDApp(ExperimentScript,): # TODO
         ### GOLDEN GATE
         ##############
 
-
+        #TODO: stock ot2 with tips and plates
+        workflow = self.workcell_client.submit_workflow(
+            fragments_and_gg_to_ot2.resolve(),
+        )
 
         # # run ot2 protocol step 1
 
@@ -627,10 +630,7 @@ class PDApp(ExperimentScript,): # TODO
         # )
 
 
-        #TODO: stock ot2 with tips and plates
-        workflow = self.workcell_client.submit_workflow(
-            fragments_and_gg_to_ot2.resolve(),
-        )
+        
         
 
         # transfer destination plate to thermocycler and run
