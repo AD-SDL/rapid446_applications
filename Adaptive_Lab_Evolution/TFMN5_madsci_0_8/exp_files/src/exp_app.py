@@ -347,7 +347,6 @@ class ALEApp(ExperimentScript,):
                     print("Incubation complete.", flush=True)
                     break
 
-
         # LOCK exchange lock for steps 2 and 3.
         # Increase waiting processes count in redis before trying to acquire the lock
         self.acquired = False
@@ -389,17 +388,16 @@ class ALEApp(ExperimentScript,):
                         },
                     )
 
-                    # Collect associated resource id.
-                    # datapoint_id = workflow.get_datapoint_id(step_key="bmg_data", label="json_result")
-                    datapoint_id = workflow.get_datapoint(step_key="bmg_data", label="file")
-                    resource_id = self.data_client.get_datapoint_value(datapoint_id=datapoint_id)
+                    # Collect associated resource ID.
+                    resource_datapoint_id = workflow.get_datapoint(step_key="bmg_data", label="json_result")
+                    resource_id = self.data_client.get_datapoint_value(datapoint_id=resource_datapoint_id)
 
                     # Write UTC BMG timestamp to CSV data file.
                     helper_functions.write_timestamps_to_csv(
                         csv_directory_path=csv_data_directory,
                         experiment_id=experiment_id,
                         bmg_filename=payload["bmg_data_output_name"],
-                        accurate_timestamp=workflow.steps[8].end_time,  # index 8 = bmg reading
+                        accurate_timestamp=workflow.steps[8].end_time,  # index 8 = bmg reading 
                         resource_id=resource_id,
                     )
                     if test_prints:
@@ -505,22 +503,20 @@ class ALEApp(ExperimentScript,):
 
                             },
                         )
-
-                        # Collect associated resource id.
-                        # datapoint_id = workflow.get_datapoint_id(step_key="bmg_data", label="json_result")
-                        datapoint_id = workflow.get_datapoint(step_key="bmg_data", label="file")
-                        resource_id = self.data_client.get_datapoint_value(datapoint_id=datapoint_id)
-
+                        # Collect associated resource ID.
+                        resource_datapoint_id = workflow.get_datapoint(step_key="bmg_data", label="json_result")
+                        resource_id = self.data_client.get_datapoint_value(datapoint_id=resource_datapoint_id)
+                        
                         # Write UTC BMG timestamp to CSV data file
                         helper_functions.write_timestamps_to_csv(
                             csv_directory_path=csv_data_directory,
                             experiment_id=experiment_id,
                             bmg_filename=payload["bmg_data_output_name"],
-                            accurate_timestamp=workflow.steps[6].end_time, # index 6 = bmg reading
+                            accurate_timestamp=workflow.steps[7].end_time, # index 7 = bmg reading
                             resource_id=resource_id,
                         )
                         if test_prints:
-                            print(f"\twriting data to csv: {payload['bmg_data_output_name']}, with timestamp {workflow.steps[5].end_time}", flush=True)
+                            print(f"\twriting data to csv: {payload['bmg_data_output_name']}, with timestamp {workflow.steps[7].end_time}", flush=True)
                     else:
                         if test_prints:
                             print(f"\twriting data to csv: {payload['bmg_data_output_name']}", flush=True)
@@ -612,11 +608,9 @@ class ALEApp(ExperimentScript,):
                                 "ot2_location": payload["ot2_location"],
                             },
                         )
-
                         # Collect associated resource ID.
-                        # datapoint_id = workflow.get_datapoint_id(step_key="bmg_data", label="json_result")
-                        datapoint_id = workflow.get_datapoint(step_key="bmg_data", label="file")
-                        resource_id = self.data_client.get_datapoint_value(datapoint_id=datapoint_id)
+                        resource_datapoint_id = workflow.get_datapoint(step_key="bmg_data", label="json_result")
+                        resource_id = self.data_client.get_datapoint_value(datapoint_id=resource_datapoint_id)
 
                         # Write UTC BMG timestamp to CSV data file.
                         helper_functions.write_timestamps_to_csv(
@@ -782,10 +776,9 @@ class ALEApp(ExperimentScript,):
                                 "data_output_directory_path": bmg_data_output_directory,
                             },
                         )
-
                         # Collect associated resource ID.
-                        datapoint_id = workflow.get_datapoint_id(step_key="bmg_data", label="json_result")
-                        resource_id = self.data_client.get_datapoint_value(datapoint_id=datapoint_id)
+                        resource_datapoint_id = workflow.get_datapoint(step_key="bmg_data", label="json_result")
+                        resource_id = self.data_client.get_datapoint_value(datapoint_id=resource_datapoint_id)
 
                         # Write UTC BMG timestamp to CSV data file.
                         helper_functions.write_timestamps_to_csv(
