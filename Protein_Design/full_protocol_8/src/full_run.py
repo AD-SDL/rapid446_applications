@@ -313,7 +313,7 @@ class PDApp(ExperimentScript,): # TODO
             labware_type="pcr"
         )
 
-        #golden gate plate
+        #golden gate plate (empty)
         new_plate, old_plate = self.push_new_assay_plate_resource(
             location_name="rack1_row1_nest2",
             labware_type="pcr"
@@ -337,7 +337,7 @@ class PDApp(ExperimentScript,): # TODO
         #     labware_type="ot2_tiprack"
         # )
 
-
+        #empty pcr
         new_plate, old_plate = self.push_new_assay_plate_resource(
             location_name="rack1_row2_nest1",
             labware_type="pcr"
@@ -350,7 +350,7 @@ class PDApp(ExperimentScript,): # TODO
             labware_type="pcr"
         )
 
-        # Sybrgreen plate
+        # Sybrgreen plate #TODO: PLATE DISAPPEARS FROM RESOURCES
         new_plate, old_plate = self.push_new_assay_plate_resource(
             location_name="rack1_row3_nest2",
             labware_type="flat_bottom"
@@ -376,11 +376,13 @@ class PDApp(ExperimentScript,): # TODO
             labware_type="pcr"
         )
 
-        new_plate, old_plate = self.push_new_assay_plate_resource(
-            location_name="rack1_row4_nest3",
-            labware_type="pcr"
-        )
 
+        # new_plate, old_plate = self.push_new_assay_plate_resource(
+        #     location_name="rack1_row4_nest3",
+        #     labware_type="pcr"
+        # )
+
+        #fdglu (empty)
         new_plate, old_plate = self.push_new_assay_plate_resource(
             location_name="rack1_row5_nest1",
             labware_type="flat_bottom"
@@ -590,7 +592,7 @@ class PDApp(ExperimentScript,): # TODO
         
         payload["combinations"] = combination_data
         payload["use_combinations"] = True
-        payload["non_combinatiorial_sources"] = False
+        payload["non_combinatorial_sources"] = False
 
         #STARTING TIP AMOUNTS
         # OT2: 2 20UL TIP RACKS 1 AND 3
@@ -619,15 +621,15 @@ class PDApp(ExperimentScript,): # TODO
         # OT2 7 COLS LEFT IN BOX 1 AND 12 IN BOX 2
         # FLEX: FULL
 
-        # ot2_replacement_variables = helper_functions.collect_ot2_replacement_variables(payload)
-        # temp_ot2_file_str = helper_functions.generate_ot2_protocol(golden_gate_protocol, ot2_replacement_variables)
-        # payload["current_ot2_protocol"] = temp_ot2_file_str
-        # workflow = self.workcell_client.submit_workflow(
-        #     run_ot2_wf.resolve(),
-        #     file_inputs={
-        #         "ot2_protocol": payload["current_ot2_protocol"],
-        #     },
-        # )
+        ot2_replacement_variables = helper_functions.collect_ot2_replacement_variables(payload)
+        temp_ot2_file_str = helper_functions.generate_ot2_protocol(golden_gate_protocol, ot2_replacement_variables)
+        payload["current_ot2_protocol"] = temp_ot2_file_str
+        workflow = self.workcell_client.submit_workflow(
+            run_ot2_wf.resolve(),
+            file_inputs={
+                "ot2_protocol": payload["current_ot2_protocol"],
+            },
+        )
 
 
         
@@ -707,15 +709,15 @@ class PDApp(ExperimentScript,): # TODO
 
         
 
-        # ot2_replacement_variables = helper_functions.collect_ot2_replacement_variables(payload)
-        # temp_ot2_file_str = helper_functions.generate_ot2_protocol(pcr_flex_protocol, ot2_replacement_variables)
-        # payload["current_flex_protocol"] = temp_ot2_file_str
-        # workflow = self.workcell_client.submit_workflow(
-        #     run_flex_wf.resolve(),
-        #     file_inputs={
-        #         "flex_protocol": payload["current_flex_protocol"],
-        #     },
-        # )
+        ot2_replacement_variables = helper_functions.collect_ot2_replacement_variables(payload)
+        temp_ot2_file_str = helper_functions.generate_ot2_protocol(pcr_flex_protocol, ot2_replacement_variables)
+        payload["current_flex_protocol"] = temp_ot2_file_str
+        workflow = self.workcell_client.submit_workflow(
+            run_flex_wf.resolve(),
+            file_inputs={
+                "flex_protocol": payload["current_flex_protocol"],
+            },
+        )
 
         # 8 COMBO:
         # OT2 7 COLS LEFT IN BOX 1 AND 12 IN BOX 2
@@ -755,15 +757,15 @@ class PDApp(ExperimentScript,): # TODO
         # 8 COMBO RUN: 2 COLUMNS OF 20UL
         # 24 COMBO RUN: 6 COLUMNS OF 20UL
 
-        # ot2_replacement_variables = helper_functions.collect_ot2_replacement_variables(payload)
-        # temp_ot2_file_str = helper_functions.generate_ot2_protocol(pcr_ot2_protocol, ot2_replacement_variables)
-        # payload["current_ot2_protocol"] = temp_ot2_file_str
-        # workflow = self.workcell_client.submit_workflow(
-        #     run_ot2_wf.resolve(),
-        #     file_inputs={
-        #         "ot2_protocol": payload["current_ot2_protocol"],
-        #     },
-        # )
+        ot2_replacement_variables = helper_functions.collect_ot2_replacement_variables(payload)
+        temp_ot2_file_str = helper_functions.generate_ot2_protocol(pcr_ot2_protocol, ot2_replacement_variables)
+        payload["current_ot2_protocol"] = temp_ot2_file_str
+        workflow = self.workcell_client.submit_workflow(
+            run_ot2_wf.resolve(),
+            file_inputs={
+                "ot2_protocol": payload["current_ot2_protocol"],
+            },
+        )
 
         # 8 COMBO:
         # OT2 5 COLS LEFT IN BOX 1 AND 12 IN BOX 2
@@ -834,6 +836,7 @@ class PDApp(ExperimentScript,): # TODO
         workflow = self.workcell_client.submit_workflow(
             thermocycler_to_flex.resolve(),
         )
+        #TODO: NEED TO PEEL PLATE
 
         payload["current_flex_protocol"] = A4_to_C1
         workflow = self.workcell_client.submit_workflow(
@@ -894,16 +897,16 @@ class PDApp(ExperimentScript,): # TODO
         # 8 COMBO RUN: 2 COLS OF 200UL AND 3 COLS OF 50UL
         # 24 COMBO RUN: 2 COLS OF 200UL AND 9 COLS OF 50UL
 
-        # # #multichannel flex protocol
-        # ot2_replacement_variables = helper_functions.collect_ot2_replacement_variables(payload)
-        # temp_ot2_file_str = helper_functions.generate_ot2_protocol(dd_flex_protocol, ot2_replacement_variables)
-        # payload["current_flex_protocol"] = temp_ot2_file_str
-        # workflow = self.workcell_client.submit_workflow(
-        #     run_flex_wf.resolve(),
-        #     file_inputs={
-        #         "flex_protocol": payload["current_flex_protocol"],
-        #     },
-        # )
+        # #multichannel flex protocol
+        ot2_replacement_variables = helper_functions.collect_ot2_replacement_variables(payload)
+        temp_ot2_file_str = helper_functions.generate_ot2_protocol(dd_flex_protocol, ot2_replacement_variables)
+        payload["current_flex_protocol"] = temp_ot2_file_str
+        workflow = self.workcell_client.submit_workflow(
+            run_flex_wf.resolve(),
+            file_inputs={
+                "flex_protocol": payload["current_flex_protocol"],
+            },
+        )
 
         # 8 COMBO:
         # OT2 5 COLS LEFT IN BOX 1 AND 12 IN BOX 2
@@ -958,7 +961,8 @@ class PDApp(ExperimentScript,): # TODO
             pcr_plate_to_ot2_block.resolve(),
         )
 
-        #TODO: test
+        #TODO: grabbed plate really high for some reason?
+
         workflow = self.workcell_client.submit_workflow(
             dd_controls_flex_to_ot2.resolve(),
         )
@@ -971,16 +975,16 @@ class PDApp(ExperimentScript,): # TODO
         #8 COMBO RUN: 3 COLUMNS 20ul
         # 24 COMBO RUN: 7 COLUMNS 20UL
 
-        # #ot2 dilution protocol
-        # ot2_replacement_variables = helper_functions.collect_ot2_replacement_variables(payload)
-        # temp_ot2_file_str = helper_functions.generate_ot2_protocol(dd_ot2_protocol, ot2_replacement_variables)
-        # payload["current_ot2_protocol"] = temp_ot2_file_str
-        # workflow = self.workcell_client.submit_workflow(
-        #     run_ot2_wf.resolve(),
-        #     file_inputs={
-        #         "ot2_protocol": payload["current_ot2_protocol"],
-        #     },
-        # )
+        #ot2 dilution protocol
+        ot2_replacement_variables = helper_functions.collect_ot2_replacement_variables(payload)
+        temp_ot2_file_str = helper_functions.generate_ot2_protocol(dd_ot2_protocol, ot2_replacement_variables)
+        payload["current_ot2_protocol"] = temp_ot2_file_str
+        workflow = self.workcell_client.submit_workflow(
+            run_ot2_wf.resolve(),
+            file_inputs={
+                "ot2_protocol": payload["current_ot2_protocol"],
+            },
+        )
 
         # 8 COMBO:
         # OT2 2 COLS LEFT IN BOX 1 AND 12 IN BOX 2
@@ -1074,15 +1078,15 @@ class PDApp(ExperimentScript,): # TODO
         # 24 COMBO RUN: 1 COL 50UL, 2 COLS 200UL
 
         #cfps master mix protocol in flex
-        # ot2_replacement_variables = helper_functions.collect_ot2_replacement_variables(payload)
-        # temp_ot2_file_str = helper_functions.generate_ot2_protocol(cfps_flex_protocol, ot2_replacement_variables)
-        # payload["current_flex_protocol"] = temp_ot2_file_str
-        # workflow = self.workcell_client.submit_workflow(
-        #     run_flex_wf.resolve(),
-        #     file_inputs={
-        #         "flex_protocol": payload["current_flex_protocol"],
-        #     },
-        # )
+        ot2_replacement_variables = helper_functions.collect_ot2_replacement_variables(payload)
+        temp_ot2_file_str = helper_functions.generate_ot2_protocol(cfps_flex_protocol, ot2_replacement_variables)
+        payload["current_flex_protocol"] = temp_ot2_file_str
+        workflow = self.workcell_client.submit_workflow(
+            run_flex_wf.resolve(),
+            file_inputs={
+                "flex_protocol": payload["current_flex_protocol"],
+            },
+        )
 
         # 8 COMBO:
         # OT2 2 COLS LEFT IN BOX 1 AND 12 IN BOX 2
@@ -1124,15 +1128,15 @@ class PDApp(ExperimentScript,): # TODO
         # pcr to cfps plate cols 1-5
         # dilute golden gate products with 20ul of water and mix
         # 1 ul of diluted golden gate product to cols 1-4 of pcr product plate, mix
-        # ot2_replacement_variables = helper_functions.collect_ot2_replacement_variables(payload)
-        # temp_ot2_file_str = helper_functions.generate_ot2_protocol(cfps_ot2_protocol, ot2_replacement_variables)
-        # payload["current_ot2_protocol"] = temp_ot2_file_str
-        # workflow = self.workcell_client.submit_workflow(
-        #     run_ot2_wf.resolve(),
-        #     file_inputs={
-        #         "ot2_protocol": payload["current_ot2_protocol"],
-        #     },
-        # )
+        ot2_replacement_variables = helper_functions.collect_ot2_replacement_variables(payload)
+        temp_ot2_file_str = helper_functions.generate_ot2_protocol(cfps_ot2_protocol, ot2_replacement_variables)
+        payload["current_ot2_protocol"] = temp_ot2_file_str
+        workflow = self.workcell_client.submit_workflow(
+            run_ot2_wf.resolve(),
+            file_inputs={
+                "ot2_protocol": payload["current_ot2_protocol"],
+            },
+        )
 
         # 8 COMBO:
         # OT2 0 COLS LEFT IN BOX 1 AND 12 IN BOX 2
@@ -1180,9 +1184,9 @@ class PDApp(ExperimentScript,): # TODO
 
 
 
-        #################
-        ##### FD GLU ASSAY
-        #################
+        ################
+        #### FD GLU ASSAY
+        ################
 
         # #move controls plate from? to cool block on flex
         # #WORKING 7-24
@@ -1260,15 +1264,15 @@ class PDApp(ExperimentScript,): # TODO
         # 24 COMBO RUN: 5 COLS 50UL AND 1 COL 200UL
 
 
-        # ot2_replacement_variables = helper_functions.collect_ot2_replacement_variables(payload)
-        # temp_ot2_file_str = helper_functions.generate_ot2_protocol(fdglu_flex_protocol, ot2_replacement_variables)
-        # payload["current_flex_protocol"] = temp_ot2_file_str
-        # workflow = self.workcell_client.submit_workflow(
-        #     run_flex_wf.resolve(),
-        #     file_inputs={
-        #         "flex_protocol": payload["current_flex_protocol"],
-        #     },
-        # )
+        ot2_replacement_variables = helper_functions.collect_ot2_replacement_variables(payload)
+        temp_ot2_file_str = helper_functions.generate_ot2_protocol(fdglu_flex_protocol, ot2_replacement_variables)
+        payload["current_flex_protocol"] = temp_ot2_file_str
+        workflow = self.workcell_client.submit_workflow(
+            run_flex_wf.resolve(),
+            file_inputs={
+                "flex_protocol": payload["current_flex_protocol"],
+            },
+        )
 
         # 8 COMBO:
         # OT2 0 COLS LEFT IN BOX 1 AND 12 IN BOX 2

@@ -1,6 +1,7 @@
 from opentrons import protocol_api
 import itertools
 from opentrons.protocol_api import SINGLE, ALL
+import ast
 
 
 metadata = {
@@ -15,7 +16,10 @@ requirements = {"robotType": "Flex", "apiLevel": "2.20"}
 # Protocol Configuration
 config = {
     # PCR product settings
-    'combinations': [[1], [2, 2], [3, 3], [4, 4]], # 1-indexed source well numbers (kept for total calculation)
+    # 'combinations': [[1], [2, 2], [3, 3], [4, 4]], # 1-indexed source well numbers (kept for total calculation)
+    'combinations': "$combinations",
+    'use_combinations': bool("$use_combinations"),
+    'non_combinatorial_sources': "$non_combinatorial_sources",
     'fdglu_volume': 100,    # µL of PCR product to transfer to reaction plate
     'source_samples_volume': 20,
     'protein_and_buffer_volume': 20,
@@ -30,7 +34,6 @@ config = {
     'pause_duration': 5,          # minutes for pause after reaction assembly (PF400 to sealer and back)
     'shaking_duration': 180,      # minutes (3 hours) for shaking (CFPS)
     'shaking_speed': 200,         # rpm for shaking (Is this optimal for CFPS? The pilots CFPS were run without shaking without issues in the assays) #TODO 100 is too low 200-3000
-
     # Reagent mixing settings (using 8-channel pipette)
     # Right now we assume that the combined reagents fit into one well (max 150µL). Using 25 uL reactions this is sufficient for 6 reactions (6 columns).
     # The number of columns is calculated based on the total number of combinations + 1 for internal standards (for this eample 3 columns are needed)
@@ -116,9 +119,10 @@ def remove_rmf(protocol, cfps_plate, reagent_plate, pipette, config):
 
     wells_to_remove = [37, 38, 39]
     dest_well = reagent_plate.wells()[11]
-    for well in wells_to_remove:
+    tip_wells = ['A5', 'B5', 'C5']
+    for well, tip in zip(wells_to_remove, tip_wells):
         source_well = cfps_plate.wells()[well]
-        pipette.pick_up_tip()
+        pipette.pick_up_tip(pipette.tip_racks[0].well(tip))
         pipette.aspirate(27.6, source_well)
         pipette.dispense(27.6, dest_well)
         pipette.drop_tip()
@@ -192,10 +196,11 @@ def controls_to_dest(protocol, controls_plate, fdglu_plate, pipette, config):
    #controls in f3, g3, h3 into fdglu f12, g12, h12
    controls = [21, 22, 23]
    dest = [37, 38, 39]
-   for i in range(3):
+   tip_wells = ['D5', 'E5', 'F5']
+   for i, tip in zip(range(3), tip_wells):
        source_well = controls_plate.wells()[controls[i]]
        dest_well = fdglu_plate.wells()[dest[i]]
-       pipette.pick_up_tip()
+       pipette.pick_up_tip(pipette.tip_racks[0].well(tip))
        pipette.aspirate(20, source_well)
        pipette.dispense(20, dest_well)
        pipette.mix(3, 30, dest_well)
@@ -222,6 +227,9 @@ def controls_to_dest(protocol, controls_plate, fdglu_plate, pipette, config):
 
 
 def run(protocol):
+    combinations_string = config['combinations']
+    combinations = ast.literal_eval(combinations_string)
+    config['combinations'] = combinations
     # Load temperature module and adapter for reaction assembly
     temp_mod1 = protocol.load_module(module_name="temperature module gen2", location=config['temp_module_01_position'])
     temp_adapter1 = temp_mod1.load_adapter(config['pcr_adapter_type'])
@@ -277,14 +285,14 @@ def run(protocol):
     chute = protocol.load_waste_chute()
 
     p1000.starting_tip = tiprack_200_1.well('A6')
-    p50.starting_tip = tiprack_50_1.well('A5')
+    # p50.starting_tip = tiprack_50_1.well('A5')
 
 
-    remove_rmf(protocol=protocol,
-               cfps_plate=cfps_plate,
-               reagent_plate=reagent_plate,
-               pipette=p50,
-               config = config)
+    # remove_rmf(protocol=protocol,
+    #            cfps_plate=cfps_plate,
+    #            reagent_plate=reagent_plate,
+    #            pipette=p50,
+    #            config = config)
 
     fdglu_to_plate(protocol=protocol,
                    reagent_plate=reagent_plate,
@@ -292,7 +300,8 @@ def run(protocol):
                    pipette=p1000,
                    config=config)
 
-    p50.configure_nozzle_layout(style=ALL, start='A1', tip_racks=[tiprack_50_1, tiprack_50_2])
+    p50.configure_nozzle_layout(style=ALL, start='A1', tip_racks=[tiprack_50_1])
+    p50.starting_tip = tiprack_50_1.well('A6')
 
     cfps_to_dest(protocol=protocol,
                  cfps_plate=cfps_plate,
@@ -300,13 +309,13 @@ def run(protocol):
                  pipette=p50,
                  config=config)
 
-    p50.configure_nozzle_layout(style=SINGLE, start='A1', tip_racks=[tiprack_50_1, tiprack_50_2])
+    p50.configure_nozzle_layout(style=SINGLE, start='A1', tip_racks=[tiprack_50_1])
 
-    controls_to_dest(protocol=protocol,
-                     controls_plate=controls_plate,
-                     fdglu_plate=fdglu_plate,
-                     pipette=p50,
-                     config=config)
+    # controls_to_dest(protocol=protocol,
+    #                  controls_plate=controls_plate,
+    #                  fdglu_plate=fdglu_plate,
+    #                  pipette=p50,
+    #                  config=config)
 
     protocol.comment(f"tips used 1000: {config['tips_used_1000']}")
     protocol.comment(f"tips used 50: {config['tips_used_50']}")

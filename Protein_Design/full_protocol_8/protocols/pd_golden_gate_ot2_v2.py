@@ -289,6 +289,9 @@ def add_master_mix_to_combinations(protocol, source_plate, dest_plate, pipette, 
 
 
 def run(protocol: protocol_api.ProtocolContext):
+    combinations_string = config['combinations']
+    combinations = ast.literal_eval(combinations_string)
+    config['combinations'] = combinations
     # Load temperature module and adapter
     temp_mod_1 = protocol.load_module(module_name="temperature module gen2", location=config['temp_module_01_position'])
     temp_mod_2 = protocol.load_module(module_name="temperature module gen2", location=config['temp_module_02_position'])

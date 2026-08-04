@@ -7,12 +7,20 @@ metadata:
 
 steps:
   #fragments plate from nest 4 ot2 to flex cooling block
+  # - name: transfer
+  #   node: pf400_piper
+  #   action: transfer
+  #   locations:
+  #     source: rack1_row4_nest3
+  #     target: exchange_narrow
+  #   comment: place plate on exchange
+
   - name: transfer
     node: pf400_piper
     action: transfer
     locations:
-      source: rack1_row4_nest3
-      target: exchange_narrow
+      source: ot2_patrick.deck_nest_1
+      target: exchange_wide
     comment: place plate on exchange
 
 

@@ -1,6 +1,7 @@
 from opentrons import protocol_api
 import itertools
 from opentrons.protocol_api import SINGLE
+import ast
 
 
 metadata = {
@@ -160,6 +161,9 @@ def mixB_to_rmf(protocol, rmf_plate, cfps_plate, pipette, config):
 
 
 def run(protocol: protocol_api.ProtocolContext):
+    combinations_string = config['combinations']
+    combinations = ast.literal_eval(combinations_string)
+    config['combinations'] = combinations
     # Load temperature module and adapter
     temp_mod1 = protocol.load_module(module_name="temperature module gen2", location=config['temp_module_01_position'])
     temp_adapter1 = temp_mod1.load_adapter("opentrons_96_well_aluminum_block")

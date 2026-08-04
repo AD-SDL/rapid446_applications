@@ -1,6 +1,7 @@
 from opentrons import protocol_api
 import itertools
 from opentrons.protocol_api import SINGLE
+import ast
 
 
 metadata = {
@@ -21,12 +22,12 @@ config = {
     'sybrgreen_well': 3,
     'water_volume': 97,
     # 'combinations': [[18,10,2],[11,19,3],[4,20,12],[21,13,5]],
-    'combinations': [[1], [2, 2], [3, 3], [4, 4]],
-    'use_combinations': bool("$use_combinations"),
-
-    # 'combinations': "$combinations",
+    # 'combinations': [[1], [2, 2], [3, 3], [4, 4]],
     # 'use_combinations': bool("$use_combinations"),
-    # 'non_combinatorial_sources': "$non_combinatorial_sources",
+
+    'combinations': "$combinations",
+    'use_combinations': bool("$use_combinations"),
+    'non_combinatorial_sources': "$non_combinatorial_sources",
     "num_controls": 5,
     'tips_used_1000': 0,
     'tips_used_50': 0,
@@ -196,6 +197,9 @@ def controls_to_sybrgreen(protocol, controls_plate, sybrgreen_plate, pipette, co
 
 
 def run(protocol: protocol_api.ProtocolContext):
+    combinations_string = config['combinations']
+    combinations = ast.literal_eval(combinations_string)
+    config['combinations'] = combinations
     # Load temperature module and adapter
     temp_mod1 = protocol.load_module(module_name="temperature module gen2", location=config['temp_module_01_position'])
     temp_adapter1 = temp_mod1.load_adapter("opentrons_96_well_aluminum_block")
