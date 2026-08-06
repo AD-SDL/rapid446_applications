@@ -1,6 +1,7 @@
 from opentrons import protocol_api
 import itertools
 from opentrons.protocol_api import SINGLE
+import ast
 
 
 metadata = {
@@ -21,12 +22,12 @@ config = {
     'sybrgreen_well': 3,
     'water_volume': 97,
     # 'combinations': [[18,10,2],[11,19,3],[4,20,12],[21,13,5]],
-    'combinations': [[1], [2, 2], [3, 3], [4, 4]],
-    'use_combinations': bool("$use_combinations"),
-
-    # 'combinations': "$combinations",
+    # 'combinations': [[1], [2, 2], [3, 3], [4, 4]],
     # 'use_combinations': bool("$use_combinations"),
-    # 'non_combinatorial_sources': "$non_combinatorial_sources",
+
+    'combinations': "$combinations",
+    'use_combinations': bool("$use_combinations"),
+    'non_combinatorial_sources': "$non_combinatorial_sources",
     "num_controls": 5,
     'tips_used_1000': 0,
     'tips_used_50': 0,
@@ -46,7 +47,6 @@ config = {
     'sybrgreen_plate_type': 'nest_96_wellplate_100ul_pcr_full_skirt',
     'reagent_plate_type': 'nest_12_reservoir_15ml',
     'tip_rack_type_50_01': 'opentrons_flex_96_tiprack_50ul',
-    'tip_rack_type_50_02': 'opentrons_flex_96_tiprack_50ul',
     'tip_rack_type_200_01': 'opentrons_flex_96_tiprack_200ul',
     'pipette_type_50': 'flex_8channel_50',
     'pipette_type_1000': 'flex_8channel_1000',
@@ -59,7 +59,6 @@ config = {
     'sybrgreen_plate_position': 'C2',
     'reagent_plate_position': 'D2',
     'tip_rack_position_50_01': 'A2',
-    'tip_rack_position_50_02': 'A3',
     'tip_rack_position_200_01': 'A1',
     'controls_plate_position': 'B1',
 }
@@ -198,6 +197,9 @@ def controls_to_sybrgreen(protocol, controls_plate, sybrgreen_plate, pipette, co
 
 
 def run(protocol: protocol_api.ProtocolContext):
+    combinations_string = config['combinations']
+    combinations = ast.literal_eval(combinations_string)
+    config['combinations'] = combinations
     # Load temperature module and adapter
     temp_mod1 = protocol.load_module(module_name="temperature module gen2", location=config['temp_module_01_position'])
     temp_adapter1 = temp_mod1.load_adapter("opentrons_96_well_aluminum_block")
@@ -215,6 +217,7 @@ def run(protocol: protocol_api.ProtocolContext):
     # pcr_plate.set_offset(x=0.4, y=0.4, z=0.2)
 
     sybrgreen_plate = protocol.load_labware(config['sybrgreen_plate_type'], config['sybrgreen_plate_position'])
+    sybrgreen_plate.set_offset(x=0, y=0, z=0.4)
 
     reagent_plate = protocol.load_labware(config['reagent_plate_type'], config['reagent_plate_position'])
 
@@ -226,19 +229,21 @@ def run(protocol: protocol_api.ProtocolContext):
     tiprack_50_1 = protocol.load_labware(
         load_name=config['tip_rack_type_50_01'], location=config['tip_rack_position_50_01']
     )
-    tiprack_50_2 = protocol.load_labware(
-        load_name=config['tip_rack_type_50_02'], location=config['tip_rack_position_50_02']
-    )
+    # tiprack_50_2 = protocol.load_labware(
+    #     load_name=config['tip_rack_type_50_02'], location=config['tip_rack_position_50_02']
+    # )
     tiprack_200_1 = protocol.load_labware(
         load_name=config['tip_rack_type_200_01'], location=config['tip_rack_position_200_01']
     )
 
 
-    p50 = protocol.load_instrument('flex_8channel_50', mount='right', tip_racks=[tiprack_50_1, tiprack_50_2])
+    p50 = protocol.load_instrument('flex_8channel_50', mount='right', tip_racks=[tiprack_50_1])
     p1000 = protocol.load_instrument('flex_8channel_1000', mount='left', tip_racks=[tiprack_200_1])
 
-    p50.configure_nozzle_layout(style='COLUMN', start='A1', tip_racks=[tiprack_50_1, tiprack_50_2])
+    p50.configure_nozzle_layout(style='COLUMN', start='A1', tip_racks=[tiprack_50_1])
     p1000.configure_nozzle_layout(style='COLUMN', start='A1', tip_racks=[tiprack_200_1])
+
+    p1000.starting_tip = tiprack_200_1.well('A4')
 
     water_to_pcr_products(protocol=protocol,
                           reagent_plate=reagent_plate,

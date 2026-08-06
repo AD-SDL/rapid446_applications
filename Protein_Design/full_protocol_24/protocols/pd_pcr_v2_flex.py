@@ -1,6 +1,7 @@
 from opentrons import protocol_api
 import itertools
 from opentrons.protocol_api import SINGLE
+import ast
 
 
 metadata = {
@@ -42,7 +43,7 @@ config = {
     'pcr_plate_type': 'nest_96_wellplate_100ul_pcr_full_skirt',
     'reagent_plate_type': 'nest_12_reservoir_15ml',
     'tip_rack_type_50_01': 'opentrons_flex_96_tiprack_50ul',
-    'tip_rack_type_50_02': 'opentrons_flex_96_tiprack_50ul',
+    # 'tip_rack_type_50_02': 'opentrons_flex_96_tiprack_50ul',
     'tip_rack_type_200_01': 'opentrons_flex_96_tiprack_200ul',
     'pipette_type_50': 'flex_8channel_50',
     'pipette_type_1000': 'flex_8channel_1000',
@@ -53,7 +54,7 @@ config = {
     'fragments_plate_initial_position': 'B1',
     'pcr_plate_position': 'C1',
     'tip_rack_position_50_01': 'A2',
-    'tip_rack_position_50_02': 'A3',
+    # 'tip_rack_position_50_02': 'A3',
     'tip_rack_position_200_01': 'A1',
     'reagent_plate_position': 'D2'
 }
@@ -158,6 +159,9 @@ def master_mix_to_pcr_plate(protocol, source_plate, pcr_plate, pipette, config):
 
 
 def run(protocol: protocol_api.ProtocolContext):
+    combinations_string = config['combinations']
+    combinations = ast.literal_eval(combinations_string)
+    config['combinations'] = combinations
     # Load temperature module and adapter
     temp_mod_1 = protocol.load_module(module_name="temperature module gen2", location=config['temp_module_01_position'])
     temp_adapter_1 = temp_mod_1.load_adapter("opentrons_96_well_aluminum_block")
@@ -166,8 +170,8 @@ def run(protocol: protocol_api.ProtocolContext):
     temp_adapter_2 = temp_mod_2.load_adapter("opentrons_96_well_aluminum_block")
 
     # Set temperature
-    # temp_mod_1.set_temperature(config['temperature']) #TODO: make seperate, or just set earlier, only 1 hour with plate
-    # temp_mod_2.set_temperature(config['temperature']) #TODO: make seperate, or just set earlier, only 1 hour with plate
+    temp_mod_1.set_temperature(config['temperature']) #TODO: make seperate, or just set earlier, only 1 hour with plate
+    temp_mod_2.set_temperature(config['temperature']) #TODO: make seperate, or just set earlier, only 1 hour with plate
 
     # Load source plate initially on A4
     # source_plate = protocol.load_labware(config['source_plate_type'], config['source_plate_initial_position'])
@@ -192,9 +196,9 @@ def run(protocol: protocol_api.ProtocolContext):
     tiprack_50_1 = protocol.load_labware(
         load_name=config['tip_rack_type_50_01'], location=config['tip_rack_position_50_01']
     )
-    tiprack_50_2 = protocol.load_labware(
-        load_name=config['tip_rack_type_50_02'], location=config['tip_rack_position_50_02']
-    )
+    # tiprack_50_2 = protocol.load_labware(
+    #     load_name=config['tip_rack_type_50_02'], location=config['tip_rack_position_50_02']
+    # )
     tiprack_200_1 = protocol.load_labware(
         load_name=config['tip_rack_type_200_01'], location=config['tip_rack_position_200_01']
     )
@@ -202,10 +206,10 @@ def run(protocol: protocol_api.ProtocolContext):
 
 
     # Pipettes
-    p50 = protocol.load_instrument('flex_8channel_50', mount='right', tip_racks=[tiprack_50_1, tiprack_50_2])
+    p50 = protocol.load_instrument('flex_8channel_50', mount='right', tip_racks=[tiprack_50_1])
     p1000 = protocol.load_instrument('flex_8channel_1000', mount='left', tip_racks=[tiprack_200_1])
 
-    p50.configure_nozzle_layout(style='COLUMN', start='A1', tip_racks=[tiprack_50_1, tiprack_50_2])
+    p50.configure_nozzle_layout(style='COLUMN', start='A1', tip_racks=[tiprack_50_1])
     p1000.configure_nozzle_layout(style='COLUMN', start='A1', tip_racks=[tiprack_200_1])
     # p1000.configure_nozzle_layout(style=SINGLE, start='A1', tip_racks=[tiprack_200])
 

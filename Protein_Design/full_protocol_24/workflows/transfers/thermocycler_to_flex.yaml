@@ -33,10 +33,10 @@ steps:
     comment: transfer to peeler
 
 
-  # - name: peel
-  #   node: peeler_penelope
-  #   action: peel
-  #   comment: peel the pcr plate
+  - name: peel
+    node: peeler_penelope
+    action: peel
+    comment: peel the pcr plate
 
 
   #peeler to exchange

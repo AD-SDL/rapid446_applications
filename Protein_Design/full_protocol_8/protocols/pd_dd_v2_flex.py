@@ -208,8 +208,8 @@ def run(protocol: protocol_api.ProtocolContext):
     temp_adapter2 = temp_mod2.load_adapter("opentrons_96_well_aluminum_block")
 
     # Set temperature
-    # temp_mod1.set_temperature(config['temperature'])
-    # temp_mod2.set_temperature(config['temperature'])
+    temp_mod1.set_temperature(config['temperature'])
+    temp_mod2.set_temperature(config['temperature'])
 
     chute = protocol.load_waste_chute()
 

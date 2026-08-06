@@ -172,8 +172,8 @@ def run(protocol: protocol_api.ProtocolContext):
     temp_adapter2 = temp_mod2.load_adapter("opentrons_96_well_aluminum_block")
 
     # Set temperature
-    # temp_mod1.set_temperature(config['temperature']) #TODO: make seperate, or just set earlier, only 1 hour with plate
-    # temp_mod2.set_temperature(config['temperature']) #TODO: make seperate, or just set earlier, only 1 hour with plate
+    temp_mod1.set_temperature(config['temperature']) #TODO: make seperate, or just set earlier, only 1 hour with plate
+    temp_mod2.set_temperature(config['temperature']) #TODO: make seperate, or just set earlier, only 1 hour with plate
 
     shaker_mod = protocol.load_module(module_name="heaterShakerModuleV1", location=config['shaker_module_position'])
     shaker_adapter = shaker_mod.load_adapter(config['pcr_adapter_type'])

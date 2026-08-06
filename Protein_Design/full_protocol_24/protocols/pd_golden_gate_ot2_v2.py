@@ -18,10 +18,11 @@ requirements = {"robotType": "OT-2", "apiLevel": "2.20"}
 config = {
     # Combinatorial mixing
     # 'combinations': [[18,10,2],[11,19,3],[4,20,12],[21,13,5]],
-    # 'combinations': [[5,6,7,8], [25,26,27,28], [37,38,39,40]],
-    # 'combinations': [[1, 6], [2, 10], [3, 11], [4, 12]],
-    # 'combinations': [[1], [2, 2], [3, 3], [4, 4]],
-    # 'use_combinations': True,
+    # # 'combinations': [[5,6,7,8], [25,26,27,28], [37,38,39,40]],
+    # # 'combinations': [[1, 6], [2, 10], [3, 11], [4, 12]],
+    # # 'combinations': [[1], [2, 2], [3, 3], [4, 4]],
+    # 'use_combinations': False,
+    # 'non_combinatorial_sources': [[1, 10, 3, 28], [5, 6, 7, 40], [9, 10, 3, 28], [5, 6, 7, 8], [9, 10, 3, 28], [5, 6, 7, 40], [25, 6, 7, 28], [9, 10, 3, 4], [1, 10, 3, 4], [5, 6, 7, 28], [5, 6, 7, 28], [9, 10, 3, 28], [5, 6, 7, 8], [25, 6, 7, 28], [5, 6, 7, 40], [9, 10, 3, 4], [1, 10, 3, 4], [1, 10, 3, 28], [5, 6, 7, 28], [5, 6, 7, 8], [1, 10, 3, 4], [25, 6, 7, 28], [9, 10, 3, 4], [1, 10, 3, 28]],
     # 'non_combinatorial_sources': [
     #     [1,2,3,4],
     #     [9,2,3,12],
@@ -217,15 +218,32 @@ def add_master_mix_to_combinations(protocol, source_plate, dest_plate, pipette, 
         config: Configuration dictionary containing master mix settings
     """
 
-    combinations = config['combinations']
+    combinations = None
+    total_combinations = 0
+    all_combinations = None
+    if config['use_combinations'] is True:
+        ##########
+        # combinations_string = config['combinations']
+        # combinations = ast.literal_eval(combinations_string)
+        combinations = config['combinations']
+        ##########
+        total_combinations = calculate_total_combinations(combinations)
+        # Generate all possible combinations
+        all_combinations = generate_all_combinations(combinations)
+    else:
+        all_combinations = config['non_combinatorial_sources']
+        total_combinations = len(all_combinations)
+
+    # combinations = config['combinations']
     master_mix_volume = config['master_mix_volume']
     master_mix_well_volume = config['master_mix_well_volume']
     master_mix_start_well = config['master_mix_start_well']
 
     # Calculate total combinations
-    total_combinations = calculate_total_combinations(combinations)
+    # total_combinations = calculate_total_combinations(combinations)
 
-    num_samples = calculate_total_combinations(combinations)
+    # num_samples = calculate_total_combinations(combinations)
+    num_samples = total_combinations
     columns_needed = (num_samples + 7) // 8
 
     # Calculate how many destination wells can be served by one master mix well
@@ -289,6 +307,9 @@ def add_master_mix_to_combinations(protocol, source_plate, dest_plate, pipette, 
 
 
 def run(protocol: protocol_api.ProtocolContext):
+    combinations_string = config['combinations']
+    combinations = ast.literal_eval(combinations_string)
+    config['combinations'] = combinations
     # Load temperature module and adapter
     temp_mod_1 = protocol.load_module(module_name="temperature module gen2", location=config['temp_module_01_position'])
     temp_mod_2 = protocol.load_module(module_name="temperature module gen2", location=config['temp_module_02_position'])
@@ -297,8 +318,8 @@ def run(protocol: protocol_api.ProtocolContext):
     temp_adapter_2 = temp_mod_2.load_adapter("opentrons_96_well_aluminum_block")
 
     # Set temperature
-    # temp_mod_1.set_temperature(config['temperature']) #TODO: make seperate, or just set earlier, only 1 hour with plate
-    # temp_mod_2.set_temperature(config['temperature'])
+    temp_mod_1.set_temperature(config['temperature']) #TODO: make seperate, or just set earlier, only 1 hour with plate
+    temp_mod_2.set_temperature(config['temperature'])
 
     source_plate = temp_adapter_1.load_labware(config['fragments_plate_type'])
 
@@ -334,14 +355,14 @@ def run(protocol: protocol_api.ProtocolContext):
 
 
 
-    # Add master mix to each destination well
-    last_master_mix_well = add_master_mix_to_combinations(
-        protocol=protocol,
-        source_plate=source_plate,
-        dest_plate=dest_plate,
-        pipette=p50,
-        config=config
-    )
+    # # Add master mix to each destination well
+    # last_master_mix_well = add_master_mix_to_combinations(
+    #     protocol=protocol,
+    #     source_plate=source_plate,
+    #     dest_plate=dest_plate,
+    #     pipette=p50,
+    #     config=config
+    # )
 
 
 

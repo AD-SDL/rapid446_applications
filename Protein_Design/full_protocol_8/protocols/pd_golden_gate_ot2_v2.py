@@ -300,8 +300,8 @@ def run(protocol: protocol_api.ProtocolContext):
     temp_adapter_2 = temp_mod_2.load_adapter("opentrons_96_well_aluminum_block")
 
     # Set temperature
-    # temp_mod_1.set_temperature(config['temperature']) #TODO: make seperate, or just set earlier, only 1 hour with plate
-    # temp_mod_2.set_temperature(config['temperature'])
+    temp_mod_1.set_temperature(config['temperature']) #TODO: make seperate, or just set earlier, only 1 hour with plate
+    temp_mod_2.set_temperature(config['temperature'])
 
     source_plate = temp_adapter_1.load_labware(config['fragments_plate_type'])
 

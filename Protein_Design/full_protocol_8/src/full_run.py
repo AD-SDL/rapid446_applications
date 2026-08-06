@@ -72,6 +72,7 @@ class PDApp(ExperimentScript,): # TODO
     # resource_client = ResourceClient()
     experiment_id = None
     experiment_label = None
+    rest_handler = RESTHandlerPD()
 
     # def _validate_settings_path(self):
     #     if not os.path.isfile(self.experiment_settings_file):
@@ -292,20 +293,6 @@ class PDApp(ExperimentScript,): # TODO
 
         #intitialize resources #TODO make into seperate function
 
-        # self.pop_assay_plate_resource("ot2_patrick.deck_nest_6_temp_block")
-        # self.pop_assay_plate_resource("ot2_patrick.deck_nest_4_temp_block")
-        # self.pop_assay_plate_resource("ot2_patrick.deck_nest_1")
-        # self.pop_assay_plate_resource("ot2_patrick.deck_nest_3")
-        # self.pop_assay_plate_resource("rack1_row1_nest3")
-        # self.pop_assay_plate_resource("rack1_row2_nest1")
-        # self.pop_assay_plate_resource("rack1_row3_nest1")
-        # self.pop_assay_plate_resource("rack1_row3_nest2")
-        # self.pop_assay_plate_resource("rack1_row3_nest3")
-        # self.pop_assay_plate_resource("rack1_row4_nest1")
-        # self.pop_assay_plate_resource("rack1_row4_nest2")
-        # self.pop_assay_plate_resource("rack1_row4_nest3")
-        # self.pop_assay_plate_resource("rack1_row5_nest1")
-
 
         #fragments plate
         new_plate, old_plate = self.push_new_assay_plate_resource(
@@ -319,23 +306,13 @@ class PDApp(ExperimentScript,): # TODO
             labware_type="pcr"
         )
 
-        #tip box 1
-        # new_plate, old_plate = self.push_new_assay_plate_resource(
-        #     location_name="ot2_patrick.deck_nest_1",
-        #     labware_type="ot2_tiprack"
-        # )
 
-        #tip box 3
+        #tip box 20UL
         new_plate, old_plate = self.push_new_assay_plate_resource(
             location_name="ot2_patrick.deck_nest_3",
             labware_type="ot2_tiprack"
         )
 
-        # tip box
-        # new_plate, old_plate = self.push_new_assay_plate_resource(
-        #     location_name="rack1_row1_nest3",
-        #     labware_type="ot2_tiprack"
-        # )
 
         #empty pcr
         new_plate, old_plate = self.push_new_assay_plate_resource(
@@ -350,7 +327,7 @@ class PDApp(ExperimentScript,): # TODO
             labware_type="pcr"
         )
 
-        # Sybrgreen plate #TODO: PLATE DISAPPEARS FROM RESOURCES
+        # Sybrgreen plate 
         new_plate, old_plate = self.push_new_assay_plate_resource(
             location_name="rack1_row3_nest2",
             labware_type="flat_bottom"
@@ -376,11 +353,6 @@ class PDApp(ExperimentScript,): # TODO
             labware_type="pcr"
         )
 
-
-        # new_plate, old_plate = self.push_new_assay_plate_resource(
-        #     location_name="rack1_row4_nest3",
-        #     labware_type="pcr"
-        # )
 
         #fdglu (empty)
         new_plate, old_plate = self.push_new_assay_plate_resource(
@@ -414,7 +386,8 @@ class PDApp(ExperimentScript,): # TODO
         # Workflow paths
         run_ot2_wf = run_directory / "run_ot2_wf.yaml"
         run_flex_wf = run_directory / "run_flex.yaml"
-        run_thermo_wf = run_directory / "run_thermo.yaml"
+        run_thermo_gg = run_directory / "run_thermo_gg.yaml"
+        run_thermo_pcr = run_directory / "run_thermo_pcr.yaml"
         open_thermo_wf = run_directory / "open_thermo.yaml"
 
         ot2_to_thermocycler = (
@@ -575,28 +548,33 @@ class PDApp(ExperimentScript,): # TODO
         cfps_ot2_protocol = protocol_directory / "cell_free_pd_ot2_v2.py"
         fdglu_flex_protocol = protocol_directory / "pd_fdglu_flex_v2.py"
         run_hidex = run_directory / "run_hidex.yaml"
+        run_hidex_sybr = run_directory / "run_hidex_sybr.yaml"
         ot2_rmf_removal_protocol = protocol_directory / "pd_fdglu_ot2_rmf_removal.py"
 
 
         payload = {}
 
-        # combination_data = self.rest_handler.collect_combinations(oracle_id=1008)
-
-
-        # payload["combinations"] = combination_data["combinations"]
-        # payload["use_combinations"] = combination_data["use_combinations"]
-        # payload["non_combinatorial_sources"] = combination_data["non_combinatorial_sources"]
-
-        combination_data = [[1], [2, 2], [3, 3], [4, 4]]
-        combination_num = helper_functions.calculate_total_combinations(combination_data)
         
-        payload["combinations"] = combination_data
-        payload["use_combinations"] = True
-        payload["non_combinatorial_sources"] = False
+
+        combination_data = self.rest_handler.collect_combinations(oracle_id=1008)
+
+
+        payload["combinations"] = combination_data["combinations"]
+        payload["use_combinations"] = combination_data["use_combinations"]
+        payload["non_combinatorial_sources"] = combination_data["non_combinatorial_sources"]
+
+        print("COMBINATIONS", payload["combinations"])
+
+        # combination_data = [[1], [2, 2], [3, 3], [4, 4]]
+        # combination_num = helper_functions.calculate_total_combinations(combination_data)
+        
+        # payload["combinations"] = combination_data
+        # payload["use_combinations"] = True
+        # payload["non_combinatorial_sources"] = False
 
         #STARTING TIP AMOUNTS
-        # OT2: 2 20UL TIP RACKS 1 AND 3
-        # FLEX: 1 200UL RACK A1 AND 2 50UL RACKS A2 AND A3
+        # OT2: 1 20UL TIP RACK pos 3
+        # FLEX: 1 200UL RACK A1 AND 1 50UL RACK A2
 
 
         # EXPERIMENT ACTIONS -------------------------------------------------------
@@ -641,10 +619,10 @@ class PDApp(ExperimentScript,): # TODO
             seal_and_thermocycle_gg.resolve(),
         )
 
-        # #run thermocycler
-        # workflow = self.workcell_client.submit_workflow(
-        #     run_thermo_wf.resolve(),
-        # )
+        #run thermocycler
+        workflow = self.workcell_client.submit_workflow(
+            run_thermo_gg.resolve(),
+        )
 
 
 
@@ -784,9 +762,9 @@ class PDApp(ExperimentScript,): # TODO
 
 
         # #run thermocycler
-        # workflow = self.workcell_client.submit_workflow(
-        #     run_thermo_wf.resolve(),
-        # )
+        workflow = self.workcell_client.submit_workflow(
+            run_thermo_pcr.resolve(),
+        )
 
         #TODO maybe wait until after plates are discarded
         #WORKING 7-23
@@ -836,7 +814,6 @@ class PDApp(ExperimentScript,): # TODO
         workflow = self.workcell_client.submit_workflow(
             thermocycler_to_flex.resolve(),
         )
-        #TODO: NEED TO PEEL PLATE
 
         payload["current_flex_protocol"] = A4_to_C1
         workflow = self.workcell_client.submit_workflow(
@@ -1013,9 +990,9 @@ class PDApp(ExperimentScript,): # TODO
         )
 
         #run hidex protocol # TODO
-        # workflow = self.workcell_client.submit_workflow(
-        #     run_hidex.resolve(),
-        # )
+        workflow = self.workcell_client.submit_workflow(
+            run_hidex_sybr.resolve(),
+        )
 
         workflow = self.workcell_client.submit_workflow(
             sybrgreen_hidex_to_rack.resolve(),
@@ -1027,7 +1004,7 @@ class PDApp(ExperimentScript,): # TODO
 
 
 
-
+        input("Script paused. Press Enter to continue...")
 
 
 
@@ -1299,13 +1276,28 @@ class PDApp(ExperimentScript,): # TODO
             fdglu_to_hidex.resolve(),
         )
 
-        # workflow = self.workcell_client.submit_workflow(
-        #     run_hidex.resolve(),
-        # )
+        workflow = self.workcell_client.submit_workflow(
+            run_hidex.resolve(),
+        )
 
-        #TODO: REMOVE ALL LABWARE FROM OT2 AND FLEX
+        hidex_data_point = workflow.get_datapoint(label="file")
+        # print("HIDEX DATA POINT", hidex_data_point)
+        # print("HIDEX DATA POINT PATH", hidex_data_point.path)
+        path = hidex_data_point.path[12:]
+        # path.removeprefix("/home/madsci/")
+        correct_path = "/home/rpl/workspace/" + path
+        # print("CORRECT PATH", correct_path)
 
-        #open rack nests: 131, 132, 142, 143, 151, 152, 153
+        # self.rest_handler.upload_excel_file(correct_path)
+        oracle_id = self.rest_handler.upload_excel_file(correct_path)
+        print(oracle_id)
+        # /home/rpl/workspace/rapid446_sdl/.madsci/datapoints/2026/8/6
+
+#         #TODO: REMOVE ALL LABWARE FROM OT2 AND FLEX
+
+#         #open rack nests: 131, 132, 142, 143, 151, 152, 153
+
+
 
 
 

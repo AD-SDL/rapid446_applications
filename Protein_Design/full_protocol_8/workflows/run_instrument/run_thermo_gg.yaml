@@ -1,4 +1,4 @@
-name: Run Hidex
+name: Run Thermo
 author: Abe Stroka
 info: Workflow for running one thermocycler protocol from payload
 version: '0.1'

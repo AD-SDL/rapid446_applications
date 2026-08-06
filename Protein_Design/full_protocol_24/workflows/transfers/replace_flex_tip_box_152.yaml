@@ -1,0 +1,37 @@
+name: replace flex 50 tip rack 
+
+metadata:
+  author: Abe Stroka
+  info: Workflow for rplaceing the 50ul tip rack on the flex
+  version: '0.1'
+
+
+steps:
+  - name: transfer
+    node: pf400_piper
+    action: transfer
+    locations:
+      source: otflex_sandy.deck_nest_A4
+      target: exchange_narrow
+  
+  - name: exchnage to rack
+    node: pf400_piper
+    action: transfer
+    locations:
+      source: exchange_narrow
+      target: rack1_row3_nest1
+
+  - name: Transfer fresh box from rack to exchange
+    node: pf400_piper
+    action: transfer
+    locations:
+      source: rack1_row5_nest2
+      target: exchange_narrow
+
+  - name: transfer
+    node: pf400_piper
+    action: transfer
+    locations:
+      source: exchange_narrow
+      target: otflex_sandy.deck_nest_A4
+    comment: moves plate from exchange to flex A

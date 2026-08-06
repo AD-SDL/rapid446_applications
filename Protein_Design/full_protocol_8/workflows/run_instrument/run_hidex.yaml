@@ -4,7 +4,7 @@ info: Workflow for running one hidex protocol from payload
 version: '0.1'
 
 
-flowdef:
+steps:
   # - name: Run hidex protocol
   #   module: hidex_geraldine
   #   action: run_assay
@@ -22,9 +22,18 @@ flowdef:
   #   comment: Run hidex protocol
 
 
+  # - name: Run hidex protocol
+  #   module: hidex_geraldine
+  #   action: run_assay
+  #   args:
+  #     assay_name: "PD_Kinetic"
+  #   comment: Run hidex protocol
+
+
   - name: Run hidex protocol
-    module: hidex_geraldine
+    node: hidex_geraldine
     action: run_assay
     args:
       assay_name: "PD_Kinetic"
-    comment: Run hidex protocol
+
+

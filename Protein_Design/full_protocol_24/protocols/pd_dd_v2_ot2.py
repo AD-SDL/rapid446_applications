@@ -1,6 +1,8 @@
 from opentrons import protocol_api
 import itertools
 from opentrons.protocol_api import SINGLE
+import ast
+
 
 
 metadata = {
@@ -53,7 +55,7 @@ config = {
     'diluted_plate_position': 'C3',
     'reagent_plate_position': 'A1',
     'tip_rack_position_20_01': 'D3',
-    'controls_plate_position': 'A2',
+    'controls_plate_position': 'D1',
 }
 
 
@@ -148,6 +150,9 @@ def controls_to_pcr(protocol, diluted_pcr, controls_plate, pipette, config):
 #         starting_dest_well+=1
 
 def run(protocol: protocol_api.ProtocolContext):
+    combinations_string = config['combinations']
+    combinations = ast.literal_eval(combinations_string)
+    config['combinations'] = combinations
     # Load temperature module and adapter
     temp_mod_1 = protocol.load_module(module_name="temperature module gen2", location=config['temp_module_01_position'])
     temp_adapter_1 = temp_mod_1.load_adapter("opentrons_96_well_aluminum_block")
@@ -179,6 +184,8 @@ def run(protocol: protocol_api.ProtocolContext):
     p50s = protocol.load_instrument('p20_single_gen2', mount='left', tip_racks=[tiprack_20_1])
 
     p50.configure_nozzle_layout(style='COLUMN', start='A1', tip_racks=[tiprack_20_1])
+
+    # p50.starting_tip = tiprack_20_1.well('A8')
 
 
     water_to_pcr_dilution_wells(protocol=protocol,

@@ -26,7 +26,6 @@ config = {
     'pcr_master_mix_volume': 24,
     'water_well': 1,
     'master_mix_start_well': 48,
-    'heater_shaker_temp': 37,
 
 
     # Temperature settings
@@ -41,7 +40,6 @@ config = {
     'tip_rack_type_300_01': 'opentrons_flex_96_tiprack_300ul',
     'pipette_type_50': 'flex_8channel_50',
     'pipette_type_1000': 'flex_8channel_1000',
-    'pcr_adapter_type': 'opentrons_96_pcr_adapter',
 
     # Deck positions
     'temp_module_01_position': 'B1',
@@ -49,10 +47,9 @@ config = {
     'fragments_plate_initial_position': 'B1',
     'pcr_plate_position': 'C1',
     'tip_rack_position_50_01': 'A2',
-    'tip_rack_position_50_02': 'A3',
+    # 'tip_rack_position_50_02': 'A3',
     'tip_rack_position_300_01': 'A1',
-    'reagent_plate_position': 'D2',
-    'shaker_module_position': 'D1',
+    'reagent_plate_position': 'D2'
 }
 
 
@@ -80,16 +77,11 @@ def run(protocol: protocol_api.ProtocolContext):
     temp_mod_2 = protocol.load_module(module_name="temperature module gen2", location=config['temp_module_02_position'])
     temp_adapter_2 = temp_mod_2.load_adapter("opentrons_96_well_aluminum_block")
 
-    shaker_mod = protocol.load_module(module_name="heaterShakerModuleV1", location=config['shaker_module_position'])
-    shaker_adapter = shaker_mod.load_adapter(config['pcr_adapter_type'])
-    shaker_mod.set_target_temperature(config['heater_shaker_temp'])
-    shaker_mod.open_labware_latch()
-
 
 
     chute = protocol.load_waste_chute()
 
-    pcr_plate = protocol.load_labware('nest_96_wellplate_100ul_pcr_full_skirt', "A4")
+    pcr_plate = temp_adapter_2.load_labware(config['pcr_plate_type'])
 
 
 
@@ -101,12 +93,12 @@ def run(protocol: protocol_api.ProtocolContext):
     # gg_plate = protocol.load_labware(config['gg_plate_type'], config['gg_plate_position'])
     # pcr_plate.set_offset(x=0.7, y=0.30, z=0.2)
 
-    # reagent_plate = protocol.load_labware(config['reagent_plate_type'], config['reagent_plate_position'])
+    reagent_plate = protocol.load_labware(config['reagent_plate_type'], config['reagent_plate_position'])
 
 
-    # tiprack_50_1 = protocol.load_labware(
-    #     load_name=config['tip_rack_type_50_01'], location=config['tip_rack_position_50_01']
-    # )
+    tiprack_50_1 = protocol.load_labware(
+        load_name=config['tip_rack_type_50_01'], location=config['tip_rack_position_50_01']
+    )
     # tiprack_50_2 = protocol.load_labware(
     #     load_name=config['tip_rack_type_50_02'], location=config['tip_rack_position_50_02']
     # )
@@ -126,11 +118,5 @@ def run(protocol: protocol_api.ProtocolContext):
 
 
 
-    protocol.move_labware(labware=pcr_plate, new_location=shaker_adapter, use_gripper=True)
-    shaker_mod.close_labware_latch()
-    shaker_mod.set_and_wait_for_shake_speed(200)
-    protocol.delay(minutes = 150)
-    # shaker_mod.deactivate_shaker()
-    # shaker_mod.open_labware_latch()
-
+    protocol.move_labware(labware=tiprack_50_1, new_location='A4', use_gripper=True)
 

@@ -1,6 +1,7 @@
 from opentrons import protocol_api
 import itertools
 from opentrons.protocol_api import SINGLE
+import ast
 
 
 metadata = {
@@ -148,6 +149,9 @@ def gg_to_pcr_plate(protocol, gg_plate, pcr_plate, pipette, config):
 
 
 def run(protocol: protocol_api.ProtocolContext):
+    combinations_string = config['combinations']
+    combinations = ast.literal_eval(combinations_string)
+    config['combinations'] = combinations
     # Load temperature module and adapter
     temp_mod_1 = protocol.load_module(module_name="temperature module gen2", location=config['temp_module_01_position'])
     temp_adapter_1 = temp_mod_1.load_adapter("opentrons_96_well_aluminum_block")
@@ -184,6 +188,8 @@ def run(protocol: protocol_api.ProtocolContext):
 
     p50.configure_nozzle_layout(style='COLUMN', start='A1', tip_racks=[tiprack_20_1])
     # p1000.configure_nozzle_layout(style=SINGLE, start='A1', tip_racks=[tiprack_200])
+
+    p50.starting_tip = tiprack_20_1.well('A4')
 
 
 

@@ -1,6 +1,7 @@
 from opentrons import protocol_api
 import itertools
 from opentrons.protocol_api import SINGLE
+import ast
 
 
 metadata = {
@@ -29,7 +30,7 @@ config = {
     'rmf_plate_type': 'nest_96_wellplate_100ul_pcr_full_skirt',
     'cfps_plate_type': 'nest_96_wellplate_100ul_pcr_full_skirt',
     'tip_rack_type_50_01': 'opentrons_flex_96_filtertiprack_50ul',
-    'tip_rack_type_50_02': 'opentrons_flex_96_filtertiprack_50ul',
+    # 'tip_rack_type_50_02': 'opentrons_flex_96_filtertiprack_50ul',
     'tip_rack_type_200_01': 'opentrons_flex_96_filtertiprack_200ul',
     'reagent_plate_type': 'nest_12_reservoir_15ml',
     'pcr_adapter_type': 'opentrons_96_pcr_adapter',
@@ -39,7 +40,7 @@ config = {
     'temp_module_01_position': 'B1',
     'temp_module_02_position': 'C1',
     'tip_rack_position_50_01': 'A2',
-    'tip_rack_position_50_02': 'A3',
+    # 'tip_rack_position_50_02': 'A3',
     'tip_rack_position_200_01': 'A1',
     'reagent_plate_position': 'D2',
     'shaker_module_position': 'D1',
@@ -160,6 +161,9 @@ def mixB_to_rmf(protocol, rmf_plate, cfps_plate, pipette, config):
 
 
 def run(protocol: protocol_api.ProtocolContext):
+    combinations_string = config['combinations']
+    combinations = ast.literal_eval(combinations_string)
+    config['combinations'] = combinations
     # Load temperature module and adapter
     temp_mod1 = protocol.load_module(module_name="temperature module gen2", location=config['temp_module_01_position'])
     temp_adapter1 = temp_mod1.load_adapter("opentrons_96_well_aluminum_block")
@@ -188,19 +192,21 @@ def run(protocol: protocol_api.ProtocolContext):
     tiprack_50_1 = protocol.load_labware(
         load_name=config['tip_rack_type_50_01'], location=config['tip_rack_position_50_01']
     )
-    tiprack_50_2 = protocol.load_labware(
-        load_name=config['tip_rack_type_50_02'], location=config['tip_rack_position_50_02']
-    )
+    # tiprack_50_2 = protocol.load_labware(
+    #     load_name=config['tip_rack_type_50_02'], location=config['tip_rack_position_50_02']
+    # )
     tiprack_200_1 = protocol.load_labware(
         load_name=config['tip_rack_type_200_01'], location=config['tip_rack_position_200_01']
     )
 
-    p50 = protocol.load_instrument('flex_8channel_50', mount='right', tip_racks=[tiprack_50_1, tiprack_50_2])
+    p50 = protocol.load_instrument('flex_8channel_50', mount='right', tip_racks=[tiprack_50_1])
     p1000 = protocol.load_instrument('flex_8channel_1000', mount='left', tip_racks=[tiprack_200_1])
 
-    p50.configure_nozzle_layout(style='COLUMN', start='A1', tip_racks=[tiprack_50_1, tiprack_50_2])
+    p50.configure_nozzle_layout(style='COLUMN', start='A1', tip_racks=[tiprack_50_1])
     p1000.configure_nozzle_layout(style='COLUMN', start='A1', tip_racks=[tiprack_200_1])
 
+    p1000.starting_tip = tiprack_200_1.well('A6')
+    p50.starting_tip = tiprack_50_1.well('A10')
 
     mixA_to_rmf(protocol=protocol,
                 rmf_plate=rmf_plate,

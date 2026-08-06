@@ -1,4 +1,4 @@
-name: Run Hidex
+name: Run Thermo
 author: Abe Stroka
 info: Workflow for running one thermocycler protocol from payload
 version: '0.1'
@@ -9,4 +9,4 @@ steps:
     node: biometra_beuford_96
     action: run_protocol
     files:
-      protocol: 4  # TODO: What is the number of the PCR thermocycler protocol
+      protocol: 3  # TODO: What is the number of the PCR thermocycler protocol
