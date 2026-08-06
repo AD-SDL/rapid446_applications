@@ -119,7 +119,7 @@ def remove_rmf(protocol, cfps_plate, reagent_plate, pipette, config):
 
     wells_to_remove = [37, 38, 39]
     dest_well = reagent_plate.wells()[11]
-    tip_wells = ['A5', 'B5', 'C5']
+    tip_wells = ['H5', 'G5', 'F5']
     for well, tip in zip(wells_to_remove, tip_wells):
         source_well = cfps_plate.wells()[well]
         pipette.pick_up_tip(pipette.tip_racks[0].well(tip))
@@ -196,7 +196,7 @@ def controls_to_dest(protocol, controls_plate, fdglu_plate, pipette, config):
    #controls in f3, g3, h3 into fdglu f12, g12, h12
    controls = [21, 22, 23]
    dest = [37, 38, 39]
-   tip_wells = ['D5', 'E5', 'F5']
+   tip_wells = ['E5', 'D5', 'C5']
    for i, tip in zip(range(3), tip_wells):
        source_well = controls_plate.wells()[controls[i]]
        dest_well = fdglu_plate.wells()[dest[i]]
@@ -288,11 +288,11 @@ def run(protocol):
     # p50.starting_tip = tiprack_50_1.well('A5')
 
 
-    # remove_rmf(protocol=protocol,
-    #            cfps_plate=cfps_plate,
-    #            reagent_plate=reagent_plate,
-    #            pipette=p50,
-    #            config = config)
+    remove_rmf(protocol=protocol,
+               cfps_plate=cfps_plate,
+               reagent_plate=reagent_plate,
+               pipette=p50,
+               config = config)
 
     fdglu_to_plate(protocol=protocol,
                    reagent_plate=reagent_plate,
@@ -311,11 +311,11 @@ def run(protocol):
 
     p50.configure_nozzle_layout(style=SINGLE, start='A1', tip_racks=[tiprack_50_1])
 
-    # controls_to_dest(protocol=protocol,
-    #                  controls_plate=controls_plate,
-    #                  fdglu_plate=fdglu_plate,
-    #                  pipette=p50,
-    #                  config=config)
+    controls_to_dest(protocol=protocol,
+                     controls_plate=controls_plate,
+                     fdglu_plate=fdglu_plate,
+                     pipette=p50,
+                     config=config)
 
     protocol.comment(f"tips used 1000: {config['tips_used_1000']}")
     protocol.comment(f"tips used 50: {config['tips_used_50']}")
