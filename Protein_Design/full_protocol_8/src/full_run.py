@@ -1021,8 +1021,6 @@ class PDApp(ExperimentScript,): # TODO
             sybrgreen_hidex_to_rack.resolve(),
         )
 
-        #TODO: remove pcr products!
-
         workflow = self.workcell_client.submit_workflow(
             pcr_products_to_rack.resolve(),
         )

@@ -217,6 +217,7 @@ def run(protocol: protocol_api.ProtocolContext):
     # pcr_plate.set_offset(x=0.4, y=0.4, z=0.2)
 
     sybrgreen_plate = protocol.load_labware(config['sybrgreen_plate_type'], config['sybrgreen_plate_position'])
+    sybrgreen_plate.set_offset(x=0, y=0, z=0.4)
 
     reagent_plate = protocol.load_labware(config['reagent_plate_type'], config['reagent_plate_position'])
 
