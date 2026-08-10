@@ -117,7 +117,8 @@ def calculate_internal_standards_column(config):
 
 def remove_rmf(protocol, cfps_plate, reagent_plate, pipette, config):
 
-    wells_to_remove = [37, 38, 39]
+    # wells_to_remove = [37, 38, 39]
+    wells_to_remove = [29, 30, 31]
     dest_well = reagent_plate.wells()[11]
     tip_wells = ['H1', 'G1', 'F1']
     for well, tip in zip(wells_to_remove, tip_wells):
@@ -142,8 +143,18 @@ def remove_rmf(protocol, cfps_plate, reagent_plate, pipette, config):
 
 def fdglu_to_plate(protocol, reagent_plate, fdglu_plate, pipette, config): #TODO make sure this is all wells in plate
     # 100 ul of assay into all wells
-    combinations = config['combinations']
-    num_samples = calculate_total_combinations(combinations)
+    # combinations = config['combinations']
+    # num_samples = calculate_total_combinations(combinations)
+
+    if config['use_combinations'] is True:
+        combinations = config['combinations']
+        total_combinations = calculate_total_combinations(combinations)
+        # Generate all possible combinations
+        all_combinations = generate_all_combinations(combinations)
+    else:
+        all_combinations = config['non_combinatorial_sources']
+        total_combinations = len(all_combinations)
+    num_samples = total_combinations
     fdglu_volume = 100
     columns_needed = (num_samples + 7) // 8
     source_well = reagent_plate.columns()[5]
@@ -175,8 +186,17 @@ def fdglu_to_plate(protocol, reagent_plate, fdglu_plate, pipette, config): #TODO
     
 
 def cfps_to_dest(protocol, cfps_plate, fdglu_plate, pipette, config):
-    combinations = config['combinations']
-    num_samples = calculate_total_combinations(combinations)
+    # combinations = config['combinations']
+    # num_samples = calculate_total_combinations(combinations)
+    if config['use_combinations'] is True:
+        combinations = config['combinations']
+        total_combinations = calculate_total_combinations(combinations)
+        # Generate all possible combinations
+        all_combinations = generate_all_combinations(combinations)
+    else:
+        all_combinations = config['non_combinatorial_sources']
+        total_combinations = len(all_combinations)
+    num_samples = total_combinations
     fdglu_volume = 100
     columns_needed = (num_samples + 7) // 8
     cfps_volume = 20
@@ -195,7 +215,8 @@ def cfps_to_dest(protocol, cfps_plate, fdglu_plate, pipette, config):
 def controls_to_dest(protocol, controls_plate, fdglu_plate, pipette, config):
    #controls in f3, g3, h3 into fdglu f12, g12, h12
    controls = [21, 22, 23]
-   dest = [37, 38, 39]
+#    dest = [37, 38, 39]
+   dest = [29, 30, 31]
    tip_wells = ['E1', 'D1', 'C1']
    for i, tip in zip(range(3), tip_wells):
        source_well = controls_plate.wells()[controls[i]]
@@ -230,6 +251,9 @@ def run(protocol):
     combinations_string = config['combinations']
     combinations = ast.literal_eval(combinations_string)
     config['combinations'] = combinations
+    non_combinations_string = config['non_combinatorial_sources']
+    noncombinations = ast.literal_eval(non_combinations_string)
+    config['non_combinatorial_sources'] = noncombinations
     # Load temperature module and adapter for reaction assembly
     temp_mod1 = protocol.load_module(module_name="temperature module gen2", location=config['temp_module_01_position'])
     temp_adapter1 = temp_mod1.load_adapter(config['pcr_adapter_type'])

@@ -74,8 +74,17 @@ def generate_all_combinations(combinations):
 
 def water_to_pcr_dilution_wells(protocol, diluted_pcr, reagent_plate, pipette, config):
     water_volume = config['water_volume']
-    combinations = config['combinations']
-    num_samples = calculate_total_combinations(combinations)
+    # combinations = config['combinations']
+    # num_samples = calculate_total_combinations(combinations)
+    if config['use_combinations'] is True:
+        combinations = config['combinations']
+        total_combinations = calculate_total_combinations(combinations)
+        # Generate all possible combinations
+        all_combinations = generate_all_combinations(combinations)
+    else:
+        all_combinations = config['non_combinatorial_sources']
+        total_combinations = len(all_combinations)
+    num_samples = total_combinations
     columns_needed = (num_samples + 7) // 8
     columns_to_move = config['columns_to_move_for_dilute']
     water_well = config['water_well']
@@ -97,8 +106,17 @@ def water_to_pcr_dilution_wells(protocol, diluted_pcr, reagent_plate, pipette, c
 
 def pcr_to_water(protocol, pcr_plate, diluted_pcr, pipette, config):
     pcr_sample_volume = config['pcr_sample_volume']
-    combinations = config['combinations']
-    num_samples = calculate_total_combinations(combinations)
+    # combinations = config['combinations']
+    # num_samples = calculate_total_combinations(combinations)
+    if config['use_combinations'] is True:
+        combinations = config['combinations']
+        total_combinations = calculate_total_combinations(combinations)
+        # Generate all possible combinations
+        all_combinations = generate_all_combinations(combinations)
+    else:
+        all_combinations = config['non_combinatorial_sources']
+        total_combinations = len(all_combinations)
+    num_samples = total_combinations
     columns_needed = (num_samples + 7) // 8
     columns_to_move = config['columns_to_move_for_dilute']
 
@@ -115,11 +133,20 @@ def pcr_to_water(protocol, pcr_plate, diluted_pcr, pipette, config):
         )
         config['tips_used_50']+=8
 
-def controls_to_pcr(protocol, diluted_pcr, controls_plate, pipette, config):
+def controls_to_pcr(protocol, diluted_pcr, controls_plate, pipette, config): #TODO: make sure controls in column 4
     control_volume = config['control_volume']
     control_column = config['pcr_plate_control_column']
-    combinations = config['combinations']
-    num_samples = calculate_total_combinations(combinations)
+    # combinations = config['combinations']
+    # num_samples = calculate_total_combinations(combinations)
+    if config['use_combinations'] is True:
+        combinations = config['combinations']
+        total_combinations = calculate_total_combinations(combinations)
+        # Generate all possible combinations
+        all_combinations = generate_all_combinations(combinations)
+    else:
+        all_combinations = config['non_combinatorial_sources']
+        total_combinations = len(all_combinations)
+    num_samples = total_combinations
     columns_needed = (num_samples + 7) // 8
     source_well = controls_plate.columns()[0]
     dest_well = diluted_pcr.columns()[columns_needed]
@@ -153,6 +180,9 @@ def run(protocol: protocol_api.ProtocolContext):
     combinations_string = config['combinations']
     combinations = ast.literal_eval(combinations_string)
     config['combinations'] = combinations
+    non_combinations_string = config['non_combinatorial_sources']
+    noncombinations = ast.literal_eval(non_combinations_string)
+    config['non_combinatorial_sources'] = noncombinations
     # Load temperature module and adapter
     temp_mod_1 = protocol.load_module(module_name="temperature module gen2", location=config['temp_module_01_position'])
     temp_adapter_1 = temp_mod_1.load_adapter("opentrons_96_well_aluminum_block")

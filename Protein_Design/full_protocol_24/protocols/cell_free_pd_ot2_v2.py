@@ -55,8 +55,17 @@ def generate_all_combinations(combinations):
 def diluted_pcr_to_cfps(protocol, diluted_pcr_plate, cfps_plate, pipette, config):
     # add 2ul of diluted dna to cfps plate
     # can probably just 8 channel all through, check with others
-    combinations = config['combinations']
-    num_samples = calculate_total_combinations(combinations)
+    # combinations = config['combinations']
+    # num_samples = calculate_total_combinations(combinations)
+    if config['use_combinations'] is True:
+        combinations = config['combinations']
+        total_combinations = calculate_total_combinations(combinations)
+        # Generate all possible combinations
+        all_combinations = generate_all_combinations(combinations)
+    else:
+        all_combinations = config['non_combinatorial_sources']
+        total_combinations = len(all_combinations)
+    num_samples = total_combinations
     columns_needed = (num_samples + 7) // 8
     columns_needed = columns_needed
     for i in range(columns_needed+1):
@@ -78,6 +87,9 @@ def run(protocol: protocol_api.ProtocolContext):
     combinations_string = config['combinations']
     combinations = ast.literal_eval(combinations_string)
     config['combinations'] = combinations
+    non_combinations_string = config['non_combinatorial_sources']
+    noncombinations = ast.literal_eval(non_combinations_string)
+    config['non_combinatorial_sources'] = noncombinations
     # Load temperature module and adapter
     temp_mod1 = protocol.load_module(module_name="temperature module gen2", location=config['temp_module_01_position'])
     temp_adapter1 = temp_mod1.load_adapter("opentrons_96_well_aluminum_block")

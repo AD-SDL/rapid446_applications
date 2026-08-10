@@ -75,7 +75,17 @@ def transfer_water_to_gg(protocol, reagent_plate, gg_plate, pipette, config):
     # protocol.comment(f"Total wells to add water to: {gg_wells}")
     combinations = config['combinations']
 
-    gg_wells = calculate_total_combinations(combinations)
+    if config['use_combinations'] is True:
+        combinations = config['combinations']
+        total_combinations = calculate_total_combinations(combinations)
+        # Generate all possible combinations
+        all_combinations = generate_all_combinations(combinations)
+    else:
+        all_combinations = config['non_combinatorial_sources']
+        total_combinations = len(all_combinations)
+
+    # gg_wells = calculate_total_combinations(combinations)
+    gg_wells = total_combinations
     columns_needed = (gg_wells + 7) // 8
 
     for col_idx in range(columns_needed):
@@ -106,9 +116,18 @@ def transfer_water_to_gg(protocol, reagent_plate, gg_plate, pipette, config):
 
 def gg_to_pcr_plate(protocol, gg_plate, pcr_plate, pipette, config):
 
-    # gg_wells = config['number_of_gg_samples']
-    combinations = config['combinations']
-    gg_wells = calculate_total_combinations(combinations)
+    if config['use_combinations'] is True:
+        combinations = config['combinations']
+        total_combinations = calculate_total_combinations(combinations)
+        # Generate all possible combinations
+        all_combinations = generate_all_combinations(combinations)
+    else:
+        all_combinations = config['non_combinatorial_sources']
+        total_combinations = len(all_combinations)
+
+    # combinations = config['combinations']
+    # gg_wells = calculate_total_combinations(combinations)
+    gg_wells = total_combinations
     transfer_volume = config['transfer_volume']
     columns_needed = (gg_wells + 7) // 8
 
@@ -152,6 +171,9 @@ def run(protocol: protocol_api.ProtocolContext):
     combinations_string = config['combinations']
     combinations = ast.literal_eval(combinations_string)
     config['combinations'] = combinations
+    non_combinations_string = config['non_combinatorial_sources']
+    noncombinations = ast.literal_eval(non_combinations_string)
+    config['non_combinatorial_sources'] = noncombinations
     # Load temperature module and adapter
     temp_mod_1 = protocol.load_module(module_name="temperature module gen2", location=config['temp_module_01_position'])
     temp_adapter_1 = temp_mod_1.load_adapter("opentrons_96_well_aluminum_block")

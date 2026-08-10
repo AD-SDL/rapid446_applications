@@ -337,7 +337,7 @@ class PDApp(ExperimentScript,): # TODO
             labware_type="pcr"
         )
 
-        # Sybrgreen plate #TODO: PLATE DISAPPEARS FROM RESOURCES
+        # Sybrgreen plate 
         new_plate, old_plate = self.push_new_assay_plate_resource(
             location_name="rack1_row3_nest2",
             labware_type="flat_bottom"
@@ -613,6 +613,8 @@ class PDApp(ExperimentScript,): # TODO
         ###############
         ### GOLDEN GATE
         ##############
+        input("Paused, verify combinations and press Enter...")
+        
 
 
         workflow = self.workcell_client.submit_workflow(

@@ -20,7 +20,7 @@ config = {
     # 'combinations': [[18,10,2],[11,19,3],[4,20,12],[21,13,5]],
     # # 'combinations': [[5,6,7,8], [25,26,27,28], [37,38,39,40]],
     # # 'combinations': [[1, 6], [2, 10], [3, 11], [4, 12]],
-    # # 'combinations': [[1], [2, 2], [3, 3], [4, 4]],
+    # 'combinations': [[1], [2, 2], [3, 3], [4, 4]],
     # 'use_combinations': False,
     # 'non_combinatorial_sources': [[1, 10, 3, 28], [5, 6, 7, 40], [9, 10, 3, 28], [5, 6, 7, 8], [9, 10, 3, 28], [5, 6, 7, 40], [25, 6, 7, 28], [9, 10, 3, 4], [1, 10, 3, 4], [5, 6, 7, 28], [5, 6, 7, 28], [9, 10, 3, 28], [5, 6, 7, 8], [25, 6, 7, 28], [5, 6, 7, 40], [9, 10, 3, 4], [1, 10, 3, 4], [1, 10, 3, 28], [5, 6, 7, 28], [5, 6, 7, 8], [1, 10, 3, 4], [25, 6, 7, 28], [9, 10, 3, 4], [1, 10, 3, 28]],
     # 'non_combinatorial_sources': [
@@ -130,11 +130,7 @@ def transfer_combinatorial_liquids(protocol, source_plate, dest_plate, pipette, 
     total_combinations = 0
     all_combinations = None
     if config['use_combinations'] is True:
-        ##########
-        # combinations_string = config['combinations']
-        # combinations = ast.literal_eval(combinations_string)
         combinations = config['combinations']
-        ##########
         total_combinations = calculate_total_combinations(combinations)
         # Generate all possible combinations
         all_combinations = generate_all_combinations(combinations)
@@ -310,6 +306,9 @@ def run(protocol: protocol_api.ProtocolContext):
     combinations_string = config['combinations']
     combinations = ast.literal_eval(combinations_string)
     config['combinations'] = combinations
+    non_combinations_string = config['non_combinatorial_sources']
+    noncombinations = ast.literal_eval(non_combinations_string)
+    config['non_combinatorial_sources'] = noncombinations
     # Load temperature module and adapter
     temp_mod_1 = protocol.load_module(module_name="temperature module gen2", location=config['temp_module_01_position'])
     temp_mod_2 = protocol.load_module(module_name="temperature module gen2", location=config['temp_module_02_position'])
@@ -356,13 +355,13 @@ def run(protocol: protocol_api.ProtocolContext):
 
 
     # # Add master mix to each destination well
-    # last_master_mix_well = add_master_mix_to_combinations(
-    #     protocol=protocol,
-    #     source_plate=source_plate,
-    #     dest_plate=dest_plate,
-    #     pipette=p50,
-    #     config=config
-    # )
+    last_master_mix_well = add_master_mix_to_combinations(
+        protocol=protocol,
+        source_plate=source_plate,
+        dest_plate=dest_plate,
+        pipette=p50,
+        config=config
+    )
 
 
 

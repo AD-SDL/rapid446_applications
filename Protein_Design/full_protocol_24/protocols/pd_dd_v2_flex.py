@@ -88,8 +88,17 @@ def generate_all_combinations(combinations):
 def water_to_pcr_products(protocol, reagent_plate, pcr_plate, pipette, config):
     water_volume = config['water_volume']
     water_well = config['water_well']
-    combinations = config['combinations']
-    num_samples = calculate_total_combinations(combinations)
+    # combinations = config['combinations']
+    # num_samples = calculate_total_combinations(combinations)
+    if config['use_combinations'] is True:
+        combinations = config['combinations']
+        total_combinations = calculate_total_combinations(combinations)
+        # Generate all possible combinations
+        all_combinations = generate_all_combinations(combinations)
+    else:
+        all_combinations = config['non_combinatorial_sources']
+        total_combinations = len(all_combinations)
+    num_samples = total_combinations
     columns_needed = (num_samples + 7) // 8
     reagent_plate_well = reagent_plate.wells()[config['water_well']-1]
     pipette.pick_up_tip()
@@ -112,8 +121,17 @@ def water_to_pcr_products(protocol, reagent_plate, pcr_plate, pipette, config):
 def intermediate_dilution(protocol, pcr_plate, pipette, config):
     pcr_sample_volume = config['pcr_sample_volume']
     num_cols = 4
-    combinations = config['combinations']
-    num_samples = calculate_total_combinations(combinations)
+    # combinations = config['combinations']
+    # num_samples = calculate_total_combinations(combinations)
+    if config['use_combinations'] is True:
+        combinations = config['combinations']
+        total_combinations = calculate_total_combinations(combinations)
+        # Generate all possible combinations
+        all_combinations = generate_all_combinations(combinations)
+    else:
+        all_combinations = config['non_combinatorial_sources']
+        total_combinations = len(all_combinations)
+    num_samples = total_combinations
     columns_needed = (num_samples + 7) // 8
 
     for col_idx in range(columns_needed):
@@ -132,8 +150,17 @@ def intermediate_dilution(protocol, pcr_plate, pipette, config):
 def sybrgreen_to_dest(protocol, reagent_plate, sybrgreen_plate, pipette, config):
     sybrgreen_volume = config['sybrgreen_volume']
     # num_samples = config["number_of_pcr_samples"]
-    combinations = config['combinations']
-    num_samples = calculate_total_combinations(combinations)
+    # combinations = config['combinations']
+    # num_samples = calculate_total_combinations(combinations)
+    if config['use_combinations'] is True:
+        combinations = config['combinations']
+        total_combinations = calculate_total_combinations(combinations)
+        # Generate all possible combinations
+        all_combinations = generate_all_combinations(combinations)
+    else:
+        all_combinations = config['non_combinatorial_sources']
+        total_combinations = len(all_combinations)
+    num_samples = total_combinations
     columns_needed = (num_samples + 7) // 8
     columns_needed = columns_needed
     sybrgreen_well = reagent_plate.wells()[config['sybrgreen_well'] - 1]
@@ -159,8 +186,17 @@ def sybrgreen_to_dest(protocol, reagent_plate, sybrgreen_plate, pipette, config)
 def pcr_to_dest(protocol, pcr_plate, sybrgreen_plate, pipette, config):
     pcr_sample_volume = config['pcr_to_sybrgreen_volume']
     # num_samples = config["number_of_pcr_samples"]
-    combinations = config['combinations']
-    num_samples = calculate_total_combinations(combinations)
+    # combinations = config['combinations']
+    # num_samples = calculate_total_combinations(combinations)
+    if config['use_combinations'] is True:
+        combinations = config['combinations']
+        total_combinations = calculate_total_combinations(combinations)
+        # Generate all possible combinations
+        all_combinations = generate_all_combinations(combinations)
+    else:
+        all_combinations = config['non_combinatorial_sources']
+        total_combinations = len(all_combinations)
+    num_samples = total_combinations
     columns_needed = (num_samples + 7) // 8
     columns = [5, 6, 7, 8]
     num_cols = 4
@@ -180,8 +216,17 @@ def pcr_to_dest(protocol, pcr_plate, sybrgreen_plate, pipette, config):
 
 def controls_to_sybrgreen(protocol, controls_plate, sybrgreen_plate, pipette, config):
     controls_volume = config['controls_sample_volume']
-    combinations = config['combinations']
-    num_samples = calculate_total_combinations(combinations)
+    # combinations = config['combinations']
+    # num_samples = calculate_total_combinations(combinations)
+    if config['use_combinations'] is True:
+        combinations = config['combinations']
+        total_combinations = calculate_total_combinations(combinations)
+        # Generate all possible combinations
+        all_combinations = generate_all_combinations(combinations)
+    else:
+        all_combinations = config['non_combinatorial_sources']
+        total_combinations = len(all_combinations)
+    num_samples = total_combinations
     columns_needed = (num_samples + 7) // 8
     source_well = controls_plate.columns()[5]
     dest_well = sybrgreen_plate.columns()[columns_needed]
@@ -200,6 +245,9 @@ def run(protocol: protocol_api.ProtocolContext):
     combinations_string = config['combinations']
     combinations = ast.literal_eval(combinations_string)
     config['combinations'] = combinations
+    non_combinations_string = config['non_combinatorial_sources']
+    noncombinations = ast.literal_eval(non_combinations_string)
+    config['non_combinatorial_sources'] = noncombinations
     # Load temperature module and adapter
     temp_mod1 = protocol.load_module(module_name="temperature module gen2", location=config['temp_module_01_position'])
     temp_adapter1 = temp_mod1.load_adapter("opentrons_96_well_aluminum_block")
