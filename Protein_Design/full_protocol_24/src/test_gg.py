@@ -51,9 +51,9 @@ config = {
     #     [17,18,19,4],
     #     [17,18,19,20]
     # ],
-    'combinations': "$combinations",
-    'use_combinations': bool("$use_combinations"),
-    'non_combinatorial_sources': "$non_combinatorial_sources",
+    'combinations': "[[18, 10, 2], [11, 19, 3], [4, 20, 12], [21, 13, 5]]",
+    'use_combinations': bool("False"),
+    'non_combinatorial_sources': "[[4, 5, 6, 39], [24, 5, 6, 27], [8, 9, 2, 3], [0, 9, 2, 27], [24, 5, 6, 27], [4, 5, 6, 27], [8, 9, 2, 27], [24, 5, 6, 27], [0, 9, 2, 3], [0, 9, 2, 27], [0, 9, 2, 3], [8, 9, 2, 3], [4, 5, 6, 27], [4, 5, 6, 7], [8, 9, 2, 27], [0, 9, 2, 3], [0, 9, 2, 27], [4, 5, 6, 39], [4, 5, 6, 39], [4, 5, 6, 7], [8, 9, 2, 3], [8, 9, 2, 27], [4, 5, 6, 27], [4, 5, 6, 7]]",
 
     'transfer_volume': 2,  # µL from each source well
     'aspirate_transfer_volume': 2,
@@ -375,5 +375,3 @@ def run(protocol: protocol_api.ProtocolContext):
         pipette=p50s,
         config=config
     )
-
-    protocol.comment(f"tips used: {config['tips_used']}")
