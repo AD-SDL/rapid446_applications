@@ -16,6 +16,9 @@ requirements = {"robotType": "Flex", "apiLevel": "2.20"}
 config = {
     # 'combinations': [[18,10,2],[11,19,3],[4,20,12],[21,13,5]], # 1-indexed source well numbers (kept for total calculation)
     # 'combinations': [[1], [2, 2], [3, 3], [4, 4]],
+    # 'combinations': [[1], [2, 2], [3, 3], [4, 4]],
+    # 'use_combinations': False,
+    # 'non_combinatorial_sources': [[1, 10, 3, 28], [5, 6, 7, 40], [9, 10, 3, 28], [5, 6, 7, 8], [9, 10, 3, 28], [5, 6, 7, 40], [25, 6, 7, 28], [9, 10, 3, 4], [1, 10, 3, 4], [5, 6, 7, 28], [5, 6, 7, 28], [9, 10, 3, 28], [5, 6, 7, 8], [25, 6, 7, 28], [5, 6, 7, 40], [9, 10, 3, 4], [1, 10, 3, 4], [1, 10, 3, 28], [5, 6, 7, 28], [5, 6, 7, 8], [1, 10, 3, 4], [25, 6, 7, 28], [9, 10, 3, 4], [1, 10, 3, 28]],
     'combinations': "$combinations",
     'use_combinations': bool("$use_combinations"),
     'non_combinatorial_sources': "$non_combinatorial_sources",
@@ -218,7 +221,7 @@ def run(protocol: protocol_api.ProtocolContext):
     p1000.configure_nozzle_layout(style='COLUMN', start='A1', tip_racks=[tiprack_200_1])
 
     p1000.starting_tip = tiprack_200_1.well('A6')
-    p50.starting_tip = tiprack_50_1.well('A10')
+    p50.starting_tip = tiprack_50_1.well('A8')
 
     mixA_to_rmf(protocol=protocol,
                 rmf_plate=rmf_plate,

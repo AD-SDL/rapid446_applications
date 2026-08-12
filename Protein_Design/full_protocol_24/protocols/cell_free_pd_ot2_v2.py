@@ -121,7 +121,7 @@ def run(protocol: protocol_api.ProtocolContext):
     p50.flow_rate.aspirate = 20
     p50.flow_rate.dispense = 20
 
-    p50.starting_tip = tiprack_20_1.well('A8')
+    p50.starting_tip = tiprack_20_1.well('A6')
 
     diluted_pcr_to_cfps(protocol=protocol,
                         diluted_pcr_plate=diluted_plate,

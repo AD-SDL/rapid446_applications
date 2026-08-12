@@ -920,9 +920,9 @@ class PDApp(ExperimentScript,): # TODO
         # DILUTION: 1 COL PER 8 COMBOS: 50UL
         # SYBRGREEN TO DEST: 1 COL ALWAYS: 200UL
         # PCR TO DEST: 1 COL PER 8 COMBOS: 50UL
-        # CONTROLS TO SYBRGREEN: 1 COL PER 8 COMBOS: 50UL
+        # CONTROLS TO SYBRGREEN: 1 COL always: 50UL
         # 8 COMBO RUN: 2 COLS OF 200UL AND 3 COLS OF 50UL
-        # 24 COMBO RUN: 2 COLS OF 200UL AND 9 COLS OF 50UL
+        # 24 COMBO RUN: 2 COLS OF 200UL AND 7 COLS OF 50UL
 
         # #multichannel flex protocol
         ot2_replacement_variables = helper_functions.collect_ot2_replacement_variables(payload)
@@ -941,7 +941,7 @@ class PDApp(ExperimentScript,): # TODO
 
         # 24 COMBO:
         # OT2 3 COLS LEFT IN 20UL
-        # FLEX: 3 COLS LEFT IN 50, 7 COLS LEFT IN 200
+        # FLEX: 5 COLS LEFT IN 50, 7 COLS LEFT IN 200
 
         
 
@@ -1007,9 +1007,9 @@ class PDApp(ExperimentScript,): # TODO
         #TIPS USED
         # WATER TO PCR DILUTION: 1 COL ALWAYS: 20UL
         # PCR TO WATER: 1 COL PER 8 COMBOS: 20UL
-        # CONTROLS TO PCR: 1 COL PER 8 COMBOS: 20UL
+        # CONTROLS TO PCR: 1 COL ALWAYS: 20UL
         #8 COMBO RUN: 3 COLUMNS 20ul
-        # 24 COMBO RUN: 7 COLUMNS 20UL
+        # 24 COMBO RUN: 5 COLUMNS 20UL
 
         #ot2 dilution protocol
         ot2_replacement_variables = helper_functions.collect_ot2_replacement_variables(payload)
@@ -1027,8 +1027,8 @@ class PDApp(ExperimentScript,): # TODO
         # FLEX: 50ULS 9COLS IN 1 AND 12 IN 2,  9 COLS IN 200UL
 
         # 24 COMBO:
-        # OT2: 5 COLS LEFT IN 20UL
-        # FLEX 3 COLS LEFT IN 50UL, 7 COLS LEFT IN 200
+        # OT2: 7 COLS LEFT IN 20UL
+        # FLEX: 5 COLS LEFT IN 50, 7 COLS LEFT IN 200
 
         #WORKING 7-23
 
@@ -1133,8 +1133,8 @@ class PDApp(ExperimentScript,): # TODO
         # FLEX: 50ULS 8COLS IN 1 AND 12 IN 2,  7 COLS IN 200UL
 
         # 24 COMBO:
-        # OT2: 5 COLS LEFT IN 20UL
-        # FLEX: 2 COLS LEFT IN 50UL, 5 COLS LEFT IN 200
+        # OT2: 7 COLS LEFT IN 20UL
+        # FLEX: 4 COLS LEFT IN 50UL, 5 COLS LEFT IN 200
 
 
         # #move cfps plate to cool block in ot2 (4)
@@ -1187,8 +1187,8 @@ class PDApp(ExperimentScript,): # TODO
         # FLEX: 50ULS 8COLS IN 1 AND 12 IN 2,  7 COLS IN 200UL
 
         # 24 COMBO:
-        # OT2: 1 COL LEFT IN 20UL
-        # FLEX: 2 COLS LEFT IN 50UL, 5 COLS LEFT IN 200UL
+        # OT2: 3 COL LEFT IN 20UL
+        # FLEX: 4 COLS LEFT IN 50UL, 5 COLS LEFT IN 200
 
         
 
