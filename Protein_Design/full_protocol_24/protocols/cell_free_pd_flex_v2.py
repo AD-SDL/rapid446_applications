@@ -20,7 +20,7 @@ config = {
     # 'use_combinations': False,
     # 'non_combinatorial_sources': [[1, 10, 3, 28], [5, 6, 7, 40], [9, 10, 3, 28], [5, 6, 7, 8], [9, 10, 3, 28], [5, 6, 7, 40], [25, 6, 7, 28], [9, 10, 3, 4], [1, 10, 3, 4], [5, 6, 7, 28], [5, 6, 7, 28], [9, 10, 3, 28], [5, 6, 7, 8], [25, 6, 7, 28], [5, 6, 7, 40], [9, 10, 3, 4], [1, 10, 3, 4], [1, 10, 3, 28], [5, 6, 7, 28], [5, 6, 7, 8], [1, 10, 3, 4], [25, 6, 7, 28], [9, 10, 3, 4], [1, 10, 3, 28]],
     'combinations': "$combinations",
-    'use_combinations': bool("$use_combinations"),
+    'use_combinations': "$use_combinations",
     'non_combinatorial_sources': "$non_combinatorial_sources",
     'temperature' : 4,
     'tips_used_1000': 0,
@@ -179,6 +179,8 @@ def run(protocol: protocol_api.ProtocolContext):
     non_combinations_string = config['non_combinatorial_sources']
     noncombinations = ast.literal_eval(non_combinations_string)
     config['non_combinatorial_sources'] = noncombinations
+    if config['use_combinations'] == "False":
+            config['use_combinations'] = False
     # Load temperature module and adapter
     temp_mod1 = protocol.load_module(module_name="temperature module gen2", location=config['temp_module_01_position'])
     temp_adapter1 = temp_mod1.load_adapter("opentrons_96_well_aluminum_block")

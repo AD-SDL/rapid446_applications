@@ -18,7 +18,7 @@ config = {
     # PCR product settings
     # 'combinations': [[1], [2, 2], [3, 3], [4, 4]], # 1-indexed source well numbers (kept for total calculation)
     'combinations': "$combinations",
-    'use_combinations': bool("$use_combinations"),
+    'use_combinations': "$use_combinations",
     'non_combinatorial_sources': "$non_combinatorial_sources",
     'fdglu_volume': 100,    # µL of PCR product to transfer to reaction plate
     'source_samples_volume': 20,
@@ -254,6 +254,8 @@ def run(protocol):
     non_combinations_string = config['non_combinatorial_sources']
     noncombinations = ast.literal_eval(non_combinations_string)
     config['non_combinatorial_sources'] = noncombinations
+    if config['use_combinations'] == "False":
+            config['use_combinations'] = False
     # Load temperature module and adapter for reaction assembly
     temp_mod1 = protocol.load_module(module_name="temperature module gen2", location=config['temp_module_01_position'])
     temp_adapter1 = temp_mod1.load_adapter(config['pcr_adapter_type'])

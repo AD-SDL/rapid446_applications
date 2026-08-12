@@ -23,7 +23,7 @@ config = {
     # 'combinations': [[18,10],[11,19],[4,20],[21,13]],
     # 'combinations': [[1], [2, 2], [3, 3], [4, 4]],
     'combinations': "$combinations",
-    'use_combinations': bool("$use_combinations"),
+    'use_combinations': "$use_combinations",
     'non_combinatorial_sources': "$non_combinatorial_sources",
     "num_controls": 5,
     'control_volume': 20,
@@ -183,6 +183,8 @@ def run(protocol: protocol_api.ProtocolContext):
     non_combinations_string = config['non_combinatorial_sources']
     noncombinations = ast.literal_eval(non_combinations_string)
     config['non_combinatorial_sources'] = noncombinations
+    if config['use_combinations'] == "False":
+            config['use_combinations'] = False
     # Load temperature module and adapter
     temp_mod_1 = protocol.load_module(module_name="temperature module gen2", location=config['temp_module_01_position'])
     temp_adapter_1 = temp_mod_1.load_adapter("opentrons_96_well_aluminum_block")

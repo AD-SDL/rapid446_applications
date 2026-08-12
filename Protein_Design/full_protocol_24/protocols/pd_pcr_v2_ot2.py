@@ -24,7 +24,7 @@ config = {
     # 'use_combinations': True,
 
     'combinations': "$combinations",
-    'use_combinations': bool("$use_combinations"),
+    'use_combinations': "$use_combinations",
     'non_combinatorial_sources': "$non_combinatorial_sources",
 
     # Master mix and reagent settings
@@ -174,6 +174,8 @@ def run(protocol: protocol_api.ProtocolContext):
     non_combinations_string = config['non_combinatorial_sources']
     noncombinations = ast.literal_eval(non_combinations_string)
     config['non_combinatorial_sources'] = noncombinations
+    if config['use_combinations'] == "False":
+            config['use_combinations'] = False
     # Load temperature module and adapter
     temp_mod_1 = protocol.load_module(module_name="temperature module gen2", location=config['temp_module_01_position'])
     temp_adapter_1 = temp_mod_1.load_adapter("opentrons_96_well_aluminum_block")

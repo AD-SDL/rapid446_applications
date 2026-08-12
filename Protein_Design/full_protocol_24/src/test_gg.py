@@ -52,7 +52,7 @@ config = {
     #     [17,18,19,20]
     # ],
     'combinations': "[[18, 10, 2], [11, 19, 3], [4, 20, 12], [21, 13, 5]]",
-    'use_combinations': bool("False"),
+    'use_combinations': "False",
     'non_combinatorial_sources': "[[4, 5, 6, 39], [24, 5, 6, 27], [8, 9, 2, 3], [0, 9, 2, 27], [24, 5, 6, 27], [4, 5, 6, 27], [8, 9, 2, 27], [24, 5, 6, 27], [0, 9, 2, 3], [0, 9, 2, 27], [0, 9, 2, 3], [8, 9, 2, 3], [4, 5, 6, 27], [4, 5, 6, 7], [8, 9, 2, 27], [0, 9, 2, 3], [0, 9, 2, 27], [4, 5, 6, 39], [4, 5, 6, 39], [4, 5, 6, 7], [8, 9, 2, 3], [8, 9, 2, 27], [4, 5, 6, 27], [4, 5, 6, 7]]",
 
     'transfer_volume': 2,  # µL from each source well
@@ -213,11 +213,14 @@ def add_master_mix_to_combinations(protocol, source_plate, dest_plate, pipette, 
         pipette: Pipette instrument
         config: Configuration dictionary containing master mix settings
     """
-
+    protocol.comment(f"NON COMBINATIONS {config['non_combinatorial_sources']}")
+    length = len(config["non_combinatorial_sources"])
+    protocol.comment(f"NON COMBINATIONS len {length}")
     combinations = None
     total_combinations = 0
     all_combinations = None
     if config['use_combinations'] is True:
+        protocol.comment("IS TRUE")
         ##########
         # combinations_string = config['combinations']
         # combinations = ast.literal_eval(combinations_string)
@@ -227,6 +230,7 @@ def add_master_mix_to_combinations(protocol, source_plate, dest_plate, pipette, 
         # Generate all possible combinations
         all_combinations = generate_all_combinations(combinations)
     else:
+        protocol.comment("IS FALSE")
         all_combinations = config['non_combinatorial_sources']
         total_combinations = len(all_combinations)
 
@@ -247,6 +251,9 @@ def add_master_mix_to_combinations(protocol, source_plate, dest_plate, pipette, 
     protocol.comment(f"Each master mix well ({master_mix_well_volume}µL) can serve {dispenses_per_well} destination wells")
 
     # Calculate how many master mix wells we need
+    protocol.comment(f"TOTAL COMBINATIONS {total_combinations}")
+    protocol.comment(f"ALL {all_combinations}")
+
     master_mix_wells_needed = (total_combinations + dispenses_per_well - 1) // dispenses_per_well  # Ceiling division
     protocol.comment(f"Total master mix wells needed: {master_mix_wells_needed}")
 
@@ -310,6 +317,8 @@ def run(protocol: protocol_api.ProtocolContext):
     non_combinations_string = config['non_combinatorial_sources']
     noncombinations = ast.literal_eval(non_combinations_string)
     config['non_combinatorial_sources'] = noncombinations
+    if config['use_combinations'] == "False":
+        config['use_combinations'] = False
     protocol.comment(f"\nNON COMBINATIONS 2 {config['non_combinatorial_sources']}")
     # Load temperature module and adapter
     temp_mod_1 = protocol.load_module(module_name="temperature module gen2", location=config['temp_module_01_position'])

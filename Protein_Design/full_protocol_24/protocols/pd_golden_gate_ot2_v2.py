@@ -52,7 +52,7 @@ config = {
     #     [17,18,19,20]
     # ],
     'combinations': "$combinations",
-    'use_combinations': bool("$use_combinations"),
+    'use_combinations': "$use_combinations",
     'non_combinatorial_sources': "$non_combinatorial_sources",
 
     'transfer_volume': 2,  # µL from each source well
@@ -310,6 +310,8 @@ def run(protocol: protocol_api.ProtocolContext):
     non_combinations_string = config['non_combinatorial_sources']
     noncombinations = ast.literal_eval(non_combinations_string)
     config['non_combinatorial_sources'] = noncombinations
+    if config['use_combinations'] == "False":
+            config['use_combinations'] = False
     protocol.comment(f"\nNON COMBINATIONS 2 {config['non_combinatorial_sources']}")
     # Load temperature module and adapter
     temp_mod_1 = protocol.load_module(module_name="temperature module gen2", location=config['temp_module_01_position'])
