@@ -73,45 +73,22 @@ def mixA_to_rmf(protocol, rmf_plate, pipette, config):
     pipette.pick_up_tip()
 
     pipette.transfer(
-        120,
+        84,
         source_well,
         dest_well,
         new_tip='never',
-        mix_before = (5, 30)
+        mix_before = (5, 30),
+        mix_after = (5, 30)
     )
     pipette.drop_tip()
     config['tips_used_1000']+=8
 
-    # source_well = rmf_plate.columns()[1]
-    # dest_well = rmf_plate.columns()[4]
-    # pipette.pick_up_tip()
+    #TODO: currenrt run cell free already placed in col, 4
 
-    # pipette.transfer(
-    #     120,
-    #     source_well,
-    #     dest_well,
-    #     new_tip='never',
-    #     mix_before = (5, 30)
-    # )
-    # pipette.drop_tip()
 
-    # 54ul from col 3 into 4 and 5, mix after
-    source_well = rmf_plate.columns()[2]
-    dest_well = rmf_plate.columns()[3]
-    # pipette.pick_up_tip()
-
-    pipette.transfer(
-        60,
-        source_well,
-        dest_well,
-        new_tip='always',  # Use fresh tip for each transfer
-        # mix_before = (5, 30),
-        mix_after = (10, 30)
-    )
-    config['tips_used_1000']+=8
-
+    # # 54ul from col 3 into 4 and 5, mix after
     # source_well = rmf_plate.columns()[2]
-    # dest_well = rmf_plate.columns()[4]
+    # dest_well = rmf_plate.columns()[3]
     # # pipette.pick_up_tip()
 
     # pipette.transfer(
@@ -122,6 +99,8 @@ def mixA_to_rmf(protocol, rmf_plate, pipette, config):
     #     # mix_before = (5, 30),
     #     mix_after = (10, 30)
     # )
+    # config['tips_used_1000']+=8
+
 
 
 

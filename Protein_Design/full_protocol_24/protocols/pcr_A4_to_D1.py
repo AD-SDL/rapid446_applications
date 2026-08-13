@@ -129,7 +129,7 @@ def run(protocol: protocol_api.ProtocolContext):
     protocol.move_labware(labware=pcr_plate, new_location=shaker_adapter, use_gripper=True)
     shaker_mod.close_labware_latch()
     shaker_mod.set_and_wait_for_shake_speed(200)
-    protocol.delay(minutes = 1)
+    protocol.delay(minutes = 150)
     # shaker_mod.deactivate_shaker()
     # shaker_mod.open_labware_latch()
 

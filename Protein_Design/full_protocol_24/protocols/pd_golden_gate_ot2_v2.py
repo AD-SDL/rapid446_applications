@@ -263,7 +263,6 @@ def add_master_mix_to_combinations(protocol, source_plate, dest_plate, pipette, 
             master_mix_well,
             dest,
             new_tip = 'always',
-            mix_after=(3, 15),
         )
         config['tips_used']+=8
 

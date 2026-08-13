@@ -44,7 +44,7 @@ config = {
 
     # Labware
     'pcr_plate_type': 'nest_96_wellplate_100ul_pcr_full_skirt',
-    'sybrgreen_plate_type': 'nest_96_wellplate_100ul_pcr_full_skirt',
+    'sybrgreen_plate_type': 'corning_96_wellplate_360ul_flat',
     'reagent_plate_type': 'nest_12_reservoir_15ml',
     'tip_rack_type_50_01': 'opentrons_flex_96_tiprack_50ul',
     'tip_rack_type_200_01': 'opentrons_flex_96_tiprack_200ul',
@@ -166,7 +166,7 @@ def sybrgreen_to_dest(protocol, reagent_plate, sybrgreen_plate, pipette, config)
     sybrgreen_well = reagent_plate.wells()[config['sybrgreen_well'] - 1]
     pipette.pick_up_tip()
 
-    for col_idx in range(columns_needed):
+    for col_idx in range(columns_needed+1):
         dest_well = sybrgreen_plate.columns()[col_idx]
         protocol.comment(f"\nTransferring to destination well {dest_well}:")
         pipette.transfer(
