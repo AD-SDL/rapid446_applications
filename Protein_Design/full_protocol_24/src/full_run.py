@@ -1055,6 +1055,18 @@ class PDApp(ExperimentScript,): # TODO
             run_hidex_sybr.resolve(),
         )
 
+        hidex_data_point = workflow.get_datapoint(label="file")
+        # print("HIDEX DATA POINT", hidex_data_point)
+        # print("HIDEX DATA POINT PATH", hidex_data_point.path)
+        path = hidex_data_point.path[12:]
+        # path.removeprefix("/home/madsci/")
+        correct_path = "/home/rpl/workspace/" + path
+        # print("CORRECT PATH", correct_path)
+
+        # self.rest_handler.upload_excel_file(correct_path)
+        oracle_id = self.rest_handler.upload_excel_file(correct_path)
+        print(oracle_id)
+
         workflow = self.workcell_client.submit_workflow(
             sybrgreen_hidex_to_rack.resolve(),
         )

@@ -34,6 +34,6 @@ steps:
     node: hidex_geraldine
     action: run_assay
     args:
-      assay_name: "PD_Kinetic"
+      assay_name: "PD_Kinetic_REAL"
 
 
