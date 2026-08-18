@@ -3,6 +3,14 @@
 import csv
 import os
 import tempfile
+import time
+
+from rich.progress import (
+    Progress,
+    BarColumn,
+    TextColumn,
+    TimeRemainingColumn,
+)
 
 from utils.ot2_offsets import ot2_patrick, ot2_spongebob
 
@@ -109,4 +117,17 @@ def write_timestamps_to_csv(
 
 
 
+def wait_for_incubation(seconds: int) -> None:
+    """Waits for incubation time to pass and displays a progress bar in terminal."""
+    with Progress(
+        TextColumn("[bold cyan]{task.description}"),
+        BarColumn(),
+        TextColumn("{task.percentage:>3.0f}%"),
+        TimeRemainingColumn(),
+    ) as progress:
+        task = progress.add_task(f"Incubating {seconds} seconds", total=seconds)
+
+        while not progress.finished:
+            time.sleep(5)
+            progress.update(task, advance=5)
 

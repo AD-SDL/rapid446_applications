@@ -332,20 +332,8 @@ class ALEApp(ExperimentScript,):
         payload["incubation_seconds"] = self.experiment_settings["incubation_seconds_initial"]
         incubation_start_time = time.time()
 
-        # Wait for incubation to finish.
-        if test_prints:
-            print("Running initial incubation", flush=True)
-        if run_robots:
-            while time.time() - incubation_start_time < payload["incubation_seconds"]:
-                print(
-                    f"will continue in... {int(payload['incubation_seconds'] - (time.time() - incubation_start_time))} seconds",
-                    flush=True,
-                )
-                time.sleep(5)  # 5 seconds
-
-                if time.time() - incubation_start_time >= payload["incubation_seconds"]:
-                    print("Incubation complete.", flush=True)
-                    break
+        # Wait for incubation to finish
+        helper_functions.wait_for_incubation(payload["incubation_seconds"])
 
         # LOCK exchange lock for steps 2 and 3.
         # Increase waiting processes count in redis before trying to acquire the lock
@@ -389,7 +377,7 @@ class ALEApp(ExperimentScript,):
                     )
 
                     # Collect associated resource ID.
-                    resource_datapoint_id = workflow.get_datapoint(step_key="bmg_data", label="json_result")
+                    resource_datapoint_id = workflow.get_datapoint(step_key="bmg_data", label="json_result").datapoint_id
                     resource_id = self.data_client.get_datapoint_value(datapoint_id=resource_datapoint_id)
 
                     # Write UTC BMG timestamp to CSV data file.
@@ -504,7 +492,7 @@ class ALEApp(ExperimentScript,):
                             },
                         )
                         # Collect associated resource ID.
-                        resource_datapoint_id = workflow.get_datapoint(step_key="bmg_data", label="json_result")
+                        resource_datapoint_id = workflow.get_datapoint(step_key="bmg_data", label="json_result").datapoint_id
                         resource_id = self.data_client.get_datapoint_value(datapoint_id=resource_datapoint_id)
                         
                         # Write UTC BMG timestamp to CSV data file
@@ -609,7 +597,7 @@ class ALEApp(ExperimentScript,):
                             },
                         )
                         # Collect associated resource ID.
-                        resource_datapoint_id = workflow.get_datapoint(step_key="bmg_data", label="json_result")
+                        resource_datapoint_id = workflow.get_datapoint(step_key="bmg_data", label="json_result").datapoint_id
                         resource_id = self.data_client.get_datapoint_value(datapoint_id=resource_datapoint_id)
 
                         # Write UTC BMG timestamp to CSV data file.
@@ -705,14 +693,7 @@ class ALEApp(ExperimentScript,):
                 self.jitter()
 
             # --- FINISH INCUBATION ---
-            # Wait for incubation to finish.
-            if test_prints:
-                print("running incubation", flush=True)
-            if run_robots:
-                while (time.time() - incubation_start_time) < payload["incubation_seconds"]:
-                    print(f"will continue in... {int(payload['incubation_seconds']-(time.time() - incubation_start_time))} seconds", flush=True)
-                    time.sleep(5) # 5 seconds
-
+            helper_functions.wait_for_incubation(payload["incubation_seconds"])
 
             # ---<<< INNER LOOP START >>>---
             # Reload experiment settings (outside loop).
@@ -777,7 +758,7 @@ class ALEApp(ExperimentScript,):
                             },
                         )
                         # Collect associated resource ID.
-                        resource_datapoint_id = workflow.get_datapoint(step_key="bmg_data", label="json_result")
+                        resource_datapoint_id = workflow.get_datapoint(step_key="bmg_data", label="json_result").datapoint_id
                         resource_id = self.data_client.get_datapoint_value(datapoint_id=resource_datapoint_id)
 
                         # Write UTC BMG timestamp to CSV data file.
@@ -837,12 +818,7 @@ class ALEApp(ExperimentScript,):
                         print(f"waiters count {waiters} --> should be 0.", flush=True)
 
                         # Sleep for incubation.
-                        if test_prints:
-                            print("running 1 hour incubaton", flush=True)
-                        if run_robots:
-                            while time.time() - incubation_start_time < payload["incubation_seconds"]:
-                                print(f"will continue in... {int(payload['incubation_seconds']-(time.time() - incubation_start_time))} seconds", flush=True)
-                                time.sleep(5) # 5 seconds
+                        helper_functions.wait_for_incubation(payload["incubation_seconds"])
 
                     # If it IS the last inner loop:
                     else:
