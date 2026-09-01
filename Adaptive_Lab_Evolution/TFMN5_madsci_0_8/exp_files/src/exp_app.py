@@ -21,6 +21,7 @@ from redis import Redis
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 
 from utils import helper_functions
+from utils import lab_mail
 from utils.load_settings import try_reload_config
 
 # loads .env into environment
@@ -59,6 +60,7 @@ class ALEApp(ExperimentScript,):
     """
     experiment_design = ExperimentDesign(
         experiment_name="ALE_App",
+        
     )
 
     experiment_id = None
@@ -315,10 +317,10 @@ class ALEApp(ExperimentScript,):
                             "incubator_location": payload["incubator_location"],
                             "incubation_seconds": payload["incubation_seconds"],
                         },
-                     )
+                    )
                 # Exchange lock is UNLOCKED.
                 self.logger.log_info(f"\nExchange is UNLOCKED by {self.experiment_settings['experiment_number']}", flush=True)
-
+            
         finally:
             # Always clean up the waiting process count.
             if not self.acquired:
@@ -695,7 +697,7 @@ class ALEApp(ExperimentScript,):
 
             # --- FINISH INCUBATION ---
             time_now = time.time()
-            incubation_seconds_reminaing = payload["incubation_seconds"] - (time_now - incubation_start_time)
+            incubation_seconds_reminaing = int(payload["incubation_seconds"] - (time_now - incubation_start_time))
             helper_functions.wait_for_incubation(incubation_seconds_reminaing)
 
             # ---<<< INNER LOOP START >>>---
@@ -932,6 +934,7 @@ class ALEApp(ExperimentScript,):
 
         # END OF EXPERIMENT!
         self.logger.log_info("YAY WE MADE IT!", flush=True)
+
 
 
 
