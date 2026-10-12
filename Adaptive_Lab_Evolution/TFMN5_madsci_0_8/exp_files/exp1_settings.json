@@ -5,7 +5,7 @@
     "incubation_seconds_between_readings": 3600,
     "inoculation_volume": 15,
 
-    "experiment_label": "TFMN5",
+    "experiment_label": "TFMN6",
     "experiment_number": "exp1",
 
     "old_lid_location": "rack1_row1_nest2",

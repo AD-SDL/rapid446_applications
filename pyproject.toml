@@ -11,7 +11,8 @@ dependencies = [
     "madsci.client~=0.8.0",
     "madsci.common~=0.8.0",
     "madsci.experiment_application~=0.8.0",
-    "pottery"
+    "pottery",
+    "rich",
 ]
 requires-python = ">=3.10.0"
 readme = "README.md"

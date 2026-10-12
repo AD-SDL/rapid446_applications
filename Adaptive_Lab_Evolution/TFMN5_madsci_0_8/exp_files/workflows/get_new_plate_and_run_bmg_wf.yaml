@@ -28,6 +28,8 @@ steps:
       location_name: bmg_billy.bmg_carriage
     - condition_type: no_resource_present
       location_name: exchange_narrow
+    - condition_type: no_resource_present
+      location_name: sciclops_plankton.exchange
 
   # 1. Move SciClops to Safe
   - name: move safe
