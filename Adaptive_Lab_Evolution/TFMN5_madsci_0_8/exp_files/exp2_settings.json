@@ -1,6 +1,6 @@
 {
-    "total_outer_loops": 24,
-    "total_inner_loops": 15,
+    "total_outer_loops": 23,
+    "total_inner_loops": 12,
     "incubation_seconds_initial": 10,
     "incubation_seconds_between_readings": 7200,
     "inoculation_volume": 40,
