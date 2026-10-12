@@ -1,0 +1,32 @@
+
+name: FINAL WORKFLOWS - Transfer from exchange to trash stack
+
+metadata:
+  author: Casey Stone
+  info: Transfer from exchange to trash stack
+  version: '0.1'
+
+
+parameters:
+  json_inputs:
+    - key: sciclops_stack_old_plates
+
+steps:
+  # 0. Return old plate to stack
+  - name: transfer to stack
+    node: sciclops_plankton
+    action: transfer
+    args:
+      plate_type: flat_bottom_96well
+    locations:
+      source: exchange_nest_low_narrow
+    params:
+      locations:
+        target: sciclops_stack_old_plates
+
+  # 1. Move SciClops to Safe
+  - name: move safe
+    node: sciclops_plankton
+    action: move
+    locations:
+      location: safe_sciclops

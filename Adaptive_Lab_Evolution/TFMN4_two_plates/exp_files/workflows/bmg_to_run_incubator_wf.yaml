@@ -1,0 +1,101 @@
+name: Transfer from BMG to incubator, then incubate WF
+
+metadata:
+  author: Casey Stone
+  info: Workflow for transfer from bmg to incubator and incubation
+  version: 0.1
+
+parameters:
+  json_inputs:
+    - key: lid_location
+    - key: lid_safe_path
+    - key: incubator_location
+    - key: incubator_safe_path
+    - key: incubation_seconds
+    - key: incubator_node
+
+steps:
+  # 0. Open the BMG - might be redundant
+  - name: open BMG
+    node: bmg_billy
+    action: open
+    conditions:
+    - condition_type: no_resource_present
+      location_name: exchange_nest_low_narrow
+
+  # 1. Transfer from BMG to exchange
+  - name: transfer from BMG to exchange
+    node: pf400_piper
+    action: transfer
+    args:
+      source_plate_rotation: narrow
+      target_plate_rotation: narrow
+    locations:
+      source: bmg_reader_nest
+      target: exchange_nest_low_narrow
+      source_approach: safe_path_bmg
+      target_approach: safe_path_exchange
+    conditions:
+    - condition_type: no_resource_present
+      location_name: exchange_nest_low_narrow
+
+  # 2. Replace the lid
+  - name: replace lid on exchange
+    node: pf400_piper
+    action: replace_lid
+    args:
+      source_plate_rotation: narrow
+      target_plate_rotation: narrow
+      lid_height: 8
+    locations:
+      target: exchange_nest_low_narrow
+      target_approach: safe_path_exchange
+    params:
+      locations:
+        source: lid_location
+        source_approach: lid_safe_path
+
+  # 3. Open the incubator
+  - name: open incubator
+    action: open
+    params:
+      node: incubator_node
+
+  # 4. Transfer from exchange to incubator
+  - name: transfer from exchange to incubator
+    node: pf400_piper
+    action: transfer
+    args:
+      source_plate_rotation: narrow
+      target_plate_rotation: narrow
+    locations:
+      source: exchange_nest_low_narrow
+      source_approach: safe_path_exchange
+    params:
+      locations:
+        target: incubator_location
+        target_approach: incubator_safe_path
+
+  # 5. Close the incubator
+  - name: close incubator
+    action: close
+    params:
+      node: incubator_node
+
+  # 6. Close the BMG
+  - name: close BMG
+    node: bmg_billy
+    action: close
+
+  # 7. Run incubation
+  - name: run incubation
+    action: incubate
+    args:
+      temperature: 30.0
+      shaker_frequency: 6.6
+      wait_for_incubation_time: False
+    params:
+      incubation_time: incubation_seconds
+      node: incubator_node
+
+

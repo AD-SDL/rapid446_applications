@@ -1,0 +1,83 @@
+name: Transfer from BMG to incubator, then incubate WF
+
+metadata:
+  author: Casey Stone
+  info: Workflow for transfer from bmg to incubator and incubation
+  version: 0.1
+
+parameters:
+  json_inputs:
+    - key: lid_location
+    - key: incubator_location
+    - key: incubation_seconds
+    - key: incubator_node
+
+steps:
+  # 0. Open the BMG - might be redundant
+  - name: open BMG
+    node: bmg_billy
+    action: open
+    conditions:
+    - condition_type: no_resource_present
+      location_name: exchange_narrow
+
+  # 1. Transfer from BMG to exchange
+  - name: transfer from BMG to exchange
+    node: pf400_piper
+    action: transfer
+    locations:
+      source: bmg_billy.bmg_carriage
+      target: exchange_narrow
+    conditions:
+    - condition_type: no_resource_present
+      location_name: exchange_narrow
+
+  # 2. Replace the lid
+  - name: replace lid on exchange
+    node: pf400_piper
+    action: replace_lid
+    locations:
+      target: exchange_narrow
+    params:
+      locations:
+        source: lid_location
+
+  # 3. Open the incubator
+  - name: open incubator
+    action: open
+    params:
+      node: incubator_node
+
+  # 4. Transfer from exchange to incubator
+  - name: transfer from exchange to incubator
+    node: pf400_piper
+    action: transfer
+    locations:
+      source: exchange_narrow
+    params:
+      locations:
+        target: incubator_location
+
+  # 5. Close the incubator
+  - name: close incubator
+    action: close
+    params:
+      node: incubator_node
+
+  # 6. Close the BMG
+  - name: close BMG
+    node: bmg_billy
+    action: close
+
+  # 7. Run incubation
+  - name: run incubation
+    action: incubate
+    args:
+      temperature: 30.0
+      shaker_frequency: 6.6
+      wait_for_incubation_time: False
+    params:
+      incubation_time: incubation_seconds
+      node: incubator_node
+
+

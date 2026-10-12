@@ -1,0 +1,948 @@
+#!/usr/bin/env python3
+"""Experiment application for the Protein Design experiment"""
+
+import time
+from datetime import datetime
+from pathlib import Path
+
+from madsci.common.types.experiment_types import ExperimentDesign
+from madsci.client import ExperimentClient, WorkcellClient, LocationClient, ResourceClient
+from madsci.common.types.node_types import NodeDefinition
+from madsci.common.types.resource_types import Resource
+from madsci.experiment_application import (
+    ExperimentApplication,
+    ExperimentApplicationConfig,
+)
+from pydantic import AnyUrl
+
+from REST_connection.REST_connect import RESTHandlerPD
+import helper_functions
+
+
+
+
+
+
+class PDApp(ExperimentApplication): # TODO
+    """PD Experiment Application
+
+    # TODO:
+
+    """
+
+    experiment_design = ExperimentDesign(
+        experiment_name="PD_App",
+    )
+    config = ExperimentApplicationConfig(node_url=AnyUrl("http://localhost:6000"))
+    experiment_client = ExperimentClient()
+    workcell_client = WorkcellClient()
+    location_client = LocationClient()
+    resource_client = ResourceClient()
+    experiment_id = None
+    experiment_label = None
+
+
+    def __init__(self) -> None:
+        """Initializes the PD Experiment App"""
+
+        super().__init__()
+        self.init_assay_plate_resource_template()
+
+    def init_assay_plate_resource_template(self):
+        """Initializes assay plate resource template"""
+
+        self.resource_client.create_template(
+            resource=Resource(
+                resource_description="NEST PCR plate 200ul",
+            ),
+            template_name="opentrons_96_wellplate_200ul_pcr_full_skirt",
+            description="Template for 200ul PCR plate",
+            tags=["Plate", "ANSI/SLAS", "96 Well", "PCR", "Labware"],
+        )
+
+        self.resource_client.create_template(
+            resource=Resource(
+                resource_description="ot2 20ul tiprack",
+            ),
+            template_name="opentrons_96_filtertiprack_20ul",
+            description="Template for ot2 20ul tiprack",
+            tags=["Tiprack", "ANSI/SLAS", "96 Well", "Labware"],
+        )
+
+        self.resource_client.create_template(
+            resource=Resource(
+                resource_description="otflex 50ul tiprack",
+            ),
+            template_name="opentrons_flex_96_filtertiprack_50ul",
+            description="Template for OT-Flex 50ul tiprack",
+            tags=["Tiprack", "ANSI/SLAS", "96 Well", "Labware"],
+        )
+
+        self.resource_client.create_template(
+            resource=Resource(
+                resource_description="otflex 200ul tiprack",
+            ),
+            template_name="opentrons_flex_96_filtertiprack_200ul",
+            description="Template for 200ul OT-Flex tiprack",
+            tags=["Tiprack", "ANSI/SLAS", "96 Well", "Labware"],
+        )
+
+
+    def push_new_assay_plate_resource(
+            self,
+            plate_num: int,
+            location_name: str,
+            experiment_id: int,
+            name: str,
+        ) -> None | Resource:
+            """
+            Pushes a new assay plate resource into the specified location, popping an existing plate in that location if necessary.
+            """
+            # get the resource id of the resource associated with the given location
+            associated_resource_id = self.location_client.get_location_by_name(location_name).resource_id
+            print("Location name: ", location_name)
+            print("ASSC Resource id: ", associated_resource_id)
+            # get the resource object from the resource id
+            resource_object = self.resource_client.get_resource(associated_resource_id)
+
+            # check if the resource object currently has child resources (a plate already at that location)
+            old_plate = None
+            if resource_object.child:
+                    # there is already a plate at this location
+                    self.logger.log_info(f"A plate with ID {resource_object.child.resource_id} already exists at location: {location_name}")
+
+                    # pop the old plate
+                    popped_plate, updated_parent = self.resource_client.pop(resource=associated_resource_id)
+                    self.logger.log_info(f"Popped plate with ID {resource_object.child.resource_id} from location: {location_name}")
+                    old_plate = popped_plate
+
+
+            # create a new assay plate resource and push it into the resource object associated with the given location
+            # if name == "opentrons_96_wellplate_200ul_pcr_full_skirt":
+
+            new_plate = self.resource_client.create_resource_from_template(
+                template_name = name,
+                resource_name = f"res_{experiment_id}_plate{plate_num}",
+            )
+
+            self.logger.log_info(f"Created new plate resource {new_plate.resource_name}, {new_plate.resource_id}")
+
+            self.resource_client.push(
+                resource = associated_resource_id,
+                child = new_plate.resource_id,
+            )
+            self.logger.log_info(f"Pushed new plate resource into location {location_name}")
+            return new_plate, old_plate
+
+    def run_experiment(self) -> None:
+        """main experiment function"""
+
+        #TODO: plate starting on ot2 patrick deck 6 on temp block
+        # new_plate, old_plate = self.push_new_assay_plate_resource(
+        #         location_name="ot2_patrick_nest6_temp_block_wide",
+        #     )
+
+        # DEFINE PATHS AND VARIABLES ========
+        run_robots = False  # if False, no robots will run
+        run_resources = True
+        test_prints = True  # if True, will print out extra info for testing purposes
+
+        # Experiment ID and name
+        experiment_id = self.experiment.experiment_id
+        experiment_label = "1"
+
+        # Directory paths
+        app_directory = Path(__file__).parent.parent   # experiment app
+        wf_directory = app_directory / "workflows"  # workflows
+        run_directory = wf_directory / "run_instrument"
+        transfers_directory = wf_directory / "transfers"
+        protocol_directory = app_directory / "protocols"    # protocols
+
+        # Workflow paths
+        run_ot2_wf = run_directory / "run_ot2_wf.yaml"
+        run_flex_wf = run_directory / "run_flex.yaml"
+        run_thermo_wf = run_directory / "run_thermo.yaml"
+        open_thermo_wf = run_directory / "open_thermo.yaml"
+
+        ot2_to_thermocycler = (
+            transfers_directory / "ot2_to_thermocycler.yaml"
+        )
+        replace_tip_boxes_ot2_pcr = (
+             transfers_directory / "replace_tip_boxes_ot2_pcr.yaml"
+        )
+        thermocycler_to_ot2 = (
+             transfers_directory / "thermocycler_to_ot2.yaml"
+        )
+
+        fragments_to_flex = (
+             transfers_directory / "fragments_to_flex.yaml"
+        )
+
+        empty_pcr_to_flex = (
+             transfers_directory / "empty_pcr_to_flex.yaml"
+        )
+
+        pcr_plate_to_ot2_block = (
+             transfers_directory / "pcr_plate_to_ot2_block.yaml"
+        )
+
+        pcr_plate_to_ot2_block_2 = (
+             transfers_directory / "pcr_plate_to_ot2_block_2.yaml"
+        )
+
+        seal_and_thermocycle = (
+             transfers_directory / "seal_and_thermocycle_pcr.yaml"
+        )
+
+        fragments_flex_to_exchange = (
+            transfers_directory / "fragments_flex_to_exchange.yaml"
+        )
+
+        remove_plates = (
+             transfers_directory / "remove_plates_pcr.yaml"
+        )
+
+        thermocycler_to_flex = (
+             transfers_directory / "thermocycler_to_flex.yaml"
+        )
+
+        controls_to_flex = (
+             transfers_directory / "controls_to_flex.yaml"
+        )
+
+        sybrgreen_to_flex = (
+             transfers_directory / "sybrgreen_to_flex.yaml"
+        )
+
+        empty_pcr_to_ot2 = (
+             transfers_directory / "empty_pcr_to_ot2.yaml"
+        )
+
+        rmf_mixes_to_flex = (
+             transfers_directory / "rmf_mixes_to_flex.yaml"
+        )
+
+        empty_cfps_to_flex = (
+             transfers_directory / "empty_cfps_to_flex.yaml"
+        )
+
+        cfps_plate_to_ot2_block = (
+             transfers_directory / "cfps_plate_to_ot2_block.yaml"
+        )
+
+        cfps_plate_to_ot2_block_2 = (
+             transfers_directory / "cfps_plate_to_ot2_block_2.yaml"
+        )
+
+        seal_cfps_to_flex = (
+             transfers_directory / "seal_cfps_to_flex.yaml"
+        )
+
+        controls_plate_to_flex = (
+             transfers_directory / "controls_plate_to_flex.yaml"
+        )
+
+        fdglu_plate_to_flex = (
+             transfers_directory / "fdglu_plate_to_flex.yaml"
+        )
+
+        cfps_plate_to_peeler_to_flex = (
+             transfers_directory / "cfps_plate_to_peeler_to_flex.yaml"
+        )
+
+        cfps_plate_to_peeler_to_flex_2 = (
+             transfers_directory / "cfps_plate_to_peeler_to_flex_2.yaml"
+        )
+
+        fdglu_to_hidex = (
+             transfers_directory / "fdglu_to_hidex.yaml"
+        )
+
+
+
+
+
+        # Protocol paths (for OT-2)
+        A4_to_B1 = protocol_directory / "pcr_A4_to_B1.py"
+        A4_to_C1 = protocol_directory / "pcr_A4_to_C1.py"
+        C1_to_A4 = protocol_directory / "pcr_C1_to_A4.py"
+        B1_to_A4 = protocol_directory / "pcr_B1_to_A4.py"
+        A4_to_C2 = protocol_directory / "pcr_A4_to_C2.py"
+        A4_to_D1 = protocol_directory / "pcr_A4_to_D1.py"
+        A4_to_B3 = protocol_directory / "pcr_A4_to_B3.py"
+
+
+
+        # Protocol paths (for OT-2)
+        golden_gate_protocol = protocol_directory / "pd_golden_gate_ot2_v2.py"
+
+        seal_and_thermocycle = (
+             transfers_directory / "seal_and_thermocycle_pcr.yaml"
+        )
+
+        pcr_flex_protocol = protocol_directory / "pd_pcr_v2_flex.py"
+        pcr_ot2_protocol = protocol_directory / "pd_pcr_v2_ot2.py"
+        dd_flex_protocol = protocol_directory / "pd_dd_v2_flex.py"
+        dd_ot2_protocol = protocol_directory / "pd_dd_v2_ot2.py"
+        cfps_flex_protocol = protocol_directory / "cell_free_pd_flex_v2.py"
+        cfps_ot2_protocol = protocol_directory / "cell_free_pd_ot2_v2.py"
+        fdglu_flex_protocol = protocol_directory / "pd_fdglu_flex_v2.py"
+        run_hidex = run_directory / "run_hidex.yaml"
+
+
+        payload = {}
+
+        # combination_data = self.rest_handler.collect_combinations(oracle_id=1008)
+
+
+        # payload["combinations"] = combination_data["combinations"]
+        # payload["use_combinations"] = combination_data["use_combinations"]
+        # payload["non_combinatorial_sources"] = combination_data["non_combinatorial_sources"]
+
+        combination_data = [[1], [2, 2], [3, 3], [4, 4]]
+        combination_num = helper_functions.calculate_total_combinations(combination_data)
+        
+        payload["combinations"] = combination_data
+        payload["use_combinations"] = True
+        payload["non_combinatiorial_sources"] = False
+
+
+        # EXPERIMENT ACTIONS -------------------------------------------------------
+
+        ###############
+        ### GOLDEN GATE
+        ##############
+
+        gg_current_20_tip_boxes = 2
+        gg_current_20_tips = gg_current_20_tip_boxes * 96
+
+        #Tips used:
+        #add master mix:
+        gg_20_tips_used = combination_num
+
+        #transfer combinatorials:
+        gg_20_tips_used += (combination_num * 4)
+
+        # run ot2 protocol step 1
+        ot2_replacement_variables = helper_functions.collect_ot2_replacement_variables(payload)
+        temp_ot2_file_str = helper_functions.generate_ot2_protocol(golden_gate_protocol, ot2_replacement_variables)
+        payload["current_ot2_protocol"] = temp_ot2_file_str
+        workflow = self.workcell_client.submit_workflow(
+            run_ot2_wf.resolve(),
+            file_inputs={
+                "ot2_protocol": payload["current_ot2_protocol"],
+            },
+        )
+
+###### depending on combinatorial length, will need additional tips
+        #swap tip boxes
+
+        #run ot2 protocol step 2
+
+        #swap tip boxes
+
+        #run ot2 protocol step 3 with master mix multi dispense
+
+        #########################
+
+        # transfer destination plate to thermocycler and run
+        # workflow = self.workcell_client.submit_workflow(
+        #     seal_and_thermocycle.resolve(),
+        # )
+
+        # #run thermocycler
+        # workflow = self.workcell_client.submit_workflow(
+        #     run_thermo_wf.resolve(),
+        # )
+
+
+
+        #########
+        ### PCR
+        ########
+
+        # set temp blocks on both flex and ot2 to 4 deg
+
+        # # swap out one new p20 tip box on ot2, remove from D1 and D3
+        #WORKING
+        workflow = self.workcell_client.submit_workflow(
+            replace_tip_boxes_ot2_pcr.resolve(),
+        )
+
+        # move gg plate from thermocycler to temp block in ot2 deck 6
+        #WORKING
+        workflow = self.workcell_client.submit_workflow(
+            thermocycler_to_ot2.resolve(),
+        )
+
+        # # move fragment plate from deck 4 ot2 to flex and empty pcr plate to flex cooling blocks #TODO: maybe do this in ot2 instead
+        #WORKING
+        workflow = self.workcell_client.submit_workflow(
+            fragments_to_flex.resolve(),
+        )
+
+        #run flex A4 to temp block  B1
+        #WORKING
+        payload["current_flex_protocol"] = A4_to_B1
+        workflow = self.workcell_client.submit_workflow(
+            run_flex_wf.resolve(),
+            file_inputs={
+                "flex_protocol": payload["current_flex_protocol"],
+            },
+        )
+
+        #WORKING
+        workflow = self.workcell_client.submit_workflow(
+            empty_pcr_to_flex.resolve(),
+        )
+
+        #run flex A4 to temp block C1
+        #WORKING
+        payload["current_flex_protocol"] = A4_to_C1
+        workflow = self.workcell_client.submit_workflow(
+            run_flex_wf.resolve(),
+            file_inputs={
+                "flex_protocol": payload["current_flex_protocol"],
+            },
+        )
+        
+        # payload["current_flex_protocol"] = pcr_flex_protocol
+        ot2_replacement_variables = helper_functions.collect_ot2_replacement_variables(payload)
+        temp_ot2_file_str = helper_functions.generate_ot2_protocol(pcr_flex_protocol, ot2_replacement_variables)
+        payload["current_flex_protocol"] = temp_ot2_file_str
+        workflow = self.workcell_client.submit_workflow(
+            run_flex_wf.resolve(),
+            file_inputs={
+                "flex_protocol": payload["current_flex_protocol"],
+            },
+        )
+
+
+        # # flex protocol, 24 ul pcr master mix to cols 1-4 of empty pcr plate
+        # payload["current_flex_protocol"] = pcr_flex_protocol
+        # workflow = self.workcell_client.submit_workflow(
+        #     run_flex_wf.resolve(),
+        #     file_inputs={
+        #         "flex_protocol": payload["current_flex_protocol"],
+        #     },
+        # )
+
+        # #move pcr plate to cooled block on ot2 position 4
+
+        #run flex temp block C1 to A4
+        #WORKING
+        payload["current_flex_protocol"] = C1_to_A4
+        workflow = self.workcell_client.submit_workflow(
+            run_flex_wf.resolve(),
+            file_inputs={
+                "flex_protocol": payload["current_flex_protocol"],
+            },
+        )
+
+        # #WORKING
+        workflow = self.workcell_client.submit_workflow(
+            pcr_plate_to_ot2_block.resolve(),
+        )
+
+        new_plate, old_plate = self.push_new_assay_plate_resource(
+            plate_num=plate_num,
+            location_name="exchange_nest_low_narrow",
+            experiment_id=experiment_id,
+            name="opentrons_96_wellplate_200ul_pcr_full_skirt"
+        )
+
+        plate_num+=1
+
+        # #WORKING
+        workflow = self.workcell_client.submit_workflow(
+            pcr_plate_to_ot2_block_2.resolve(),
+        )
+
+        ot2_replacement_variables = helper_functions.collect_ot2_replacement_variables(payload)
+        temp_ot2_file_str = helper_functions.generate_ot2_protocol(pcr_ot2_protocol, ot2_replacement_variables)
+        payload["current_ot2_protocol"] = temp_ot2_file_str
+        workflow = self.workcell_client.submit_workflow(
+            run_ot2_wf.resolve(),
+            file_inputs={
+                "ot2_protocol": payload["current_ot2_protocol"],
+            },
+        )
+
+        # # dilute golden gate products with 20ul of water and mix
+        # 1 ul of diluted golden gate product to cols 1-4 of pcr product plate, mix
+        # payload["current_ot2_protocol"] = pcr_ot2_protocol
+        # workflow = self.workcell_client.submit_workflow(
+        #     run_ot2_wf.resolve(),
+        #     file_inputs={
+        #         "ot2_protocol": payload["current_ot2_protocol"],
+        #     },
+        # )
+
+
+        #seal and thermocycle pcr product plate
+        #WORKING
+        workflow = self.workcell_client.submit_workflow(
+            seal_and_thermocycle.resolve(),
+        )
+
+        # #run thermocycler
+        # workflow = self.workcell_client.submit_workflow(
+        #     run_thermo_wf.resolve(),
+        # )
+
+        #FOR TESTING OPEN THERMOCYCLER
+        workflow = self.workcell_client.submit_workflow(
+            open_thermo_wf.resolve(),
+        )
+
+
+        # #trash fragment and golden gate plate
+
+        #remove fragments plate from flex B1
+        #WORKING
+        payload["current_flex_protocol"] = B1_to_A4
+        workflow = self.workcell_client.submit_workflow(
+            run_flex_wf.resolve(),
+            file_inputs={
+                "flex_protocol": payload["current_flex_protocol"],
+            },
+        )
+
+        #WORKING
+        workflow = self.workcell_client.submit_workflow(
+            fragments_flex_to_exchange.resolve(),
+        )
+
+        new_plate, old_plate = self.push_new_assay_plate_resource(
+            plate_num=plate_num,
+            location_name="exchange_nest_low_narrow",
+            experiment_id=experiment_id,
+            name="opentrons_96_wellplate_200ul_pcr_full_skirt"
+        )
+        #WORKING
+        workflow = self.workcell_client.submit_workflow(
+            remove_plates.resolve(),
+        )
+
+
+
+
+        ################
+        #### DETECT DILUTE
+        ################
+
+        #verify all temp blocks on flex and ot2 set to 4 deg
+
+        #move pcr plate to cool block in flex C1
+        workflow = self.workcell_client.submit_workflow(
+            thermocycler_to_flex.resolve(),
+        )
+
+        payload["current_flex_protocol"] = A4_to_C1
+        workflow = self.workcell_client.submit_workflow(
+            run_flex_wf.resolve(),
+            file_inputs={
+                "flex_protocol": payload["current_flex_protocol"],
+            },
+        )
+
+        #move controls plate (FROM?) to cool block in flex #TODO: needs to be cooled
+        workflow = self.workcell_client.submit_workflow(
+            controls_to_flex.resolve(),
+        )
+
+        payload["current_flex_protocol"] = A4_to_B1
+        workflow = self.workcell_client.submit_workflow(
+            run_flex_wf.resolve(),
+            file_inputs={
+                "flex_protocol": payload["current_flex_protocol"],
+            },
+        )
+
+        #move empty sybrgreen plate to flex
+        workflow = self.workcell_client.submit_workflow(
+            sybrgreen_to_flex.resolve(),
+        )
+
+        payload["current_flex_protocol"] = A4_to_C2
+        workflow = self.workcell_client.submit_workflow(
+            run_flex_wf.resolve(),
+            file_inputs={
+                "flex_protocol": payload["current_flex_protocol"],
+            },
+        )
+
+        #move empty diluted pcr plate to OT-2 (6)
+        workflow = self.workcell_client.submit_workflow(
+            empty_pcr_to_ot2.resolve(),
+        )
+
+        ot2_replacement_variables = helper_functions.collect_ot2_replacement_variables(payload)
+        temp_ot2_file_str = helper_functions.generate_ot2_protocol(dd_flex_protocol, ot2_replacement_variables)
+        payload["current_flex_protocol"] = temp_ot2_file_str
+        workflow = self.workcell_client.submit_workflow(
+            run_flex_wf.resolve(),
+            file_inputs={
+                "flex_protocol": payload["current_flex_protocol"],
+            },
+        )
+
+        # #multichannel flex protocol
+        # payload["current_ot2_protocol"] = dd_flex_protocol
+        # workflow = self.workcell_client.submit_workflow(
+        #     run_flex_wf.resolve(),
+        #     file_inputs={
+        #         "flex_protocol": payload["current_flex_protocol"],
+        #     },
+        # )
+
+#move pcr products plate from flex to cool block in ot2 (4)
+        payload["current_flex_protocol"] = C1_to_A4
+        workflow = self.workcell_client.submit_workflow(
+            run_flex_wf.resolve(),
+            file_inputs={
+                "flex_protocol": payload["current_flex_protocol"],
+            },
+        )
+
+        # #WORKING
+        workflow = self.workcell_client.submit_workflow(
+            pcr_plate_to_ot2_block.resolve(),
+        )
+
+        new_plate, old_plate = self.push_new_assay_plate_resource(
+            plate_num=plate_num,
+            location_name="exchange_nest_low_narrow",
+            experiment_id=experiment_id,
+            name="opentrons_96_wellplate_200ul_pcr_full_skirt"
+        )
+
+        plate_num+=1
+
+        # #WORKING
+        workflow = self.workcell_client.submit_workflow(
+            pcr_plate_to_ot2_block_2.resolve(),
+        )
+
+
+        
+
+#TODO
+
+
+
+        #move controls from flex to ot-2 B1 flex to D1
+        payload["current_flex_protocol"] = B1_to_A4
+        workflow = self.workcell_client.submit_workflow(
+            run_flex_wf.resolve(),
+            file_inputs={
+                "flex_protocol": payload["current_flex_protocol"],
+            },
+        )
+
+        workflow = self.workcell_client.submit_workflow(
+            pcr_plate_to_ot2_block.resolve(),
+        )
+
+        new_plate, old_plate = self.push_new_assay_plate_resource(
+            plate_num=plate_num,
+            location_name="exchange_nest_low_narrow",
+            experiment_id=experiment_id,
+            name="opentrons_96_wellplate_200ul_pcr_full_skirt"
+        )
+
+        plate_num+=1
+
+        workflow = self.workcell_client.submit_workflow(
+            pcr_plate_to_ot2_block_3.resolve(),
+        )
+
+        workflow = self.workcell_client.submit_workflow(
+            dd_controls_flex_to_ot2.resolve(),
+        )
+
+        ot2_replacement_variables = helper_functions.collect_ot2_replacement_variables(payload)
+        temp_ot2_file_str = helper_functions.generate_ot2_protocol(dd_ot2_protocol, ot2_replacement_variables)
+        payload["current_ot2_protocol"] = temp_ot2_file_str
+        workflow = self.workcell_client.submit_workflow(
+            run_ot2_wf.resolve(),
+            file_inputs={
+                "ot2_protocol": payload["current_ot2_protocol"],
+            },
+        )
+
+        # #ot2 dilution protocol
+
+        # payload["current_ot2_protocol"] = dd_ot2_protocol
+        # workflow = self.workcell_client.submit_workflow(
+        #     run_ot2_wf.resolve(),
+        #     file_inputs={
+        #         "ot2_protocol": payload["current_ot2_protocol"],
+        #     },
+        # )
+
+        #move sybrgreen plate to the hidex
+        workflow = self.workcell_client.submit_workflow(
+            ot2_to_hidex.resolve(),
+        )
+
+        #run hidex protocol
+        workflow = self.workcell_client.submit_workflow(
+            run_hidex.resolve(),
+        )
+
+        #TODO: open hidex and remove
+
+
+
+
+
+
+        #################
+        ##### CELL FREE
+        #################
+
+        #add rmf mixes and empty cfps plate to cool block in flex
+        workflow = self.workcell_client.submit_workflow(
+            rmf_mixes_to_flex.resolve(),
+        )
+
+        payload["current_flex_protocol"] = A4_to_B1
+        workflow = self.workcell_client.submit_workflow(
+            run_flex_wf.resolve(),
+            file_inputs={
+                "flex_protocol": payload["current_flex_protocol"],
+            },
+        )
+
+        workflow = self.workcell_client.submit_workflow(
+            empty_cfps_to_flex.resolve(),
+        )
+
+        payload["current_flex_protocol"] = A4_to_C1
+        workflow = self.workcell_client.submit_workflow(
+            run_flex_wf.resolve(),
+            file_inputs={
+                "flex_protocol": payload["current_flex_protocol"],
+            },
+        )
+
+        ot2_replacement_variables = helper_functions.collect_ot2_replacement_variables(payload)
+        temp_ot2_file_str = helper_functions.generate_ot2_protocol(cfps_flex_protocol, ot2_replacement_variables)
+        payload["current_flex_protocol"] = temp_ot2_file_str
+        workflow = self.workcell_client.submit_workflow(
+            run_flex_wf.resolve(),
+            file_inputs={
+                "flex_protocol": payload["current_flex_protocol"],
+            },
+        )
+
+
+
+        #cfps master mix protocol in flex
+
+        # payload["current_flex_protocol"] = cfps_flex_protocol
+        # workflow = self.workcell_client.submit_workflow(
+        #     run_flex_wf.resolve(),
+        #     file_inputs={
+        #         "flex_protocol": payload["current_flex_protocol"],
+        #     },
+        # )
+
+        #move cfps plate to cool block in ot2 (4)
+        payload["current_flex_protocol"] = C1_to_A4
+        workflow = self.workcell_client.submit_workflow(
+            run_flex_wf.resolve(),
+            file_inputs={
+                "flex_protocol": payload["current_flex_protocol"],
+            },
+        )
+
+        workflow = self.workcell_client.submit_workflow(
+            cfps_plate_to_ot2_block.resolve(),
+        )
+
+        new_plate, old_plate = self.push_new_assay_plate_resource(
+            plate_num=plate_num,
+            location_name="exchange_nest_low_narrow",
+            experiment_id=experiment_id,
+            name="opentrons_96_wellplate_200ul_pcr_full_skirt"
+        )
+
+        plate_num+=1
+
+        # #WORKING
+        workflow = self.workcell_client.submit_workflow(
+            cfps_plate_to_ot2_block_2.resolve(),
+        )
+
+        ot2_replacement_variables = helper_functions.collect_ot2_replacement_variables(payload)
+        temp_ot2_file_str = helper_functions.generate_ot2_protocol(cfps_ot2_protocol, ot2_replacement_variables)
+        payload["current_ot2_protocol"] = temp_ot2_file_str
+        workflow = self.workcell_client.submit_workflow(
+            run_ot2_wf.resolve(),
+            file_inputs={
+                "ot2_protocol": payload["current_ot2_protocol"],
+            },
+        )
+
+        #ot2 protocol diluted pcr to cfps plate cols 1-5
+
+        # dilute golden gate products with 20ul of water and mix
+        # 1 ul of diluted golden gate product to cols 1-4 of pcr product plate, mix
+        # payload["current_ot2_protocol"] = cfps_ot2_protocol
+        # workflow = self.workcell_client.submit_workflow(
+        #     run_ot2_wf.resolve(),
+        #     file_inputs={
+        #         "ot2_protocol": payload["current_ot2_protocol"],
+        #     },
+        # )
+
+        #seal cfps, move to flex heater-shaker, incubate at 37 deg for 2.5 hours
+        workflow = self.workcell_client.submit_workflow(
+            seal_cfps_to_flex.resolve(),
+        )
+
+        payload["current_flex_protocol"] = A4_to_D1
+        workflow = self.workcell_client.submit_workflow(
+            run_flex_wf.resolve(),
+            file_inputs={
+                "flex_protocol": payload["current_flex_protocol"],
+            },
+        )
+
+        #TODO: incubate
+
+
+
+
+        #################
+        ##### FD GLU ASSAY
+        #################
+
+        #move controls plate from? to cool block on flex
+        workflow = self.workcell_client.submit_workflow(
+            controls_plate_to_flex.resolve(),
+        )
+
+        payload["current_flex_protocol"] = A4_to_B1
+        workflow = self.workcell_client.submit_workflow(
+            run_flex_wf.resolve(),
+            file_inputs={
+                "flex_protocol": payload["current_flex_protocol"],
+            },
+        )
+
+        # move empty fdglu assay plate to flex
+
+        workflow = self.workcell_client.submit_workflow(
+            fdglu_plate_to_flex.resolve(),
+        )
+
+        payload["current_flex_protocol"] = A4_to_B3 #TODO
+        workflow = self.workcell_client.submit_workflow(
+            run_flex_wf.resolve(),
+            file_inputs={
+                "flex_protocol": payload["current_flex_protocol"],
+            },
+        )
+
+        # cfps plate on heater shaker, peel and put back in flex (spin down?)
+        payload["current_flex_protocol"] = D1_to_A4 #TODO
+        workflow = self.workcell_client.submit_workflow(
+            run_flex_wf.resolve(),
+            file_inputs={
+                "flex_protocol": payload["current_flex_protocol"],
+            },
+        )
+
+        workflow = self.workcell_client.submit_workflow(
+            cfps_plate_to_peeler_to_flex.resolve(),
+        )
+
+        new_plate, old_plate = self.push_new_assay_plate_resource(
+            plate_num=plate_num,
+            location_name="exchange_nest_low_narrow",
+            experiment_id=experiment_id,
+            name="opentrons_96_wellplate_200ul_pcr_full_skirt"
+        )
+
+        plate_num+=1
+
+        # #WORKING
+        workflow = self.workcell_client.submit_workflow(
+            cfps_plate_to_peeler_to_flex_2.resolve(),
+        )
+
+        payload["current_flex_protocol"] = A4_to_B2 #TODO
+        workflow = self.workcell_client.submit_workflow(
+            run_flex_wf.resolve(),
+            file_inputs={
+                "flex_protocol": payload["current_flex_protocol"],
+            },
+        )
+
+        ot2_replacement_variables = helper_functions.collect_ot2_replacement_variables(payload)
+        temp_ot2_file_str = helper_functions.generate_ot2_protocol(fdglu_flex_protocol, ot2_replacement_variables)
+        payload["current_flex_protocol"] = temp_ot2_file_str
+        workflow = self.workcell_client.submit_workflow(
+            run_flex_wf.resolve(),
+            file_inputs={
+                "flex_protocol": payload["current_flex_protocol"],
+            },
+        )
+
+        # flex fdglu protocol
+
+        # payload["current_flex_protocol"] = fdglu_flex_protocol
+        # workflow = self.workcell_client.submit_workflow(
+        #     run_flex_wf.resolve(),
+        #     file_inputs={
+        #         "flex_protocol": payload["current_flex_protocol"],
+        #     },
+        # )
+
+        #move fdglu assay plate to hidex
+        payload["current_flex_protocol"] = B3_to_A4 #TODO
+        workflow = self.workcell_client.submit_workflow(
+            run_flex_wf.resolve(),
+            file_inputs={
+                "flex_protocol": payload["current_flex_protocol"],
+            },
+        )
+
+        #run hidex
+        workflow = self.workcell_client.submit_workflow(
+            cfps_plate_to_peeler_to_flex.resolve(),
+        )
+
+        workflow = self.workcell_client.submit_workflow(
+            fdglu_to_hidex.resolve(),
+        )
+
+        workflow = self.workcell_client.submit_workflow(
+            run_hidex.resolve(),
+        )
+
+
+
+
+
+
+
+
+
+if __name__ == "__main__":
+    exp_app = PDApp()
+
+    current_time = datetime.now()
+
+    # Start experiment run
+    with exp_app.manage_experiment(
+        run_name = f"PD_Experiment{current_time.strftime('%Y%m%d_%H%M%S')}",
+        run_description = "PD experiment",
+    ):
+        exp_app.start_app()
+
+
+    #TODO

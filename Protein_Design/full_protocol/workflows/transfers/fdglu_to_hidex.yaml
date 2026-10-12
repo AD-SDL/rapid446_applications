@@ -1,0 +1,28 @@
+
+metadata:
+  author: Abe Stroka
+  info: Workflow for transfering plate to hidex
+  version: '0.1'
+
+
+steps:
+  - name: open hidex
+    node: hidex_geraldine
+    action: open
+
+
+  - name: exchange to hidex
+    node: pf400_piper
+    action: transfer
+    args:
+      source_plate_rotation: narrow
+      target_plate_rotation: narrow
+    locations:
+      source: exchange_nest_high_narrow
+      target: hidex_nest
+      source_approach: safe_path_exchange
+      target_approach: safe_path_hidex
+
+  - name: close hidex
+    node: hidex_geraldine
+    action: close

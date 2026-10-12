@@ -1,0 +1,30 @@
+name: Run Hidex
+author: Abe Stroka
+info: Workflow for running one hidex protocol from payload
+version: '0.1'
+
+
+flowdef:
+  # - name: Run hidex protocol
+  #   module: hidex_geraldine
+  #   action: run_assay
+  #   args:
+  #     foo: bar
+  #   files:
+  #     protocol: "Campaign2_wei_cs" #PD_CFPS
+  #   comment: Run hidex protocol
+
+  # - name: Run hidex protocol
+  #   module: hidex_geraldine
+  #   action: run_assay
+  #   args:
+  #     assay_name: "PCR_Final_Results"
+  #   comment: Run hidex protocol
+
+
+  - name: Run hidex protocol
+    module: hidex_geraldine
+    action: run_assay
+    args:
+      assay_name: "PD_Kinetic"
+    comment: Run hidex protocol

@@ -49,7 +49,8 @@ config = {
     'diluted_plate_position': 'C3',
     'reagent_plate_position': 'A1',
     'tip_rack_position_20_01': 'D3',
-    'controls_plate_position': 'A2',
+    # 'controls_plate_position': 'A2',
+    'controls_plate_position': 'D1',
 }
 
 

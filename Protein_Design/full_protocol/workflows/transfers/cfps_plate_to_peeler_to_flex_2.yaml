@@ -1,0 +1,57 @@
+name: pcr from exchange to ot2
+
+metadata:
+  author: Abe Stroka
+  info: Workflow for transfering pcr plate from flex to cool block on ot2 nest 4
+  version: '0.1'
+
+
+steps:
+  - name: transfer
+    node: pf400_piper
+    action: transfer
+    args:
+      source_plate_rotation: narrow
+      target_plate_rotation: narrow
+    locations:
+      source: exchange_nest_low_narrow
+      target: peeler_nest
+      source_approach: safe_path_exchange
+      target_approach: safe_path_peeler
+    comment: transfer to peeler
+
+
+  - name: peel
+    node: bio_peeler
+    action: peel
+    args:
+      foo: bar
+    comment: peel the pcr plate
+
+
+  #peeler to exchange
+  - name: transfer
+    node: pf400_piper
+    action: transfer
+    args:
+      source_plate_rotation: narrow
+      target_plate_rotation: narrow
+    locations:
+      source: peeler_nest
+      target: exchange_nest_high_narrow
+      source_approach: safe_path_peeler
+      target_approach: safe_path_exchange
+    comment: moves plate from exchange to biometra 96 thermocycler
+
+  - name: transfer
+    node: pf400_piper
+    action: transfer
+    args:
+      source_plate_rotation: narrow
+      target_plate_rotation: narrow
+    locations:
+      source: exchange_nest_low_narrow
+      target: otflex_sandy_nestA
+      source_approach: safe_path_exchange
+      target_approach: safe_path_otflex_sandy_nestA
+    comment: moves plate from exchange to flex A

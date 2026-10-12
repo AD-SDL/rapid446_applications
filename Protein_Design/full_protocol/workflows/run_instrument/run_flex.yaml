@@ -1,0 +1,19 @@
+name: Run OT-Flex
+
+metadata:
+  author: Abe Stroka
+  info: Workflow for running one OT-Flex protocol from payload
+  version: '0.1'
+
+
+parameters:
+  file_inputs:
+    - key: flex_protocol
+
+steps:
+  - name: Run OT-Flex protocol
+    node: otflex_sandy
+    action: run_protocol
+    files:
+      protocol: flex_protocol
+

@@ -1,0 +1,47 @@
+name: Transfer from exchange to incubator, then incubate WF
+
+metadata:
+  author: Casey Stone
+  info: Workflow for transferring from exchange to incubator then incubating
+  version: 0.1
+
+parameters:
+  json_inputs:
+    - key: incubator_location
+    - key: incubation_seconds
+    - key: incubator_node
+
+steps:
+  # 0. Open incubator  
+  - name: open incubator
+    action: open
+    params:
+      node: incubator_node
+
+  # 1. Transfer from exchange to incubator
+  - name: transfer from exchange to incubator
+    node: pf400_piper
+    action: transfer
+    locations:
+      source: exchange_narrow
+    params:
+      locations:
+        target: incubator_location
+
+  # 2. Close incubator
+  - name: close incubator
+    action: close
+    params:
+      node: incubator_node
+
+  # 3. Run incubation
+  - name: run incubation
+    action: incubate
+    args:
+      temperature: 30.0
+      shaker_frequency: 6.6
+      wait_for_incubation_time: False
+    params:
+      node: incubator_node
+      args:
+        incubation_time: incubation_seconds
