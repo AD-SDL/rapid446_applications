@@ -559,6 +559,12 @@ class PDApp(ExperimentScript,): # TODO
         A2_to_A4 = protocol_directory / "pcr_A2_to_A4.py"
         A4_to_A2 = protocol_directory / "pcr_A2_to_A4.py"
 
+        ot2_temp_on = protocol_directory / "set_ot2_temp_on.py"
+        ot2_temp_off = protocol_directory / "set_ot2_temp_off.py"
+        flex_temp_on = protocol_directory / "set_flex_temp_on.py"
+        flex_temp_off = protocol_directory / "set_flex_temp_off.py"
+        flex_C1_off = protocol_directory / "set_flex_C1_off.py"
+
 
 
         # Protocol paths (for OT-2)
@@ -609,6 +615,16 @@ class PDApp(ExperimentScript,): # TODO
         ### GOLDEN GATE
         ##############
         input("Paused, verify combinations and press Enter...")
+
+        #Cool ot2 blocks
+
+        payload["current_ot2_protocol"] = ot2_temp_on
+        workflow = self.workcell_client.submit_workflow(
+            run_ot2_wf.resolve(),
+            file_inputs={
+                "ot2_protocol": payload["current_ot2_protocol"],
+            },
+        )
         
 
 
@@ -664,6 +680,14 @@ class PDApp(ExperimentScript,): # TODO
         #########
         ### PCR
         ########
+
+        payload["current_flex_protocol"] = flex_temp_on
+        workflow = self.workcell_client.submit_workflow(
+            run_flex_wf.resolve(),
+            file_inputs={
+                "flex_protocol": payload["current_flex_protocol"],
+            },
+        )
 
         # set temp blocks on both flex and ot2 to 4 deg
 
@@ -1208,6 +1232,21 @@ class PDApp(ExperimentScript,): # TODO
             seal_cfps_to_flex.resolve(),
         )
 
+        payload["current_flex_protocol"] = ot2_temp_off
+        workflow = self.workcell_client.submit_workflow(
+            run_ot2_wf.resolve(),
+            file_inputs={
+                "flex_protocol": payload["current_flex_protocol"],
+            },
+        )
+
+        payload["current_flex_protocol"] = flex_C1_off
+        workflow = self.workcell_client.submit_workflow(
+            run_flex_wf.resolve(),
+            file_inputs={
+                "flex_protocol": payload["current_flex_protocol"],
+            },
+        )
 
         # # #WORKING 7-24
         payload["current_flex_protocol"] = A4_to_D1
@@ -1245,6 +1284,8 @@ class PDApp(ExperimentScript,): # TODO
         ################
         #### FD GLU ASSAY
         ################
+
+    
 
         # #move controls plate from? to cool block on flex
         # #WORKING 7-24
@@ -1417,6 +1458,14 @@ class PDApp(ExperimentScript,): # TODO
         #TODO: REMOVE ALL LABWARE FROM OT2 AND FLEX
 
         #open rack nests: 131, 132, 142, 143, 151, 152, 153
+
+        payload["current_flex_protocol"] = flex_temp_off
+        workflow = self.workcell_client.submit_workflow(
+            run_flex_wf.resolve(),
+            file_inputs={
+                "flex_protocol": payload["current_flex_protocol"],
+            },
+        )
 
 
 
