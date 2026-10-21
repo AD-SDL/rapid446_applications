@@ -1236,7 +1236,7 @@ class PDApp(ExperimentScript,): # TODO
         workflow = self.workcell_client.submit_workflow(
             run_ot2_wf.resolve(),
             file_inputs={
-                "flex_protocol": payload["current_flex_protocol"],
+                "ot2_protocol": payload["current_flex_protocol"],
             },
         )
 
